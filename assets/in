@@ -1,0 +1,41 @@
+#!/bin/bash
+# vim: set ft=sh
+
+set -e -x
+
+destination=$1
+
+if [ -z "$destination" ]; then
+  echo "usage: $0 <path/to/destination>"
+  exit 1
+fi
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+payload=$(mktemp /tmp/resource-in.XXXXX)
+
+cat > $payload <&0
+
+uri=$(jq -r '.uri // ""' < $payload)
+branch=$(jq -r '.branch // ""' < $payload)
+ref=$(jq -r '.ref // "HEAD"' < $payload)
+
+if [ -z "$uri" ]; then
+  echo "invalid payload (missing uri):"
+  cat $payload
+  exit 1
+fi
+
+branchflag=""
+if [ -n "$branch" ]; then
+  branchflag="--branch $branch"
+fi
+
+git clone $uri $branchflag $destination --depth 10
+
+pushd $destination
+  git checkout $ref
+  git clean --force --force -d
+  git submodule update --init --recursive
+popd
