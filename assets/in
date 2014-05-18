@@ -34,8 +34,8 @@ fi
 
 git clone $uri $branchflag $destination --depth 10
 
-pushd $destination
-  git checkout $ref
-  git clean --force --force -d
-  git submodule update --init --recursive
-popd
+cd $destination
+
+git checkout $ref
+git clean --force --force -d
+git submodule update --init --recursive

@@ -1,0 +1,26 @@
+#!/bin/bash
+# vim: set ft=sh
+
+set -e -x
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+source=$(mktemp /tmp/resource-in.XXXXX)
+tmpdir=$(mktemp -d /tmp/resource-in-source.XXXXX)
+
+cat > $source <&0
+
+# fetch latest for given branch (exclude ref)
+cat $source | jq '{uri,branch}' | $(dirname $0)/in $tmpdir >/dev/null
+
+uri=$(jq '.uri' < $source)
+branch=$(jq '.branch' < $source)
+ref=$(jq -r '.ref // "HEAD"' < $source)
+
+cd $tmpdir
+
+git log --reverse --oneline ${ref}..HEAD | \
+  cut -d' ' -f1 | \
+  jq -R '.' | \
+  jq -s "map({uri: ${uri}, branch: ${branch}, ref: .})"

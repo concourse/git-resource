@@ -7,3 +7,6 @@ RUN chmod +x /usr/local/bin/jq
 
 ADD assets/in /tmp/resource/in
 RUN chmod +x /tmp/resource/in
+
+ADD assets/check /tmp/resource/check
+RUN chmod +x /tmp/resource/check
