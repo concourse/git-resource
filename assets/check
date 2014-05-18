@@ -12,7 +12,7 @@ tmpdir=$(mktemp -d /tmp/resource-in-source.XXXXX)
 cat > $source <&0
 
 # fetch latest for given branch (exclude ref)
-cat $source | jq '{uri,branch}' | $(dirname $0)/in $tmpdir >/dev/null
+cat $source | jq '{uri,branch}' | $(dirname $0)/in $tmpdir
 
 uri=$(jq '.uri' < $source)
 ref=$(jq -r '.ref // "HEAD~1"' < $source)

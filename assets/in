@@ -6,7 +6,7 @@ set -e -x
 destination=$1
 
 if [ -z "$destination" ]; then
-  echo "usage: $0 <path/to/destination>"
+  echo "usage: $0 <path/to/destination>" >&2
   exit 1
 fi
 
@@ -22,8 +22,8 @@ branch=$(jq -r '.branch // ""' < $payload)
 ref=$(jq -r '.ref // "HEAD"' < $payload)
 
 if [ -z "$uri" ]; then
-  echo "invalid payload (missing uri):"
-  cat $payload
+  echo "invalid payload (missing uri):" >&2
+  cat $payload >&2
   exit 1
 fi
 
@@ -32,10 +32,16 @@ if [ -n "$branch" ]; then
   branchflag="--branch $branch"
 fi
 
-git clone $uri $branchflag $destination --depth 10
+git clone --quiet $uri $branchflag $destination --depth 10
 
 cd $destination
 
-git checkout $ref
-git clean --force --force -d
-git submodule update --init --recursive
+git checkout --quiet $ref
+git clean --quiet --force --force -d
+git submodule --quiet update --init --recursive
+
+jq -n "{
+  uri: $(git ls-remote --get-url origin | jq -R .),
+  branch: $(git rev-parse --abbrev-ref HEAD | jq -R .),
+  ref: $(git rev-parse HEAD | jq -R .)
+}"
