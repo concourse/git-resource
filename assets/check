@@ -15,10 +15,11 @@ cat > $source <&0
 cat $source | jq '{uri,branch}' | $(dirname $0)/in $tmpdir >/dev/null
 
 uri=$(jq '.uri' < $source)
-branch=$(jq '.branch' < $source)
-ref=$(jq -r '.ref // "HEAD"' < $source)
+ref=$(jq -r '.ref // "HEAD~1"' < $source)
 
 cd $tmpdir
+
+branch=$(git rev-parse --abbrev-ref HEAD | jq -R .)
 
 git log --reverse --oneline ${ref}..HEAD | \
   cut -d' ' -f1 | \
