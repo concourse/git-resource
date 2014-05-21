@@ -42,6 +42,6 @@ git submodule --quiet update --init --recursive
 
 jq -n "{
   uri: $(git ls-remote --get-url origin | jq -R .),
-  branch: $(git rev-parse --abbrev-ref HEAD | jq -R .),
+  branch: $(jq -r '.branch' < $payload | jq -R .),
   ref: $(git rev-parse HEAD | jq -R .)
 }"
