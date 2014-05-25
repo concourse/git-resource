@@ -39,14 +39,13 @@ fi
 cd $source
 
 eval $(ssh-agent) 1>&2
-cat $private_key_path 1>&2
 ssh-add $private_key_path 1>&2
 
 mkdir -p ~/.ssh
 echo 'StrictHostKeyChecking no' > ~/.ssh/config
 
 git remote add push-target $remote 1>&2
-git push -q push-target HEAD:$branch 1>&2
+git push -q push-target HEAD:refs/heads/$branch 1>&2
 
 jq -n "{
   uri: $(git ls-remote --get-url origin | jq -R .),
