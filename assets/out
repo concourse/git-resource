@@ -1,0 +1,55 @@
+#!/bin/bash
+# vim: set ft=sh
+
+set -e -x
+
+source=$1
+
+if [ -z "$source" ]; then
+  echo "usage: $0 <path/to/source>" >&2
+  exit 1
+fi
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+payload=$(mktemp /tmp/resource-in.XXXXX)
+private_key_path=$(mktemp /tmp/resource-in-private-key.XXXXX)
+
+cat > $payload <&0
+
+branch=$(jq -r '.branch // ""' < $payload)
+remote=$(jq -r '.remote // ""' < $payload)
+(jq -r '.private_key // ""' < $payload) > $private_key_path
+
+chmod 0600 $private_key_path
+
+if [ -z "$branch" ]; then
+  echo "invalid payload (missing branch):" >&2
+  cat $payload >&2
+  exit 1
+fi
+
+if [ -z "$remote" ]; then
+  echo "invalid payload (missing remote):" >&2
+  cat $payload >&2
+  exit 1
+fi
+
+cd $source
+
+eval $(ssh-agent) 1>&2
+cat $private_key_path 1>&2
+ssh-add $private_key_path 1>&2
+
+mkdir -p ~/.ssh
+echo 'StrictHostKeyChecking no' > ~/.ssh/config
+
+git remote add push-target $remote 1>&2
+git push -q push-target HEAD:$branch 1>&2
+
+jq -n "{
+  uri: $(git ls-remote --get-url origin | jq -R .),
+  branch: $(jq '.branch' < $payload),
+  ref: $(git rev-parse HEAD | jq -R .)
+}"
