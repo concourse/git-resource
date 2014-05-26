@@ -3,6 +3,8 @@
 
 set -e -x
 
+source $(dirname $0)/common.sh
+
 source=$1
 
 if [ -z "$source" ]; then
@@ -14,15 +16,13 @@ fi
 PATH=/usr/local/bin:$PATH
 
 payload=$(mktemp /tmp/resource-in.XXXXX)
-private_key_path=$(mktemp /tmp/resource-in-private-key.XXXXX)
 
 cat > $payload <&0
 
+load_pubkey $payload
+
 branch=$(jq -r '.branch // ""' < $payload)
 remote=$(jq -r '.remote // ""' < $payload)
-(jq -r '.private_key // ""' < $payload) > $private_key_path
-
-chmod 0600 $private_key_path
 
 if [ -z "$branch" ]; then
   echo "invalid payload (missing branch):" >&2
@@ -37,12 +37,6 @@ if [ -z "$remote" ]; then
 fi
 
 cd $source
-
-eval $(ssh-agent) 1>&2
-ssh-add $private_key_path 1>&2
-
-mkdir -p ~/.ssh
-echo 'StrictHostKeyChecking no' > ~/.ssh/config
 
 git remote add push-target $remote 1>&2
 git push -q push-target HEAD:refs/heads/$branch 1>&2
