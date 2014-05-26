@@ -3,6 +3,9 @@
 
 set -e -x
 
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
 source $(dirname $0)/common.sh
 
 source=$1
@@ -39,11 +42,11 @@ fi
 cd $source
 
 git remote add push-target $remote 1>&2
-git push -q push-target HEAD:refs/heads/$branch 1>&2
+git push push-target HEAD:refs/heads/$branch 1>&2
 
 jq -n "{
   uri: $(git ls-remote --get-url origin | jq -R .),
   branch: $(jq '.branch' < $payload),
   ref: $(git rev-parse HEAD | jq -R .),
   private_key: $(jq '.private_key' < $payload)
-}"
+}" >&3

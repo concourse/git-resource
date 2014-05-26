@@ -3,6 +3,9 @@
 
 set -e -x
 
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
 source $(dirname $0)/common.sh
 
 destination=$1
@@ -36,17 +39,17 @@ if [ -n "$branch" ]; then
   branchflag="--branch $branch"
 fi
 
-git clone --quiet $uri $branchflag $destination --depth 10
+git clone $uri $branchflag $destination --depth 10
 
 cd $destination
 
-git checkout --quiet $ref
-git clean --quiet --force --force -d
-git submodule --quiet update --init --recursive
+git checkout $ref
+git clean --force --force -d
+git submodule update --init --recursive
 
 jq -n "{
   uri: $(git ls-remote --get-url origin | jq -R .),
   branch: $(jq '.branch' < $payload),
   ref: $(git rev-parse HEAD | jq -R .),
   private_key: $(jq '.private_key' < $payload)
-}"
+}" >&3
