@@ -44,5 +44,6 @@ git push -q push-target HEAD:refs/heads/$branch 1>&2
 jq -n "{
   uri: $(git ls-remote --get-url origin | jq -R .),
   branch: $(jq '.branch' < $payload),
-  ref: $(git rev-parse HEAD | jq -R .)
+  ref: $(git rev-parse HEAD | jq -R .),
+  private_key: $(jq '.private_key' < $payload)
 }"

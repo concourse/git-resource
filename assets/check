@@ -12,9 +12,10 @@ tmpdir=$(mktemp -d /tmp/resource-in-source.XXXXX)
 cat > $source <&0
 
 # fetch latest for given branch (exclude ref)
-cat $source | jq '{uri,branch}' | $(dirname $0)/in $tmpdir >/dev/null
+cat $source | jq '{uri,branch,private_key}' | $(dirname $0)/in $tmpdir >/dev/null
 
 uri=$(jq '.uri' < $source)
+private_key=$(jq '.private_key' < $source)
 ref=$(jq -r '.ref // "HEAD~1"' < $source)
 
 cd $tmpdir
@@ -24,4 +25,4 @@ branch=$(git rev-parse --abbrev-ref HEAD | jq -R .)
 git log --reverse --oneline ${ref}..HEAD | \
   cut -d' ' -f1 | \
   jq -R '.' | \
-  jq -s "map({uri: ${uri}, branch: ${branch}, ref: .})"
+  jq -s "map({uri: ${uri}, branch: ${branch}, ref: ., private_key: ${private_key}})"
