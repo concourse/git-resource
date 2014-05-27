@@ -8,10 +8,11 @@ function load_pubkey() {
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path
 
-    eval $(ssh-agent) 1>&2
-    ssh-add $private_key_path 1>&2
+    eval $(ssh-agent) >/dev/null
+    ssh-add $private_key_path >/dev/null
 
     mkdir -p ~/.ssh
     echo 'StrictHostKeyChecking no' > ~/.ssh/config
+    echo 'LogLevel quiet' > ~/.ssh/config
   fi
 }
