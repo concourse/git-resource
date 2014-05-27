@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: set ft=sh
 
-set -e -x
+set -e
 
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for logging
@@ -43,7 +43,8 @@ git clone $uri $branchflag $destination --depth 10
 
 cd $destination
 
-git checkout $ref
+git checkout -q $ref
+git log -1 --oneline
 git clean --force --force -d
 git submodule update --init --recursive
 
