@@ -3,7 +3,7 @@
 function load_pubkey() {
   private_key_path=$(mktemp /tmp/resource-in-private-key.XXXXX)
 
-  (jq -r '.source.private_key // empty' < $1) > $private_key_path
+  (jq -r '.source.private_key // .params.private_key // empty' < $1) > $private_key_path
 
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path
