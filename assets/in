@@ -24,9 +24,9 @@ cat > $payload <&0
 
 load_pubkey $payload
 
-uri=$(jq -r '.uri // ""' < $payload)
-branch=$(jq -r '.branch // ""' < $payload)
-ref=$(jq -r '.ref // "HEAD"' < $payload)
+uri=$(jq -r '.source.uri // ""' < $payload)
+branch=$(jq -r '.source.branch // ""' < $payload)
+ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri):" >&2
@@ -49,8 +49,6 @@ git clean --force --force -d
 git submodule update --init --recursive
 
 jq -n "{
-  uri: $(git ls-remote --get-url origin | jq -R .),
-  branch: $(jq '.branch' < $payload),
-  ref: $(git rev-parse HEAD | jq -R .),
-  private_key: $(jq '.private_key' < $payload)
+  version: {ref: $(git rev-parse HEAD | jq -R .)},
+  metadata: []
 }" >&3
