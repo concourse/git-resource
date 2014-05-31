@@ -6,7 +6,7 @@ set -e
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for logging
 
-source $(dirname $0)/common.sh
+source $(dirname $0)/common.bash
 
 source=$1
 
@@ -46,5 +46,5 @@ git push push-target HEAD:refs/heads/$branch 1>&2
 
 jq -n "{
   version: {ref: $(git rev-parse HEAD | jq -R .)},
-  metadata: []
+  metadata: $(git_metadata)
 }" >&3
