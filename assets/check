@@ -6,22 +6,34 @@ set -e
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for logging
 
+source $(dirname $0)/common.bash
+
 # for jq
 PATH=/usr/local/bin:$PATH
 
 payload=$(mktemp /tmp/resource-in.XXXXX)
-tmpdir=$(mktemp -d /tmp/resource-in-source.XXXXX)
-
 cat > $payload <&0
 
-# fetch latest for given source (exclude version)
-cat $payload | jq '{source}' | $(dirname $0)/in $tmpdir
+load_pubkey $payload
 
+uri=$(jq -r '.source.uri // ""' < $payload)
+branch=$(jq -r '.source.branch // ""' < $payload)
 ref=$(jq -r '.version.ref // "HEAD~1"' < $payload)
 
-cd $tmpdir
+destination=/tmp/resource-in-git-dir
 
-branch=$(git rev-parse --abbrev-ref HEAD | jq -R .)
+if [ -d $destination ]; then
+  cd $destination
+  git pull --ff-only
+else
+  branchflag=""
+  if [ -n "$branch" ]; then
+    branchflag="--branch $branch"
+  fi
+
+  git clone $uri $branchflag $destination --depth 10
+  cd $destination
+fi
 
 git log --reverse --oneline --no-abbrev-commit ${ref}..HEAD | \
   cut -d' ' -f1 | \
