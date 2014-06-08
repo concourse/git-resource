@@ -6,9 +6,8 @@ function load_pubkey() {
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path
 
-    if ! pgrep ssh-agent >/dev/null; then
-      eval $(ssh-agent) >/dev/null 2>&1
-    fi
+    eval $(ssh-agent) >/dev/null 2>&1
+    trap "kill $SSH_AGENT_PID" 0
 
     ssh-add $private_key_path >/dev/null 2>&1
 
