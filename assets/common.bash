@@ -6,7 +6,10 @@ function load_pubkey() {
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path
 
-    eval $(ssh-agent) >/dev/null 2>&1
+    if ! pgrep ssh-agent >/dev/null; then
+      eval $(ssh-agent) >/dev/null 2>&1
+    fi
+
     ssh-add $private_key_path >/dev/null 2>&1
 
     mkdir -p ~/.ssh
