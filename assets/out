@@ -24,11 +24,11 @@ cat > $payload <&0
 
 load_pubkey $payload
 
-remote=$(jq -r '.source.remote // ""' < $payload)
+uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.params.branch // ""' < $payload)
 
-if [ -z "$remote" ]; then
-  echo "invalid payload (missing remote):" >&2
+if [ -z "$uri" ]; then
+  echo "invalid payload (missing uri):" >&2
   cat $payload >&2
   exit 1
 fi
@@ -41,7 +41,7 @@ fi
 
 cd $source
 
-git remote add push-target $remote 1>&2
+git uri add push-target $uri 1>&2
 git push push-target HEAD:refs/heads/$branch 1>&2
 
 jq -n "{

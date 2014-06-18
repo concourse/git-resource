@@ -24,12 +24,12 @@ cat > $payload <&0
 
 load_pubkey $payload
 
-remote=$(jq -r '.source.remote // ""' < $payload)
+uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 
-if [ -z "$remote" ]; then
-  echo "invalid payload (missing remote):" >&2
+if [ -z "$uri" ]; then
+  echo "invalid payload (missing uri):" >&2
   cat $payload >&2
   exit 1
 fi
@@ -39,7 +39,7 @@ if [ -n "$branch" ]; then
   branchflag="--branch $branch"
 fi
 
-git clone $remote $branchflag $destination --depth 10
+git clone $uri $branchflag $destination --depth 10
 
 cd $destination
 
