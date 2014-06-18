@@ -24,17 +24,17 @@ cat > $payload <&0
 
 load_pubkey $payload
 
+remote=$(jq -r '.source.remote // ""' < $payload)
 branch=$(jq -r '.params.branch // ""' < $payload)
-remote=$(jq -r '.params.remote // ""' < $payload)
 
-if [ -z "$branch" ]; then
-  echo "invalid payload (missing branch):" >&2
+if [ -z "$remote" ]; then
+  echo "invalid payload (missing remote):" >&2
   cat $payload >&2
   exit 1
 fi
 
-if [ -z "$remote" ]; then
-  echo "invalid payload (missing remote):" >&2
+if [ -z "$branch" ]; then
+  echo "invalid payload (missing branch):" >&2
   cat $payload >&2
   exit 1
 fi
