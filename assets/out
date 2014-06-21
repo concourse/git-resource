@@ -25,21 +25,26 @@ cat > $payload <&0
 load_pubkey $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
+repository=$(jq -r '.params.repository // ""' < $payload)
 branch=$(jq -r '.params.branch // ""' < $payload)
 
 if [ -z "$uri" ]; then
-  echo "invalid payload (missing uri):" >&2
-  cat $payload >&2
+  echo "invalid payload (missing uri)"
   exit 1
 fi
 
 if [ -z "$branch" ]; then
-  echo "invalid payload (missing branch):" >&2
-  cat $payload >&2
+  echo "invalid payload (missing branch)"
+  exit 1
+fi
+
+if [ -z "$repository" ]; then
+  echo "invalid payload (missing repository)"
   exit 1
 fi
 
 cd $source
+cd $repository
 
 git uri add push-target $uri 1>&2
 git push push-target HEAD:refs/heads/$branch 1>&2
