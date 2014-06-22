@@ -46,7 +46,7 @@ fi
 cd $source
 cd $repository
 
-git uri add push-target $uri 1>&2
+git remote add push-target $uri 1>&2
 git push push-target HEAD:refs/heads/$branch 1>&2
 
 jq -n "{
