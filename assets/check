@@ -18,7 +18,7 @@ load_pubkey $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
-ref=$(jq -r '.version.ref // "HEAD~1"' < $payload)
+ref=$(jq -r '.version.ref // ""' < $payload)
 
 destination=/tmp/resource-in-git-dir
 
@@ -31,11 +31,14 @@ else
     branchflag="--branch $branch"
   fi
 
-  git clone $uri $branchflag $destination --depth 10
+  git clone $uri $branchflag $destination
   cd $destination
 fi
 
-git log --reverse --oneline --no-abbrev-commit ${ref}..HEAD | \
-  cut -d' ' -f1 | \
-  jq -R '.' | \
-  jq -s "map({ref: .})" >&3
+{
+  if [ -z "$ref" ]; then
+    git rev-parse HEAD
+  else
+    git rev-list ${ref}..HEAD
+  fi
+ } | jq -R '.' | jq -s "map({ref: .})" >&3
