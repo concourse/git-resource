@@ -39,6 +39,6 @@ fi
   if [ -z "$ref" ]; then
     git rev-parse HEAD
   else
-    git rev-list ${ref}..HEAD
+    git rev-list --reverse ${ref}..HEAD
   fi
  } | jq -R '.' | jq -s "map({ref: .})" >&3
