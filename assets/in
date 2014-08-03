@@ -27,6 +27,7 @@ load_pubkey $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
+fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri):" >&2
@@ -47,6 +48,10 @@ git checkout -q $ref
 git log -1 --oneline
 git clean --force --force -d
 git submodule update --init --recursive
+
+for branch in $fetch; do
+  git fetch origin $branch
+done
 
 jq -n "{
   version: {ref: $(git rev-parse HEAD | jq -R .)},
