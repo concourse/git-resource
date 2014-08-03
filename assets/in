@@ -51,7 +51,7 @@ git submodule update --init --recursive
 
 for branch in $fetch; do
   git fetch origin $branch
-  git branch --track $branch origin/$branch
+  git branch $branch FETCH_HEAD
 done
 
 jq -n "{
