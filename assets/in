@@ -40,7 +40,7 @@ if [ -n "$branch" ]; then
   branchflag="--branch $branch"
 fi
 
-git clone $uri $branchflag $destination --depth 10
+git clone $uri $branchflag $destination
 
 cd $destination
 
