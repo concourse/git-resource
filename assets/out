@@ -47,7 +47,7 @@ cd $source
 cd $repository
 
 git remote add push-target $uri 1>&2
-git push push-target HEAD:refs/heads/$branch 1>&2
+git push --tags push-target HEAD:refs/heads/$branch 1>&2
 
 jq -n "{
   version: {ref: $(git rev-parse HEAD | jq -R .)},
