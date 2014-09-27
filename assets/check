@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # vim: set ft=sh
 
 set -e
@@ -11,7 +11,7 @@ source $(dirname $0)/common.bash
 # for jq
 PATH=/usr/local/bin:$PATH
 
-payload=$(mktemp /tmp/resource-in.XXXXX)
+payload=$(mktemp /tmp/resource-in.XXXXXX)
 cat > $payload <&0
 
 load_pubkey $payload

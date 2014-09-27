@@ -1,5 +1,5 @@
-function load_pubkey() {
-  private_key_path=$(mktemp /tmp/resource-in-private-key.XXXXX)
+load_pubkey() {
+  private_key_path=$(mktemp /tmp/resource-in-private-key.XXXXXX)
 
   (jq -r '.source.private_key // empty' < $1) > $private_key_path
 
@@ -17,7 +17,7 @@ function load_pubkey() {
   fi
 }
 
-function git_metadata() {
+git_metadata() {
   local commit=$(git rev-parse HEAD | jq -R .)
   local author=$(git log -1 --format=format:%an | jq -s -R .)
   local author_date=$(git log -1 --format=format:%ai | jq -R .)
