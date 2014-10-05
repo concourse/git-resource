@@ -11,7 +11,7 @@ source $(dirname $0)/common.bash
 source=$1
 
 if [ -z "$source" ]; then
-  echo "usage: $0 <path/to/source>" >&2
+  echo "usage: $0 <path/to/source>"
   exit 1
 fi
 
@@ -27,6 +27,7 @@ load_pubkey $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 repository=$(jq -r '.params.repository // ""' < $payload)
+rebase=$(jq -r '.params.rebase // false' < $payload)
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri)"
@@ -46,8 +47,24 @@ fi
 cd $source
 cd $repository
 
-git remote add push-target $uri 1>&2
-git push --tags push-target HEAD:refs/heads/$branch 1>&2
+git remote add push-target $uri
+
+if [ "$rebase" = "true" ]; then
+  while git pull --rebase push-target $branch; do
+    if git push --tags push-target HEAD:refs/heads/$branch 2>&1 | tee /tmp/push-failure; then
+      break
+    fi
+
+    # failed for reason other than non-fast-forward
+    if ! grep non-fast-forward /tmp/push-failure 2>/dev/null; then
+      exit 1
+    fi
+
+    echo "rebasing and trying again..."
+  done
+else
+  git push --tags push-target HEAD:refs/heads/$branch
+fi
 
 jq -n "{
   version: {ref: $(git rev-parse HEAD | jq -R .)},
