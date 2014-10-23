@@ -28,6 +28,7 @@ uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
+submodules=$(jq -r '(.params.submodules // "all")' < $payload)
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri):" >&2
@@ -47,7 +48,15 @@ cd $destination
 git checkout -q $ref
 git log -1 --oneline
 git clean --force --force -d
-git submodule update --init --recursive
+
+if [ "$submodules" == "all" ]; then
+  git submodule update --init --recursive
+elif [ "$submodules" != "none" ]; then
+  submodules=$(echo $submodules | jq -r '(.[])')
+  for submodule in $submodules; do
+    git submodule update --init --recursive $submodule
+  done
+fi
 
 for branch in $fetch; do
   git fetch origin $branch
