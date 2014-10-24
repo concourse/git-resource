@@ -18,6 +18,7 @@ load_pubkey $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+paths=$(jq -r '(.params.paths // [])[]' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 
 destination=/tmp/resource-in-git-dir
@@ -36,9 +37,11 @@ else
 fi
 
 {
-  if [ -z "$ref" ]; then
-    git rev-parse HEAD
-  else
+  if [ -n "$ref" ]; then
     git rev-list --reverse ${ref}..HEAD
+  elif [ -n "$paths" ]; then
+    echo "$paths" | xargs git log -1 --pretty='format:%H' --
+  else
+    git rev-parse HEAD
   fi
  } | jq -R '.' | jq -s "map({ref: .})" >&3
