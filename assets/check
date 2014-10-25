@@ -38,10 +38,16 @@ fi
 
 {
   if [ -n "$ref" ]; then
-    git rev-list --reverse ${ref}..HEAD
-  elif [ -n "$paths" ]; then
-    echo "$paths" | xargs git log -1 --pretty='format:%H' --
+    if [ -n "$paths" ]; then
+      echo "$paths" | xargs git log --reverse ${ref}..HEAD --pretty='format:%H' --
+    else
+      git rev-list --reverse ${ref}..HEAD
+    fi
   else
-    git rev-parse HEAD
+    if [ -n "$paths" ]; then
+      echo "$paths" | xargs git log -1 --pretty='format:%H' --
+    else
+      git rev-parse HEAD
+    fi
   fi
  } | jq -R '.' | jq -s "map({ref: .})" >&3
