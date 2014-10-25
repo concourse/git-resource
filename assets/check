@@ -19,6 +19,7 @@ load_pubkey $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 paths=$(jq -r '(.params.paths // [])[]' < $payload)
+ignore_paths=$(jq -r '(.params.ignore_paths // [])[]' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 
 destination=/tmp/resource-in-git-dir
@@ -34,6 +35,16 @@ else
 
   git clone $uri $branchflag $destination
   cd $destination
+fi
+
+
+glob_to_regex() {
+  $(dirname $0)/glob_to_regex.pl $1
+}
+
+if [ -n "$ignore_paths" ]; then
+  grep_files=$(echo -e $ignore_paths | sed -e 's/\\n/|/g')
+  paths="$(git ls-files | grep -v -e "${grep_files}")"
 fi
 
 {
