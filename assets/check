@@ -18,6 +18,8 @@ load_pubkey $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+paths=$(jq -r '(.params.paths // [])[]' < $payload)
+ignore_paths=$(jq -r '(.params.ignore_paths // [])[]' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 
 destination=/tmp/resource-in-git-dir
@@ -35,10 +37,28 @@ else
   cd $destination
 fi
 
+
+glob_to_regex() {
+  $(dirname $0)/glob_to_regex.pl $1
+}
+
+if [ -n "$ignore_paths" ]; then
+  grep_files=$(echo -e $ignore_paths | sed -e 's/\\n/|/g')
+  paths="$(git ls-files | grep -v -e "${grep_files}")"
+fi
+
 {
-  if [ -z "$ref" ]; then
-    git rev-parse HEAD
+  if [ -n "$ref" ]; then
+    if [ -n "$paths" ]; then
+      echo "$paths" | xargs git log --reverse ${ref}..HEAD --pretty='format:%H' --
+    else
+      git rev-list --reverse ${ref}..HEAD
+    fi
   else
-    git rev-list --reverse ${ref}..HEAD
+    if [ -n "$paths" ]; then
+      echo "$paths" | xargs git log -1 --pretty='format:%H' --
+    else
+      git rev-parse HEAD
+    fi
   fi
  } | jq -R '.' | jq -s "map({ref: .})" >&3
