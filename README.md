@@ -6,14 +6,14 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `uri`: *Required.* The location of the repository.
 
-* `branch`: *Required.* The branch to track. If not specified, the
-repository's default branch is assumed.
+* `branch`: *Required.* The branch to track. If not specified, the repository's
+  default branch is assumed.
 
-* `paths`: *Optional.* If specified (as a list of glob patterns), only
-changes to the specified files will yield new versions.
+* `paths`: *Optional.* If specified (as a list of glob patterns), only changes
+  to the specified files will yield new versions.
 
-* `ignore_paths`: *Optional.* The inverse of `paths`; changes to the
-specified files are ignored.
+* `ignore_paths`: *Optional.* The inverse of `paths`; changes to the specified
+  files are ignored.
 
 
 ## Behavior
@@ -35,12 +35,13 @@ Submodules are initialized and updated recursively.
 
 #### Parameters
 
-* `fetch`: *Optional.* Additional branches to fetch so that they're
-available to the build.
+* `fetch`: *Optional.* Additional branches to fetch so that they're available
+  to the build.
 
-* `submodules`: *Optional. Default `all`.* If `none`, submodules will not be
-fetched. If specified as a list of paths, only the given paths will be
-fetched.
+* `submodules`: *Optional.* If `none`, submodules will not be
+  fetched. If specified as a list of paths, only the given paths will be
+  fetched. If not specified, or if `all` is explicitly specified, all
+  submodules are fetched.
 
 
 ### `out`: Push to a repository.
@@ -53,4 +54,4 @@ to the source.
 * `repository`: *Required.* The path of the repository to push to the source.
 
 * `rebase`: *Optional.* If pushing fails with non-fast-forward, continuously
-attempt rebasing and pushing.
+  attempt rebasing and pushing.
