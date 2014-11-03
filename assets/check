@@ -18,8 +18,8 @@ load_pubkey $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
-paths=$(jq -r '(.params.paths // [])[]' < $payload)
-ignore_paths=$(jq -r '(.params.ignore_paths // [])[]' < $payload)
+paths=$(jq -r '(.source.paths // [])[]' < $payload)
+ignore_paths=$(jq -r '(.source.ignore_paths // [])[]' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 
 destination=/tmp/resource-in-git-dir
