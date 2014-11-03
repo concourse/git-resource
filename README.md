@@ -2,6 +2,7 @@
 
 Tracks the commits in a [git](http://git-scm.com/) repository.
 
+
 ## Source Configuration
 
 * `uri`: *Required.* The location of the repository.
