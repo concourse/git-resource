@@ -9,6 +9,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `branch`: *Required.* The branch to track. If not specified, the
 repository's default branch is assumed.
 
+* `paths`: *Optional.* If specified (as a list of glob patterns), only
+changes to the specified files will yield new versions.
+
+* `ignore_paths`: *Optional.* The inverse of `paths`; changes to the
+specified files are ignored.
+
 
 ## Behavior
 
@@ -31,6 +37,10 @@ Submodules are initialized and updated recursively.
 
 * `fetch`: *Optional.* Additional branches to fetch so that they're
 available to the build.
+
+* `submodules`: *Optional. Default `all`.* If `none`, submodules will not be
+fetched. If specified as a list of paths, only the given paths will be
+fetched.
 
 
 ### `out`: Push to a repository.
