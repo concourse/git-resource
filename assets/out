@@ -50,7 +50,9 @@ cd $repository
 git remote add push-target $uri
 
 if [ "$rebase" = "true" ]; then
-  while git pull --rebase push-target $branch; do
+  while true; do
+    git pull --rebase push-target $branch
+
     if git push --tags push-target HEAD:refs/heads/$branch 2>&1 | tee /tmp/push-failure; then
       break
     fi
