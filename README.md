@@ -10,6 +10,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `branch`: *Required.* The branch to track. If not specified, the repository's
   default branch is assumed.
 
+* `private_key`: *Optional.* Private key to use when pulling/pushing.
+
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions.
 
