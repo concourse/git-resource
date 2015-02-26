@@ -56,7 +56,7 @@ if [ "$rebase" = "true" ]; then
     git pull --rebase push-target $branch
 
     # oh god this is really the only way to do this
-    result_file=$(mktemp /tmp/git-result.XXXXX)
+    result_file=$(mktemp /tmp/git-result.XXXXXX)
 
     echo 0 > $result_file
 
