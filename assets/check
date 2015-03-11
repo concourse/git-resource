@@ -43,7 +43,7 @@ glob_to_regex() {
 }
 
 if [ -n "$ignore_paths" ]; then
-  grep_files=$(echo -e $ignore_paths | sed -e 's/\\n/|/g')
+  grep_files=$(echo -e $ignore_paths | tr "\n" "|")
   paths="$(git ls-files | grep -v -e "${grep_files}")"
 fi
 
