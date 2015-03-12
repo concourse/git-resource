@@ -19,7 +19,7 @@ load_pubkey $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 paths="$(jq -r '(.source.paths // [])[]' < $payload)" # those "'s are important
-ignore_paths="$(jq -r '(.source.ignore_paths // [])[]' < $payload)" # these ones, too
+ignore_paths_regex="$(jq -r '(.source.ignore_paths // []) | join("|")' < $payload)" # these ones, too
 ref=$(jq -r '.version.ref // ""' < $payload)
 
 destination=/tmp/resource-in-git-dir
@@ -42,9 +42,8 @@ glob_to_regex() {
   $(dirname $0)/glob_to_regex.pl $1
 }
 
-if [ -n "$ignore_paths" ]; then
-  grep_files=$(echo -n -e $ignore_paths | tr "\n" "|")
-  paths="$(git ls-files | grep -v -e "${grep_files}")"
+if [ -n "$ignore_paths_regex" ]; then
+  paths="$(git ls-files | grep -v -e "${ignore_paths_regex}")"
 fi
 
 {
