@@ -43,7 +43,7 @@ glob_to_regex() {
 }
 
 if [ -n "$ignore_paths_regex" ]; then
-  paths="$(git ls-files | grep -v -e "${ignore_paths_regex}")"
+  paths="$(git ls-files | egrep -v "${ignore_paths_regex}")"
 fi
 
 {
