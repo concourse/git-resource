@@ -21,10 +21,9 @@ load_pubkey $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
-paths="$(jq -r '(.source.paths // [])[]' < $payload)" # those "'s are important
+paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
+ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
 ref=$(jq -r '.version.ref // ""' < $payload)
-
-jq -r '(.source.ignore_paths // [])[]' < $payload > $ignorefile
 
 destination=/tmp/resource-in-git-dir
 
@@ -41,22 +40,10 @@ else
   cd $destination
 fi
 
-filter_files() {
-  git ls-files -- $paths | while read gitfile; do
-    echo "considering: $gitfile..." >&2
-    if git -c core.excludesfile=${ignorefile} check-ignore --no-index $gitfile >/dev/null; then
-      echo "  ignoring" >&2
-    else
-      echo "  keeping" >&2
-      echo $gitfile
-    fi
-  done
-}
-
 {
   if [ -n "$ref" ]; then
-    filter_files | xargs git log --reverse ${ref}..HEAD --pretty='format:%H' --
+    git log --reverse ${ref}..HEAD --pretty='format:%H' -- $paths $ignore_paths
   else
-    filter_files | xargs git log -1 --pretty='format:%H' --
+    git log -1 --pretty='format:%H' -- $paths $ignore_paths
   fi
  } | jq -R '.' | jq -s "map({ref: .})" >&3
