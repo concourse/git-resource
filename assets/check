@@ -12,7 +12,7 @@ assets_dir=$(cd $(dirname $0) && pwd)
 # for jq
 PATH=/usr/local/bin:$PATH
 
-payload=$(mktemp /tmp/resource-in.XXXXXX)
+payload=$(mktemp $TMPDIR/git-resource-request.XXXXXX)
 
 cat > $payload <&0
 
@@ -24,7 +24,7 @@ paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are importa
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
 ref=$(jq -r '.version.ref // ""' < $payload)
 
-destination=/tmp/resource-in-git-dir
+destination=$TMPDIR/git-resource-repo-cache
 
 if [ -d $destination ]; then
   cd $destination
