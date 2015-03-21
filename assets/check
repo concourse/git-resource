@@ -41,7 +41,7 @@ else
 fi
 
 {
-  if [ -n "$ref" ]; then
+  if [ -n "$ref" ] && git cat-file -e "$ref"; then
     git log --reverse ${ref}..HEAD --pretty='format:%H' -- $paths $ignore_paths
   else
     git log -1 --pretty='format:%H' -- $paths $ignore_paths
