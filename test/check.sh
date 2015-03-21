@@ -1,6 +1,8 @@
-source $(dirname $0)/helpers.bash
+#!/bin/sh
 
-function it_can_check_from_head() {
+source $(dirname $0)/helpers.sh
+
+it_can_check_from_head() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
 
@@ -9,7 +11,7 @@ function it_can_check_from_head() {
   "
 }
 
-function it_can_check_from_a_ref() {
+it_can_check_from_a_ref() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit $repo)
@@ -23,7 +25,7 @@ function it_can_check_from_a_ref() {
   "
 }
 
-function it_can_check_from_a_bogus_sha() {
+it_can_check_from_a_bogus_sha() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit $repo)
@@ -33,7 +35,7 @@ function it_can_check_from_a_bogus_sha() {
   "
 }
 
-function it_skips_ignored_paths() {
+it_skips_ignored_paths() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to file-a $repo)
   local ref2=$(make_commit_to file-b $repo)
@@ -61,7 +63,7 @@ function it_skips_ignored_paths() {
   "
 }
 
-function it_checks_given_paths() {
+it_checks_given_paths() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to file-a $repo)
   local ref2=$(make_commit_to file-b $repo)
@@ -91,7 +93,7 @@ function it_checks_given_paths() {
   "
 }
 
-function it_checks_given_and_ignored_paths() {
+it_checks_given_and_ignored_paths() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to file-a $repo)
   local ref2=$(make_commit_to file-b $repo)
@@ -141,5 +143,3 @@ run it_can_check_from_a_bogus_sha
 run it_skips_ignored_paths
 run it_checks_given_paths
 run it_checks_given_and_ignored_paths
-
-echo $'\e[32mall tests passed!\e[0m'

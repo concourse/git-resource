@@ -7,3 +7,6 @@ RUN chmod +x /usr/local/bin/jq
 
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
+
+ADD test/ /opt/resource-tests/
+RUN /opt/resource-tests/all.sh
