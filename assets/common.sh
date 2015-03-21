@@ -1,5 +1,7 @@
+export TMPDIR=${TMPDIR:-/tmp}
+
 load_pubkey() {
-  private_key_path=$(mktemp /tmp/resource-in-private-key.XXXXXX)
+  private_key_path=$(mktemp $TMPDIR/git-resource-private-key.XXXXXX)
 
   (jq -r '.source.private_key // empty' < $1) > $private_key_path
 
