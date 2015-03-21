@@ -13,7 +13,6 @@ assets_dir=$(cd $(dirname $0) && pwd)
 PATH=/usr/local/bin:$PATH
 
 payload=$(mktemp /tmp/resource-in.XXXXXX)
-ignorefile=$(mktemp /tmp/gitignore.XXXXXX)
 
 cat > $payload <&0
 
