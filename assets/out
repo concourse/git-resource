@@ -25,12 +25,17 @@ cat > $payload <&0
 load_pubkey $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
-branch=$(jq -r '.source.branch // "master"' < $payload)
+branch=$(jq -r '.source.branch // ""' < $payload)
 repository=$(jq -r '.params.repository // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri)"
+  exit 1
+fi
+
+if [ -z "$branch" ]; then
+  echo "invalid payload (missing branch)"
   exit 1
 fi
 
