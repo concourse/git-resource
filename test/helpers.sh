@@ -214,7 +214,8 @@ get_uri_at_branch() {
 put_uri() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
     },
     params: {
       repository: $(echo $3 | jq -R .)
@@ -225,7 +226,8 @@ put_uri() {
 put_uri_with_rebase() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
     },
     params: {
       repository: $(echo $3 | jq -R .),

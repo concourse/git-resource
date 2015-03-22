@@ -32,8 +32,6 @@ it_can_put_to_url() {
 }
 
 it_can_put_to_url_with_rebase() {
-  set -x
-
   local repo1=$(init_repo)
 
   local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
