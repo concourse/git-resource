@@ -44,7 +44,7 @@ make_commit_to_file_on_branch() {
   fi
 
   # switch to branch
-  git -C $repo checkout $branch
+  git -C $repo checkout -q $branch
 
   # modify file and commit
   echo x >> $repo/$file
@@ -209,4 +209,27 @@ get_uri_at_branch() {
       branch: $(echo $2 | jq -R .)
     }
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
+put_uri() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      repository: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_rebase() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      rebase: true
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
