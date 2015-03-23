@@ -10,8 +10,17 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `branch`: *Required.* The branch to track. If not specified, the repository's
   default branch is assumed.
 
-* `private_key`: *Optional.* Private key to use when pulling/pushing.
-
+* `private_key`: *Optional.* Private key to use when pulling/pushing. 
+    Example:
+    ```
+      private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
+        <Lots more text>
+        DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+        -----END RSA PRIVATE KEY-----
+    ```
+    
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions.
 
