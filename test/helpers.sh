@@ -235,3 +235,30 @@ put_uri_with_rebase() {
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
+
+put_uri_with_tag() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      tag: $(echo $3 | jq -R .),
+      repository: $(echo $4 | jq -R .)
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_rebase_with_tag() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      tag: $(echo $3 | jq -R .),
+      repository: $(echo $4 | jq -R .),
+      rebase: true
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}

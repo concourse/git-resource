@@ -67,3 +67,6 @@ to the source.
 
 * `rebase`: *Optional.* If pushing fails with non-fast-forward, continuously
   attempt rebasing and pushing.
+
+* `tag`: *Optional* If this is set then HEAD will be tagged. The value should be
+  a path to a file containing the name of the tag.
