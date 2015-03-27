@@ -10,7 +10,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `branch`: *Required.* The branch to track. If not specified, the repository's
   default branch is assumed.
 
-* `private_key`: *Optional.* Private key to use when pulling/pushing. 
+* `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
     ```
     private_key: |
@@ -20,7 +20,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
       -----END RSA PRIVATE KEY-----
     ```
-    
+
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions.
 
@@ -70,3 +70,7 @@ to the source.
 
 * `tag`: *Optional* If this is set then HEAD will be tagged. The value should be
   a path to a file containing the name of the tag.
+
+* `tag_prefix`: *Optional.* If specified, the tag read from the file will be
+prepended with this string. This is useful for adding `v` in front of
+version numbers.

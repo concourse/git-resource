@@ -28,6 +28,7 @@ uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 repository=$(jq -r '.params.repository // ""' < $payload)
 tag=$(jq -r '.params.tag // ""' < $payload)
+tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
 
 if [ -z "$uri" ]; then
@@ -61,7 +62,7 @@ cd $repository
 
 tag_and_push() {
   if [ -n "$tag_name" ]; then
-    git tag -f "$tag_name"
+    git tag -f "${tag_prefix}${tag_name}"
   fi
 
   git push --tags push-target HEAD:refs/heads/$branch
