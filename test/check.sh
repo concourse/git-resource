@@ -95,7 +95,7 @@ it_checks_given_paths() {
   "
 }
 
-it_checks_given_and_ignored_paths() {
+it_checks_given_an_ignored_paths() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_file $repo file-a)
   local ref2=$(make_commit_to_file $repo file-b)
@@ -144,4 +144,4 @@ run it_can_check_from_a_ref
 run it_can_check_from_a_bogus_sha
 run it_skips_ignored_paths
 run it_checks_given_paths
-run it_checks_given_and_ignored_paths
+run it_checks_given_an_ignored_paths
