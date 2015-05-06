@@ -139,9 +139,41 @@ it_checks_given_ignored_paths() {
   "
 }
 
+it_can_check_when_not_ff() {
+  local repo=$(init_repo)
+  local other_repo=$(init_repo)
+
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo)
+
+  local ref3=$(make_commit $other_repo)
+
+  check_uri $other_repo
+
+  cd "$TMPDIR/git-resource-repo-cache"
+
+  # do this so we get into a situation that git can't resolve by rebasing
+  git config branch.autosetuprebase never
+
+  # set my remote to be the other git repo
+  git remote remove origin
+  git remote add origin $repo/.git
+
+  # fetch so we have master available to track
+  git fetch
+
+  # setup tracking for my branch
+  git branch -u origin/master HEAD
+
+  check_uri $other_repo | jq -e "
+    . == [{ref: $(echo $ref2 | jq -R .)}]
+  "
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_bogus_sha
 run it_skips_ignored_paths
 run it_checks_given_paths
 run it_checks_given_ignored_paths
+run it_can_check_when_not_ff
