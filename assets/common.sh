@@ -14,8 +14,10 @@ load_pubkey() {
     ssh-add $private_key_path >/dev/null 2>&1
 
     mkdir -p ~/.ssh
-    echo 'StrictHostKeyChecking no' >> ~/.ssh/config
-    echo 'LogLevel quiet' >> ~/.ssh/config
+    cat > ~/.ssh/config <<EOF
+StrictHostKeyChecking no
+LogLevel quiet
+EOF
   fi
 }
 
