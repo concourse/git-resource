@@ -1,7 +1,11 @@
 export TMPDIR=${TMPDIR:-/tmp}
 
 load_pubkey() {
-  private_key_path=$(mktemp $TMPDIR/git-resource-private-key.XXXXXX)
+  if [ -d $TMPDIR/git-resource-private-key.* ]; then
+    private_key_path=$(find $TMPDIR --regex $TMPDIR/git-resource-private-key.* | head -n 1)
+  else
+    private_key_path=$(mktemp $TMPDIR/git-resource-private-key.XXXXXX)
+  fi
 
   (jq -r '.source.private_key // empty' < $1) > $private_key_path
 
