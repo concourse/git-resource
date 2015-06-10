@@ -37,6 +37,7 @@ make_commit_to_file_on_branch() {
   local repo=$1
   local file=$2
   local branch=$3
+  local msg=${4-}
 
   # ensure branch exists
   if ! git -C $repo rev-parse --verify $branch >/dev/null; then
@@ -52,14 +53,14 @@ make_commit_to_file_on_branch() {
   git -C $repo \
     -c user.name='test' \
     -c user.email='test@example.com' \
-    commit -q -m "commit $(wc -l $repo/$file)"
+    commit -q -m "commit $(wc -l $repo/$file) $msg"
 
   # output resulting sha
   git -C $repo rev-parse HEAD
 }
 
 make_commit_to_file() {
-  make_commit_to_file_on_branch $1 $2 master
+  make_commit_to_file_on_branch $1 $2 master "${3-}"
 }
 
 make_commit_to_branch() {
@@ -68,6 +69,10 @@ make_commit_to_branch() {
 
 make_commit() {
   make_commit_to_file $1 some-file
+}
+
+make_commit_to_be_skipped() {
+  make_commit_to_file $1 some-file "[ci skip]"
 }
 
 check_uri() {
