@@ -18,6 +18,7 @@ load_pubkey() {
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
+    chmod 0600 ~/.ssh/config
   fi
 }
 
