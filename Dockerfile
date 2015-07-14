@@ -9,4 +9,5 @@ ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
 
 ADD test/ /opt/resource-tests/
-RUN /opt/resource-tests/all.sh
+RUN /opt/resource-tests/all.sh && \
+  rm -rf /tmp/*
