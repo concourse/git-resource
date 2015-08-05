@@ -27,6 +27,7 @@ load_pubkey $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
+depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
 
@@ -41,7 +42,12 @@ if [ -n "$branch" ]; then
   branchflag="--branch $branch"
 fi
 
-git clone $uri $branchflag $destination
+depthflag=""
+if test "$depth" -gt 0 2> /dev/null; then
+  depthflag="--depth $depth"
+fi
+
+git clone $depthflag $uri $branchflag $destination
 
 cd $destination
 
