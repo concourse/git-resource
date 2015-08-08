@@ -13,6 +13,22 @@ it_can_check_from_head() {
   "
 }
 
+it_fails_if_key_has_password() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  local key=$TMPDIR/key-with-passphrase
+  ssh-keygen -f $key -N some-passphrase
+
+  local failed_output=$TMPDIR/failed-output
+  if check_uri_with_key $repo $key 2>$failed_output; then
+    echo "checking should have failed"
+    return 1
+  fi
+
+  grep "Private keys with passphrases are not supported." $failed_output
+}
+
 it_can_check_from_a_ref() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -205,3 +221,4 @@ run it_checks_given_ignored_paths
 run it_can_check_when_not_ff
 run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
+run it_fails_if_key_has_password

@@ -83,6 +83,17 @@ check_uri() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+
+check_uri_with_key() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      private_key: $(cat $2 | jq -s -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+
 check_uri_ignoring() {
   local uri=$1
 
