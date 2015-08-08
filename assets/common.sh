@@ -11,7 +11,7 @@ load_pubkey() {
     eval $(ssh-agent) >/dev/null 2>&1
     trap "kill $SSH_AGENT_PID" 0
 
-    ssh-add $private_key_path >/dev/null 2>&1
+    SSH_ASKPASS=/opt/resource/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
 
     mkdir -p ~/.ssh
     cat > ~/.ssh/config <<EOF
