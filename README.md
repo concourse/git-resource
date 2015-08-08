@@ -48,6 +48,10 @@ Submodules are initialized and updated recursively.
 
 #### Parameters
 
+* `depth`: *Optional.* If a positive integer is given, *shallow* clone the
+  repository using the `--depth` option.
+
+
 * `fetch`: *Optional.* Additional branches to fetch so that they're available
   to the build.
 
