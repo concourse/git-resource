@@ -26,6 +26,30 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `ignore_paths`: *Optional.* The inverse of `paths`; changes to the specified
   files are ignored.
 
+###
+
+``` yaml
+- name: source-code
+  type: git
+  source:
+    uri: git@github.com:concourse/git-resource.git
+    branch: master
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
+      <Lots more text>
+      DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+      -----END RSA PRIVATE KEY-----
+```
+
+``` yaml
+- get: source-code
+```
+
+``` yaml
+- put: source-code
+```
+
 
 ## Behavior
 
