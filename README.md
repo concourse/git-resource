@@ -26,7 +26,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `ignore_paths`: *Optional.* The inverse of `paths`; changes to the specified
   files are ignored.
 
-###
+### Example
 
 ``` yaml
 - name: source-code
