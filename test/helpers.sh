@@ -75,6 +75,19 @@ make_commit_to_be_skipped() {
   make_commit_to_file $1 some-file "[ci skip]"
 }
 
+make_empty_commit() {
+  local repo=$1
+  local msg=${2-}
+
+  git -C $repo \
+    -c user.name='test' \
+    -c user.email='test@example.com' \
+    commit -q --allow-empty -m "commit $msg"
+
+  # output resulting sha
+  git -C $repo rev-parse HEAD
+}
+
 check_uri() {
   jq -n "{
     source: {

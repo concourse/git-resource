@@ -212,6 +212,28 @@ it_skips_marked_commits_with_no_version() {
   "
 }
 
+it_can_check_empty_commits() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_empty_commit $repo)
+
+  check_uri_from $repo $ref1 | jq -e "
+    . == [
+      {ref: $(echo $ref2 | jq -R .)}
+    ]
+  "
+}
+
+it_can_check_from_head_with_empty_commits() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_empty_commit $repo)
+
+  check_uri $repo | jq -e "
+    . == [{ref: $(echo $ref2 | jq -R .)}]
+  "
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_bogus_sha
@@ -222,3 +244,4 @@ run it_can_check_when_not_ff
 run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
 run it_fails_if_key_has_password
+run it_can_check_empty_commits
