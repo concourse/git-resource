@@ -28,7 +28,10 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 ### Example
 
+Resource configuration for a private repo:
+
 ``` yaml
+resources:
 - name: source-code
   type: git
   source:
@@ -42,12 +45,19 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       -----END RSA PRIVATE KEY-----
 ```
 
-``` yaml
-- get: source-code
-```
+Fetching a repo with only 100 commits of history:
 
 ``` yaml
+- get: source-code
+  params: {depth: 100}
+```
+
+Pushing local commits to the repo:
+
+``` yaml
+- get: some-other-repo
 - put: source-code
+  params: {repository: some-other-repo}
 ```
 
 
