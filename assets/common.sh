@@ -22,6 +22,13 @@ EOF
   fi
 }
 
+configure_git_ssl_verification() {
+  git_ignore_ssl=$(jq -r '.source.git_ignore_ssl // false' < $1)
+  if [ "$git_ignore_ssl" = "true" ]; then
+    export GIT_SSL_NO_VERIFY=true
+  fi
+}
+
 git_metadata() {
   local commit=$(git rev-parse HEAD | jq -R .)
   local author=$(git log -1 --format=format:%an | jq -s -R .)
