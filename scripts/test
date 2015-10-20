@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+not_installed() {
+  ! command -v $1 > /dev/null 2>&1
+}
+
+git_resource_dir=$(realpath $(dirname $(dirname $0)))
+
+if not_installed docker; then
+  echo "# docker is not installed! run the following commands:"
+  echo "    brew install docker"
+  echo "    brew cask install docker-machine"
+  echo "    docker-machine create dev --driver virtualbox"
+  echo '    eval $(docker-machine env dev)'
+  echo "    docker login"
+  exit 1
+fi
+
+cd $git_resource_dir
+docker build .
