@@ -1,17 +1,20 @@
 export TMPDIR=${TMPDIR:-/tmp}
 
 load_pubkey() {
-  local private_key_path=$TMPDIR/git-resource-private-key
+  local private_keys_path=$TMPDIR/git-resource-private-keys
 
-  (jq -r '.source.private_key // empty' < $1) > $private_key_path
+  (jq '([.source.private_key // empty] + (.source.private_keys // []))[]' < $1) > $private_keys_path
 
-  if [ -s $private_key_path ]; then
-    chmod 0600 $private_key_path
+  eval $(ssh-agent) >/dev/null 2>&1
+  trap "kill $SSH_AGENT_PID" 0
 
-    eval $(ssh-agent) >/dev/null 2>&1
-    trap "kill $SSH_AGENT_PID" 0
+  while IFS= read -r key; do
+    keyfile=$(mktemp $TMPDIR/key.XXXXXX)
 
-    SSH_ASKPASS=/opt/resource/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
+    echo "$key" | jq -r . > $keyfile
+    chmod 0600 $keyfile
+
+    SSH_ASKPASS=/opt/resource/askpass.sh DISPLAY= ssh-add $keyfile >/dev/null
 
     mkdir -p ~/.ssh
     cat > ~/.ssh/config <<EOF
@@ -19,7 +22,7 @@ StrictHostKeyChecking no
 LogLevel quiet
 EOF
     chmod 0600 ~/.ssh/config
-  fi
+  done < $private_keys_path
 }
 
 git_metadata() {
