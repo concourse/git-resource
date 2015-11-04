@@ -65,6 +65,19 @@ it_can_get_from_url_at_branch() {
   test "$(git -C $dest rev-parse HEAD)" = $ref2
 }
 
+it_can_get_from_url_only_single_branch() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  get_uri $repo $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  ! git -C $dest rev-parse origin/bogus
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
+run it_can_get_from_url_only_single_branch

@@ -47,7 +47,7 @@ if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
 fi
 
-git clone $depthflag $uri $branchflag $destination
+git clone --single-branch $depthflag $uri $branchflag $destination
 
 cd $destination
 

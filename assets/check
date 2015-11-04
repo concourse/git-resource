@@ -35,7 +35,7 @@ else
     branchflag="--branch $branch"
   fi
 
-  git clone $uri $branchflag $destination
+  git clone --single-branch $uri $branchflag $destination
   cd $destination
 fi
 

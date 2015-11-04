@@ -28,6 +28,17 @@ init_repo() {
       -c user.email='test@example.com' \
       commit -q --allow-empty -m "init"
 
+    # create some bogus branch
+    git checkout -b bogus
+
+    git \
+      -c user.name='test' \
+      -c user.email='test@example.com' \
+      commit -q --allow-empty -m "commit on other branch"
+
+    # back to master
+    git checkout master
+
     # print resulting repo
     pwd
   )

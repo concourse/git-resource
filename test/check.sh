@@ -13,6 +13,19 @@ it_can_check_from_head() {
   "
 }
 
+it_can_check_from_head_only_fetching_single_branch() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  local cachedir="$TMPDIR/git-resource-repo-cache"
+
+  check_uri $repo | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+
+  ! git -C $cachedir rev-parse origin/bogus
+}
+
 it_fails_if_key_has_password() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -245,3 +258,4 @@ run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
 run it_fails_if_key_has_password
 run it_can_check_empty_commits
+run it_can_check_from_head_only_fetching_single_branch
