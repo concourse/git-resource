@@ -51,6 +51,7 @@ else
   paths_search="-- $paths $ignore_paths"
 fi
 
+
 {
   git log --grep '\[ci skip\]' --invert-grep --format='%H' $log_range $paths_search
 } | jq -R '.' | jq -s "map({ref: .})" >&3

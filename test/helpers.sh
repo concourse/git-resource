@@ -117,21 +117,6 @@ check_uri_with_key() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
-check_uri_with_keys() {
-  local uri=$1
-
-  shift
-
-  keys="$(for x in "$@"; do cat $x | jq -R -s .; done | jq -s .)"
-
-  jq -n "{
-    source: {
-      uri: $(echo $uri | jq -R .),
-      private_keys: $keys
-    }
-  }" | ${resource_dir}/check #| tee /dev/stderr
-}
-
 
 check_uri_ignoring() {
   local uri=$1

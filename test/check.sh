@@ -42,44 +42,6 @@ it_fails_if_key_has_password() {
   grep "Private keys with passphrases are not supported." $failed_output
 }
 
-it_can_check_with_multiple_keys() {
-  local repo=$(init_repo)
-  local ref=$(make_commit $repo)
-  local keys=$TMPDIR/keys
-
-  mkdir -p $keys
-  ssh-keygen -f $keys/alicia -N ''
-  ssh-keygen -f $keys/derp -N ''
-  rm $keys/*.pub
-
-  OLDPATH=$PATH
-
-  mkdir $TMPDIR/ugh
-  export PATH=$TMPDIR/ugh:$PATH
-
-  cat > $TMPDIR/ugh/ssh-add <<EOF
-#!/bin/sh
-
-echo "\$1" >> $TMPDIR/added-files
-EOF
-
-  chmod +x $TMPDIR/ugh/ssh-add
-
-  check_uri_with_keys $repo $keys/* | jq -e "
-    . == [
-      {ref: $(echo $ref | jq -R .)}
-    ]
-  "
-
-  keyfile1=$(head -1 $TMPDIR/added-files)
-  test "$(cat $keyfile1)" = "$(cat $keys/alicia)"
-
-  keyfile2=$(tail -1 $TMPDIR/added-files)
-  test "$(cat $keyfile2)" = "$(cat $keys/derp)"
-
-  export PATH=$OLDPATH
-}
-
 it_can_check_from_a_ref() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -297,4 +259,3 @@ run it_skips_marked_commits_with_no_version
 run it_fails_if_key_has_password
 run it_can_check_empty_commits
 run it_can_check_from_head_only_fetching_single_branch
-run it_can_check_with_multiple_keys
