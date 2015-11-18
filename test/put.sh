@@ -185,9 +185,37 @@ it_can_put_to_url_with_rebase_with_tag_and_prefix() {
   test "$(git -C $repo1 rev-parse v1.0)" = $rebased_ref
 }
 
+it_can_put_to_url_with_only_tag() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  # create a tag to push
+  git -C $repo2 tag some-only-tag
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_only_tag $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test ! -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" != $ref
+  test "$(git -C $repo1 rev-parse some-only-tag)" = $ref
+}
+
 run it_can_put_to_url
 run it_can_put_to_url_with_tag
 run it_can_put_to_url_with_tag_and_prefix
 run it_can_put_to_url_with_rebase
 run it_can_put_to_url_with_rebase_with_tag
 run it_can_put_to_url_with_rebase_with_tag_and_prefix
+run it_can_put_to_url_with_only_tag

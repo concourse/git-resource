@@ -30,6 +30,7 @@ repository=$(jq -r '.params.repository // ""' < $payload)
 tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
+only_tag=$(jq -r '.params.only_tag // false' < $payload)
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri)"
@@ -60,17 +61,26 @@ fi
 
 cd $repository
 
-tag_and_push() {
+tag() {
   if [ -n "$tag_name" ]; then
     git tag -f "${tag_prefix}${tag_name}"
   fi
+}
 
+push_src_and_tags() {
   git push --tags push-target HEAD:refs/heads/$branch
+}
+
+push_tags() {
+  git push --tags push-target
 }
 
 git remote add push-target $uri
 
-if [ "$rebase" = "true" ]; then
+if [ "$only_tag" = "true" ]; then
+  tag
+  push_tags
+elif [ "$rebase" = "true" ]; then
   while true; do
     echo "rebasing..."
 
@@ -82,7 +92,7 @@ if [ "$rebase" = "true" ]; then
     echo 0 > $result_file
 
     {
-      tag_and_push 2>&1 || {
+      tag 2>&1 && push_src_and_tags 2>&1 || {
         echo $? > $result_file
       }
     } | tee /tmp/push-failure
@@ -109,7 +119,8 @@ if [ "$rebase" = "true" ]; then
     echo "rebasing and trying again..."
   done
 else
-  tag_and_push
+  tag
+  push_src_and_tags
 fi
 
 jq -n "{
