@@ -231,6 +231,17 @@ get_uri() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_at_depth() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      depth: $(echo $2 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
 get_uri_at_ref() {
   jq -n "{
     source: {

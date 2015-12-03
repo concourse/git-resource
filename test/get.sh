@@ -77,7 +77,26 @@ it_can_get_from_url_only_single_branch() {
   ! git -C $dest rev-parse origin/bogus
 }
 
+it_honors_the_depth_flag() {
+  local repo=$(init_repo)
+  local firstCommitRef=$(make_commit $repo)
+
+  make_commit $repo
+
+  local lastCommitRef=$(make_commit $repo)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_at_depth "file://"$repo 1 $dest |  jq -e "
+    .version == {ref: $(echo $lastCommitRef | jq -R .)}
+  "
+
+  test "$(git -C $dest rev-parse HEAD)" = $lastCommitRef
+  test "$(git -C $dest rev-list --all --count)" = 1
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
+run it_honors_the_depth_flag
