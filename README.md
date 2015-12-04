@@ -106,6 +106,8 @@ to the source.
 * `tag`: *Optional* If this is set then HEAD will be tagged. The value should be
   a path to a file containing the name of the tag.
 
+* `only_tag`: *Optional* When set to 'true' push only the tags of a repo.
+
 * `tag_prefix`: *Optional.* If specified, the tag read from the file will be
 prepended with this string. This is useful for adding `v` in front of
 version numbers.
