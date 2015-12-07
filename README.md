@@ -93,8 +93,9 @@ Submodules are initialized and updated recursively.
 
 ### `out`: Push to a repository.
 
-Push a repository to the source's URI and branch. All tags are also pushed
-to the source.
+Push the checked-out reference to the source's URI and branch. All tags are
+also pushed to the source. If a fast-forward for the branch is not possible
+and the `rebase` parameter is not provided, the push will fail.
 
 #### Parameters
 
