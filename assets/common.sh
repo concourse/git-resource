@@ -23,8 +23,8 @@ EOF
 }
 
 configure_git_ssl_verification() {
-  git_ignore_ssl=$(jq -r '.source.git_ignore_ssl // false' < $1)
-  if [ "$git_ignore_ssl" = "true" ]; then
+  skip_ssl_verification=$(jq -r '.source.skip_ssl_verification // false' < $1)
+  if [ "$skip_ssl_verification" = "true" ]; then
     export GIT_SSL_NO_VERIFY=true
   fi
 }
