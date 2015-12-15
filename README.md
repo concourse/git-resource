@@ -26,6 +26,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `ignore_paths`: *Optional.* The inverse of `paths`; changes to the specified
   files are ignored.
 
+* `skip_ssl_verification`: *Optional.* Skips git ssl verification by exporting
+  `GIT_SSL_NO_VERIFY=true`.
+
 ### Example
 
 Resource configuration for a private repo:
