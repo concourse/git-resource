@@ -57,11 +57,11 @@ git log -1 --oneline
 git clean --force --force -d
 
 if [ "$submodules" == "all" ]; then
-  git submodule update --init --recursive
+  git submodule update --init  $depthflag --recursive
 elif [ "$submodules" != "none" ]; then
   submodules=$(echo $submodules | jq -r '(.[])')
   for submodule in $submodules; do
-    git submodule update --init --recursive $submodule
+    git submodule update --init $depthflag --recursive $submodule
   done
 fi
 

@@ -44,6 +44,17 @@ init_repo() {
   )
 }
 
+init_repo_with_submodule() {
+  local submodule=$(init_repo)
+  make_commit $submodule >/dev/null
+  make_commit $submodule >/dev/null
+
+  local project=$(init_repo)
+  git -C $project submodule add "file://$submodule" >/dev/null
+  git -C $project commit -m "Adding Submodule" >/dev/null
+  echo $project,$submodule
+}
+
 make_commit_to_file_on_branch() {
   local repo=$1
   local file=$2
@@ -229,6 +240,41 @@ get_uri() {
       uri: $(echo $1 | jq -R .)
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
+get_uri_at_depth() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      depth: $(echo $2 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
+get_uri_with_submodules_at_depth() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      depth: $(echo $2 | jq -R .),
+      submodules: [$(echo $3 | jq -R .)],
+    }
+  }" | ${resource_dir}/in "$4" | tee /dev/stderr
+}
+
+get_uri_with_submodules_all() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      depth: $(echo $2 | jq -R .),
+      submodules: \"all\",
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
 get_uri_at_ref() {

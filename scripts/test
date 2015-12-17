@@ -19,4 +19,4 @@ if not_installed docker; then
 fi
 
 cd $git_resource_dir
-docker build .
+docker build --rm .
