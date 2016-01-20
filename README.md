@@ -86,7 +86,8 @@ Submodules are initialized and updated recursively.
 #### Parameters
 
 * `depth`: *Optional.* If a positive integer is given, *shallow* clone the
-  repository using the `--depth` option.
+  repository using the `--depth` option. Using this flag voids your warranty.
+  Some things will stop working unless we have the entire history.
 
 * `submodules`: *Optional.* If `none`, submodules will not be
   fetched. If specified as a list of paths, only the given paths will be
