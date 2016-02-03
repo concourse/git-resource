@@ -22,6 +22,7 @@ uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
+tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 
 destination=$TMPDIR/git-resource-repo-cache
@@ -52,7 +53,12 @@ else
   paths_search="-- $paths $ignore_paths"
 fi
 
-
+if [ -n "$tag_filter" ]; then
+{
+  git describe --tags --abbrev=0 --match "$tag_filter"
+} | jq -R '.' | jq -s "map({ref: .})" >&3
+else
 {
   git log --grep '\[ci skip\]' --invert-grep --format='%H' $log_range $paths_search
 } | jq -R '.' | jq -s "map({ref: .})" >&3
+fi
