@@ -110,6 +110,16 @@ make_empty_commit() {
   git -C $repo rev-parse HEAD
 }
 
+make_annotated_tag() {
+  local repo=$1
+  local tag=$2
+  local msg=$3
+
+  git -C $repo tag -a "$tag" -m "$msg"
+
+  git -C $repo describe --tags --abbrev=0
+}
+
 check_uri() {
   jq -n "{
     source: {
@@ -357,6 +367,20 @@ put_uri_with_tag_and_prefix() {
     params: {
       tag: $(echo $3 | jq -R .),
       tag_prefix: $(echo $4 | jq -R .),
+      repository: $(echo $5 | jq -R .)
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_tag_and_annotation() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      tag: $(echo $3 | jq -R .),
+      annotate: $(echo $4 | jq -R .),
       repository: $(echo $5 | jq -R .)
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr

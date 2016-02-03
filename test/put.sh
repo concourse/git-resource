@@ -83,6 +83,35 @@ it_can_put_to_url_with_tag_and_prefix() {
   test "$(git -C $repo1 rev-parse v1.0)" = $ref
 }
 
+it_can_put_to_url_with_tag_and_annotation() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  echo 1.0 > $src/some-tag-file
+  echo yay > $src/some-annotation-file
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_tag_and_annotation $repo1 $src "$src/some-tag-file" "$src/some-annotation-file" repo | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+
+  # Annotated tags have a different hash so resolve the reference
+  test "$(git -C $repo1 rev-parse 1.0^{commit})" = $ref
+  test "$(git -C $repo1 rev-parse 1.0)" != $ref
+}
+
 it_can_put_to_url_with_rebase() {
   local repo1=$(init_repo)
 
@@ -215,6 +244,7 @@ it_can_put_to_url_with_only_tag() {
 run it_can_put_to_url
 run it_can_put_to_url_with_tag
 run it_can_put_to_url_with_tag_and_prefix
+run it_can_put_to_url_with_tag_and_annotation
 run it_can_put_to_url_with_rebase
 run it_can_put_to_url_with_rebase_with_tag
 run it_can_put_to_url_with_rebase_with_tag_and_prefix

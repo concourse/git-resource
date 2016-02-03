@@ -116,3 +116,9 @@ and the `rebase` parameter is not provided, the push will fail.
 * `tag_prefix`: *Optional.* If specified, the tag read from the file will be
 prepended with this string. This is useful for adding `v` in front of
 version numbers.
+
+* `annotate`: *Optional.* If specified the tag will be an
+  [annotated](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags)
+  tag rather than a
+  [lightweight](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags)
+  tag. The value should be a path to a file containing the annotation message.

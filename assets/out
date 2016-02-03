@@ -32,6 +32,7 @@ tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
+annotation_file=$(jq -r '.params.annotate // ""' < $payload)
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri)"
@@ -60,11 +61,16 @@ if [ -n "$tag" ]; then
   tag_name="$(cat $tag)"
 fi
 
+annotate=""
+if [ -n "$annotation_file" ]; then
+  annotate=" -a -F $annotation_file"
+fi
+
 cd $repository
 
 tag() {
   if [ -n "$tag_name" ]; then
-    git tag -f "${tag_prefix}${tag_name}"
+    git tag -f "${tag_prefix}${tag_name}" $annotate
   fi
 }
 
