@@ -247,6 +247,19 @@ it_can_check_from_head_with_empty_commits() {
   "
 }
 
+it_can_check_with_tag_filter() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
+  local ref5=$(make_commit $repo)
+
+  check_uri_with_tag_filter $repo "*-staging" | jq -e "
+    . == [{ref: $(echo $ref2 | jq -R .)}]
+  "
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_bogus_sha
@@ -258,4 +271,5 @@ run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
 run it_fails_if_key_has_password
 run it_can_check_empty_commits
+run it_can_check_with_tag_filter
 run it_can_check_from_head_only_fetching_single_branch

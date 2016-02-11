@@ -244,6 +244,17 @@ check_uri_from_paths_ignoring() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_tag_filter() {
+  local uri=$1
+  local tag_filter=$2
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_filter: $(echo $tag_filter | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 get_uri() {
   jq -n "{
     source: {

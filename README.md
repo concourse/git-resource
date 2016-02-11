@@ -29,6 +29,11 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `skip_ssl_verification`: *Optional.* Skips git ssl verification by exporting
   `GIT_SSL_NO_VERIFY=true`.
 
+* `tag_filter`: *Optional*. If specified the resource will only `trigger` when
+  a tag matching the specified expression is pushed to the repository. Patterns
+  are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html) compatible
+  (as in, bash compatible).
+
 ### Example
 
 Resource configuration for a private repo:
