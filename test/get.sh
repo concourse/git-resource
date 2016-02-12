@@ -122,9 +122,28 @@ it_honors_the_depth_flag_for_submodules() {
   test "$(git -C $dest_one/$submodule_name rev-list --all --count)" = 1
 }
 
+it_honors_the_pin_ref_file() {
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local dest=$TMPDIR/destination
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo)
+
+  echo $ref1 > $src/some-ref-file
+
+  get_uri_at_pin_ref_file $repo $src/some-ref-file $dest | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+  "
+
+  test "$(git -C $dest rev-parse HEAD)" = $ref1
+
+  rm -rf $dest
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
+run it_honors_the_pin_ref_file

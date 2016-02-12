@@ -255,6 +255,15 @@ check_uri_with_tag_filter() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_pinned_at() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      pin_ref: $(echo $2 | jq -R .),
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 get_uri() {
   jq -n "{
     source: {
@@ -314,6 +323,17 @@ get_uri_at_branch() {
     source: {
       uri: $(echo $1 | jq -R .),
       branch: $(echo $2 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
+get_uri_at_pin_ref_file() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      pin_ref_file: $(echo $2 | jq -R .)
     }
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
