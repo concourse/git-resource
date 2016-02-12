@@ -30,6 +30,7 @@ branch=$(jq -r '.source.branch // ""' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
+pin_ref_file=$(jq -r '.params.pin_ref_file // ""' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
 
 if [ -z "$uri" ]; then
@@ -46,6 +47,10 @@ fi
 depthflag=""
 if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
+fi
+
+if [ -n "$pin_ref_file" ]; then
+  ref=$(cat "$pin_ref_file")
 fi
 
 git clone --single-branch $depthflag $uri $branchflag $destination

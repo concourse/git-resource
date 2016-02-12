@@ -34,6 +34,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html) compatible (as
   in, bash compatible).
 
+* `pin_ref`: *Optional.* Pins the git repository at the specified reference
+  instead of tracking master. Expects a valid git reference.
+
 ### Example
 
 Resource configuration for a private repo:
@@ -98,6 +101,10 @@ Submodules are initialized and updated recursively.
   fetched. If specified as a list of paths, only the given paths will be
   fetched. If not specified, or if `all` is explicitly specified, all
   submodules are fetched.
+
+* `pin_ref_file`: *Optional.* Pins the git repository at the reference
+  specified in the named file instead of tracking master. Expects a path to a
+  file containing a valid git reference.
 
 
 ### `out`: Push to a repository.
