@@ -55,3 +55,7 @@ git_metadata() {
     ]"
   fi
 }
+
+turn_off_git_lfs() {
+  git lfs uninstall
+}

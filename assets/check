@@ -17,6 +17,7 @@ cat > $payload <&0
 
 load_pubkey $payload
 configure_git_ssl_verification $payload
+turn_off_git_lfs
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
