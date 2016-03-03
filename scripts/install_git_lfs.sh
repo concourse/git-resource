@@ -13,7 +13,7 @@ _main() {
   mv git-lfs-1.1.0/git-lfs /usr/bin
   cd ..
   rm -rf "$tmpdir"
-  git lfs install
+  git lfs install --skip-smudge
 }
 
 _main "$@"
