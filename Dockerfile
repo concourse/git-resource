@@ -14,3 +14,6 @@ RUN ./install_git_lfs.sh
 ADD test/ /opt/resource-tests/
 RUN /opt/resource-tests/all.sh && \
   rm -rf /tmp/*
+
+# certs/ca-certificates.crt missing or stale? run scripts/refresh-ca-certs.sh
+ADD certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
