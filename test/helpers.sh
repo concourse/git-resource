@@ -425,3 +425,7 @@ put_uri_with_rebase_with_tag_and_prefix() {
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
+
+check_lfs_config_for_string() {
+  git-lfs env | grep "= $1"
+}

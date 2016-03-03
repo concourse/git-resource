@@ -260,6 +260,10 @@ it_can_check_with_tag_filter() {
   "
 }
 
+it_empties_out_git_lfs_config_for_faster_checktimes() {
+  check_lfs_config_for_string '""'
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_bogus_sha
