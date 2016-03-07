@@ -53,6 +53,8 @@ git clone --single-branch $depthflag $uri $branchflag $destination
 cd $destination
 
 git checkout -q $ref
+git lfs fetch
+git lfs checkout
 git log -1 --oneline
 git clean --force --force -d
 
