@@ -20,6 +20,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       -----END RSA PRIVATE KEY-----
     ```
 
+* `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
+  This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
+  and auth is required.
+
+* `password`: *Optional.* Password for HTTP(S) auth when pulling/pushing.
+
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions from `check`.
 

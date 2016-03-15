@@ -107,3 +107,12 @@ git_metadata() {
     add_git_metadata_tags | \
     add_git_metadata_message
 }
+
+configure_credentials() {
+  local username=$(jq -r '.source.username // ""' < $1)
+  local password=$(jq -r '.source.password // ""' < $1)
+
+  if [ "$username" != "" -a "$password" != "" ]; then
+    git config --global credential.helper '!f() { echo "username='$username'"; echo "password='$password'"; }; f'
+  fi
+}
