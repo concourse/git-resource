@@ -55,3 +55,12 @@ git_metadata() {
     ]"
   fi
 }
+
+configure_credentials() {
+  local username=$(jq -r '.source.username // ""' < $1)
+  local password=$(jq -r '.source.password // ""' < $1)
+
+  if [ "$username" != "" -a "$password" != "" ]; then
+    git config --global credential.helper '!f() { echo "username='$username'"; echo "password='$password'"; }; f'
+  fi
+}

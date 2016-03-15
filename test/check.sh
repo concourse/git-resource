@@ -42,6 +42,33 @@ it_fails_if_key_has_password() {
   grep "Private keys with passphrases are not supported." $failed_output
 }
 
+it_can_check_with_credentials() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  check_uri_with_credentials $repo "user1" "pass1" | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+
+  # only check that the expected credential helper is set 
+  # because it is not easily possible to simulate a git http backend that needs credentials
+  local expected_helper='!f() { echo "username=user1"; echo "password=pass1"; }; f'
+  [ "$(git config --global --get credential.helper)" = "$expected_helper" ]
+}
+
+it_does_not_add_credential_helper_if_credentials_are_not_given() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  check_uri_with_credentials $repo "" "" | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+
+  local expected_helper='!f() { echo "username=user1"; echo "password=pass1"; }; f'
+  [ "" = "$expected_helper" ]
+}
+
+
 it_can_check_from_a_ref() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -270,6 +297,7 @@ run it_can_check_when_not_ff
 run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
 run it_fails_if_key_has_password
+run it_can_check_with_credentials
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
 run it_can_check_from_head_only_fetching_single_branch
