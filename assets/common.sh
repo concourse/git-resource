@@ -15,6 +15,7 @@ load_pubkey() {
 
     mkdir -p ~/.ssh
     cat > ~/.ssh/config <<EOF
+PubkeyAcceptedKeyTypes +ssh-dss
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
