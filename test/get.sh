@@ -237,6 +237,116 @@ it_returns_same_ref() {
   "
 }
 
+it_cant_get_commit_with_invalid_key() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  set +e
+  output=$(get_uri_with_invalid_verification_key $repo $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  test "${exit_code}" == 2
+  echo "${output}" | grep "Invalid GPG key in: abcd"
+}
+
+it_cant_get_commit_not_signed() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  set +e
+  output=$(get_uri_with_verification_key $repo $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  test "${exit_code}" == 1
+  echo "${output}" | grep "The commit ${ref} is not signed"
+}
+
+it_can_get_signed_commit() {
+  local repo=$(gpg_fixture_repo_path)
+  local ref=$(fetch_head_ref $repo)
+  test "$ref" != ""
+  local dest=$TMPDIR/destination
+
+  get_uri_with_verification_key $repo $dest
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref
+}
+
+it_can_get_signed_commit_via_tag() {
+  local repo=$(gpg_fixture_repo_path)
+  local commit=$(fetch_head_ref $repo)
+  local ref=$(make_annotated_tag $repo 'test-0.0.1' 'a message')
+  local dest=$TMPDIR/destination
+
+  get_uri_with_verification_key_and_tag_filter $repo $dest 'test-*' $ref
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $commit
+}
+
+it_cant_get_commit_signed_with_unknown_key() {
+  local repo=$(gpg_fixture_repo_path)
+  local ref=$(fetch_head_ref $repo)
+  test "$ref" != ""
+  local dest=$TMPDIR/destination
+
+  set +e
+  output=$(get_uri_with_unknown_verification_key $repo $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  test "${exit_code}" = 1
+  echo "${output}" | grep "gpg: Can't check signature: No public key"
+}
+
+it_cant_get_signed_commit_when_using_keyserver_and_bogus_key() {
+  local repo=$(gpg_fixture_repo_path)
+  local ref=$(fetch_head_ref $repo)
+  test "$ref" != ""
+  local dest=$TMPDIR/destination
+
+  set +e
+  output=$(get_uri_when_using_keyserver_and_bogus_key $repo $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  test "${exit_code}" = 123
+  echo "${output}" | grep "gpg: \"abcd\" not a key ID: skipping"
+}
+
+it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id() {
+  local repo=$(gpg_fixture_repo_path)
+  local ref=$(fetch_head_ref $repo)
+  test "$ref" != ""
+  local dest=$TMPDIR/destination
+
+  set +e
+  output=$(get_uri_when_using_keyserver_and_unknown_key $repo $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  echo $output
+  test "${exit_code}" = 123
+  echo "${output}" | grep "gpg: keyserver communications error: Not found"
+}
+
+it_can_get_signed_commit_when_using_keyserver() {
+  local repo=$(gpg_fixture_repo_path)
+  local ref=$(fetch_head_ref $repo)
+  test "$ref" != ""
+  local dest=$TMPDIR/destination
+
+  get_uri_when_using_keyserver $repo $dest
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
@@ -250,3 +360,11 @@ run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
 run it_can_get_and_set_git_config
 run it_returns_same_ref
+run it_cant_get_commit_with_invalid_key
+run it_cant_get_commit_not_signed
+run it_can_get_signed_commit
+run it_cant_get_commit_signed_with_unknown_key
+run it_cant_get_signed_commit_when_using_keyserver_and_bogus_key
+run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
+run it_can_get_signed_commit_when_using_keyserver
+run it_can_get_signed_commit_via_tag

@@ -12,6 +12,9 @@ if [ -d /opt/resource ]; then
 else
   resource_dir=$(cd $(dirname $0)/../assets && pwd)
 fi
+test_dir=$(cd $(dirname $0) && pwd)
+keygrip=276D99F5B65388AF85DF54B16B08EF0A44C617AC
+fingerprint=A3E20CD6371D49E244B0730D1CDD25AEB0F5F8EF
 
 run() {
   export TMPDIR=$(mktemp -d ${TMPDIR_ROOT}/git-tests.XXXXXX)
@@ -60,6 +63,12 @@ init_repo_with_submodule() {
   git -C $project submodule add "file://$submodule" >/dev/null
   git -C $project commit -m "Adding Submodule" >/dev/null
   echo $project,$submodule
+}
+
+fetch_head_ref() {
+  local repo=$1
+
+  git -C $repo rev-parse HEAD
 }
 
 make_commit_to_file_on_branch() {
@@ -117,6 +126,16 @@ merge_branch() {
 
   # output resulting sha
   git -C $repo rev-parse HEAD
+}
+
+delete_public_key() {
+  if gpg -k ${fingerprint} > /dev/null; then
+    gpg --batch --yes --delete-keys ${fingerprint}
+  fi
+}
+
+gpg_fixture_repo_path() {
+  echo "${test_dir}/gpg/fixture_repo.git"
 }
 
 make_empty_commit() {
@@ -419,6 +438,88 @@ get_uri_with_config() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_with_verification_key() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+  exit_code=$?
+  delete_public_key
+  return ${exit_code}
+}
+
+get_uri_with_verification_key_and_tag_filter() {
+  local uri=$1
+  local dest=$2
+  local tag_filter=$3
+  local version=$4
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"],
+      tag_filter: $(echo $tag_filter | jq -R .)
+    },
+    version: {
+      ref: $(echo $version | jq -R .)
+    }
+  }" | ${resource_dir}/in "$dest" | tee /dev/stderr
+  exit_code=$?
+  delete_public_key
+  return ${exit_code}
+}
+
+get_uri_with_invalid_verification_key() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      commit_verification_keys: [\"abcd\"]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
+get_uri_with_unknown_verification_key() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      commit_verification_keys: [\"$(cat ${test_dir}/gpg/unknown_public.key)\"]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+  exit_code=$?
+  delete_public_key
+  return ${exit_code}
+}
+
+get_uri_when_using_keyserver() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      commit_verification_key_ids: [\"A3E20CD6371D49E244B0730D1CDD25AEB0F5F8EF\"]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+  exit_code=$?
+  delete_public_key
+  return ${exit_code}
+}
+
+get_uri_when_using_keyserver_and_bogus_key() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      commit_verification_key_ids: [\"abcd\"]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
+get_uri_when_using_keyserver_and_unknown_key() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      commit_verification_key_ids: [\"24C51CCE1AB7B2EFEF72B9A48EAB0B8DEE26E5FD\"]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
 
 put_uri() {
   jq -n "{

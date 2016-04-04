@@ -33,6 +33,9 @@ ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
+commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
+commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
+gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://keys.gnupg.net/"' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -57,6 +60,29 @@ git clone --single-branch $depthflag $uri $branchflag $destination
 cd $destination
 
 git checkout -q $ref
+
+invalid_key() {
+  echo "Invalid GPG key in: ${commit_verification_keys}"
+  exit 2
+}
+
+commit_not_signed() {
+  commit_id=$(git rev-parse ${ref})
+  echo "The commit ${commit_id} is not signed"
+  exit 1
+}
+
+if [ ! -z "${commit_verification_keys}" ] || [ ! -z "${commit_verification_key_ids}" ] ; then
+  if [ ! -z "${commit_verification_keys}" ]; then
+    echo "${commit_verification_keys}" | gpg --batch --import || invalid_key "${commit_verification_keys}"
+  fi
+  if [ ! -z "${commit_verification_key_ids}" ]; then
+    echo "${commit_verification_key_ids}" | \
+      xargs --no-run-if-empty -n1 gpg --batch --keyserver $gpg_keyserver --recv-keys
+  fi
+  git verify-commit $(git rev-list -n 1 $ref) || commit_not_signed
+fi
+
 git lfs fetch
 git lfs checkout
 git log -1 --oneline
