@@ -61,6 +61,6 @@ configure_credentials() {
   local password=$(jq -r '.source.password // ""' < $1)
 
   if [ "$username" != "" -a "$password" != "" ]; then
-    git config --global credential.helper '!f() { echo "username='$username'"; echo "password='$password'"; }; f'
+    echo "default login $username password $password" > $HOME/.netrc
   fi
 }
