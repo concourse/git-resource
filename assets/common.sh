@@ -37,6 +37,7 @@ git_metadata() {
   local committer_date=$(git log -1 --format=format:%ci | jq -R .)
   local message=$(git log -1 --format=format:%B | jq -s -R .)
   local branch=$(git rev-parse --abbrev-ref HEAD)
+  local tags=$(git tag --points-at HEAD | jq -R  ". | select(. != \"\")" | jq -s "map(.)")
   if [ "$branch" == "HEAD" ]; then
     branch="$commit"
   else
@@ -49,7 +50,8 @@ git_metadata() {
       {name: \"author\", value: ${author}},
       {name: \"author_date\", value: ${author_date}, type: \"time\"},
       {name: \"message\", value: ${message}, type: \"message\"},
-      {name: \"branch\", value: ${branch}}
+      {name: \"branch\", value: ${branch}},
+      {name: \"tags\", value: ${tags}}
     ]"
   else
     jq -n "[
@@ -59,7 +61,8 @@ git_metadata() {
       {name: \"committer\", value: ${committer}},
       {name: \"committer_date\", value: ${committer_date}, type: \"time\"},
       {name: \"message\", value: ${message}, type: \"message\"},
-      {name: \"branch\", value: ${branch}}
+      {name: \"branch\", value: ${branch}},
+      {name: \"tags\", value: ${tags}}
     ]"
   fi
 }

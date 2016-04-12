@@ -105,6 +105,35 @@ it_returns_branch_in_metadata() {
   test "$(git -C $dest rev-parse HEAD)" = $ref2
 }
 
+it_returns_empty_tags_in_metadata() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_at_branch $repo branch-a $dest | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+    and
+	(.metadata | .[] | select(.name == \"tags\") | .value == [])
+  "
+}
+
+it_returns_list_of_tags_in_metadata() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+
+  git -C $repo tag v1.1-pre
+  git -C $repo tag v1.1-final
+
+  local dest=$TMPDIR/destination
+
+  get_uri_at_branch $repo branch-a $dest | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+    and
+	(.metadata | .[] | select(.name == \"tags\") | .value | contains([\"v1.1-final\", \"v1.1-pre\"]))
+  "
+}
+
 it_honors_the_depth_flag() {
   local repo=$(init_repo)
   local firstCommitRef=$(make_commit $repo)
@@ -155,5 +184,7 @@ run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
 run it_returns_branch_in_metadata
+run it_returns_empty_tags_in_metadata
+run it_returns_list_of_tags_in_metadata
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
