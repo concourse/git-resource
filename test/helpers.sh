@@ -255,6 +255,24 @@ check_uri_with_tag_filter() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_config() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      git_config: [
+        {
+          name: \"core.pager\",
+          value: \"true\"
+        },
+        {
+          name: \"credential.helper\",
+          value: \"!true long command with variables \$@\"
+        }
+      ]
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 get_uri() {
   jq -n "{
     source: {
@@ -317,6 +335,25 @@ get_uri_at_branch() {
     }
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
+
+get_uri_with_config() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      git_config: [
+        {
+          name: \"core.pager\",
+          value: \"true\"
+        },
+        {
+          name: \"credential.helper\",
+          value: \"!true long command with variables \$@\"
+        }
+      ]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
 
 put_uri() {
   jq -n "{
@@ -422,6 +459,28 @@ put_uri_with_rebase_with_tag_and_prefix() {
       tag_prefix: $(echo $4 | jq -R .),
       repository: $(echo $5 | jq -R .),
       rebase: true
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_config() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\",
+      git_config: [
+        {
+          name: \"core.pager\",
+          value: \"true\"
+        },
+        {
+          name: \"credential.helper\",
+          value: \"!true long command with variables \$@\"
+        }
+      ]
+    },
+    params: {
+      repository: $(echo $3 | jq -R .)
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }

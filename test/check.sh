@@ -260,6 +260,18 @@ it_can_check_with_tag_filter() {
   "
 }
 
+it_can_check_and_set_git_config() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  check_uri_with_config $repo | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+  set -x
+  test "$(git config --global core.pager)" == 'true'
+  test "$(git config --global credential.helper)" == '!true long command with variables $@'
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_bogus_sha
@@ -273,3 +285,4 @@ run it_fails_if_key_has_password
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
 run it_can_check_from_head_only_fetching_single_branch
+run it_can_check_and_set_git_config

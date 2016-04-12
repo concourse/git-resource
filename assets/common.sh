@@ -22,6 +22,12 @@ EOF
   fi
 }
 
+configure_git_global() {
+  local git_config_payload="$1"
+  eval $(echo "$git_config_payload" | \
+    jq -r ".[] | \"git config --global '\\(.name)' '\\(.value)'; \"")
+}
+
 configure_git_ssl_verification() {
   skip_ssl_verification=$(jq -r '.source.skip_ssl_verification // false' < $1)
   if [ "$skip_ssl_verification" = "true" ]; then
