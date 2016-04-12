@@ -36,13 +36,20 @@ git_metadata() {
   local committer=$(git log -1 --format=format:%cn | jq -s -R .)
   local committer_date=$(git log -1 --format=format:%ci | jq -R .)
   local message=$(git log -1 --format=format:%B | jq -s -R .)
+  local branch=$(git rev-parse --abbrev-ref HEAD)
+  if [ "$branch" == "HEAD" ]; then
+    branch="$commit"
+  else
+	branch=$(echo -n $branch | jq -s -R .)
+  fi
 
   if [ "$author" = "$committer" ] && [ "$author_date" = "$committer_date" ]; then
     jq -n "[
       {name: \"commit\", value: ${commit}},
       {name: \"author\", value: ${author}},
       {name: \"author_date\", value: ${author_date}, type: \"time\"},
-      {name: \"message\", value: ${message}, type: \"message\"}
+      {name: \"message\", value: ${message}, type: \"message\"},
+      {name: \"branch\", value: ${branch}}
     ]"
   else
     jq -n "[
@@ -51,7 +58,8 @@ git_metadata() {
       {name: \"author_date\", value: ${author_date}, type: \"time\"},
       {name: \"committer\", value: ${committer}},
       {name: \"committer_date\", value: ${committer_date}, type: \"time\"},
-      {name: \"message\", value: ${message}, type: \"message\"}
+      {name: \"message\", value: ${message}, type: \"message\"},
+      {name: \"branch\", value: ${branch}}
     ]"
   fi
 }
