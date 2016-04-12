@@ -42,6 +42,14 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html) compatible (as
   in, bash compatible).
 
+* `git_config`: *Optional*. If specified as (list of pairs `name` and `value`)
+  it will configure git global options, setting each name with each value.
+
+  This can be useful to set options like `credential.helper` or similar.
+
+  See the [`git-config(1)` manual page](https://www.kernel.org/pub/software/scm/git/docs/git-config.html)
+  for more information and documentation of existing git options.
+
 ### Example
 
 Resource configuration for a private repo:
@@ -59,6 +67,9 @@ resources:
       <Lots more text>
       DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
       -----END RSA PRIVATE KEY-----
+    git_config:
+    - name: core.bigFileThreshold
+      value: 10m
 ```
 
 Fetching a repo with only 100 commits of history:
