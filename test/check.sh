@@ -52,8 +52,8 @@ it_can_check_with_credentials() {
 
   # only check that the expected credential helper is set 
   # because it is not easily possible to simulate a git http backend that needs credentials
-  local expected_helper='!f() { echo "username=user1"; echo "password=pass1"; }; f'
-  [ "$(git config --global --get credential.helper)" = "$expected_helper" ]
+  local expected_netrc="default login user1 password pass1"
+  [ "$(cat $HOME/.netrc)" = "$expected_netrc" ]
 }
 
 it_does_not_add_credential_helper_if_credentials_are_not_given() {
