@@ -122,9 +122,23 @@ it_honors_the_depth_flag_for_submodules() {
   test "$(git -C $dest_one/$submodule_name rev-list --all --count)" = 1
 }
 
+it_can_get_and_set_git_config() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  get_uri_with_config $repo $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  test "$(git config --global core.pager)" == 'true'
+  test "$(git config --global credential.helper)" == '!true long command with variables $@'
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
+run it_can_get_and_set_git_config
