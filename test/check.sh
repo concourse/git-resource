@@ -50,7 +50,6 @@ it_can_check_from_a_ref() {
 
   check_uri_from $repo $ref1 | jq -e "
     . == [
-      {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref2 | jq -R .)},
       {ref: $(echo $ref3 | jq -R .)}
     ]
@@ -77,18 +76,8 @@ it_skips_ignored_paths() {
     . == [{ref: $(echo $ref2 | jq -R .)}]
   "
 
-  check_uri_from_ignoring $repo $ref1 "file-a" | jq -e "
-    . == [
-      {ref: $(echo $ref2 | jq -R .)},
-      {ref: $(echo $ref3 | jq -R .)}
-    ]
-  "
-
   check_uri_from_ignoring $repo $ref1 "file-c" | jq -e "
-    . == [
-      {ref: $(echo $ref1 | jq -R .)},
-      {ref: $(echo $ref2 | jq -R .)}
-    ]
+    . == [{ref: $(echo $ref2 | jq -R .)}]
   "
 
   local ref4=$(make_commit_to_file $repo file-b)
@@ -99,7 +88,6 @@ it_skips_ignored_paths() {
 
   check_uri_from_ignoring $repo $ref1 "file-c" | jq -e "
     . == [
-      {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref2 | jq -R .)},
       {ref: $(echo $ref4 | jq -R .)}
     ]
@@ -147,11 +135,7 @@ it_checks_given_ignored_paths() {
   "
 
   check_uri_from_paths_ignoring $repo $ref1 'file-*' 'file-b' | jq -e "
-    . == [{ref: $(echo $ref1 | jq -R .)}]
-  "
-
-  check_uri_from_paths_ignoring $repo $ref1 'file-*' 'file-a' | jq -e "
-    . == [{ref: $(echo $ref2 | jq -R .)}]
+    . == []
   "
 
   local ref4=$(make_commit_to_file $repo file-b)
@@ -172,7 +156,6 @@ it_checks_given_ignored_paths() {
 
   check_uri_from_paths_ignoring $repo $ref1 'file-*' 'file-b' | jq -e "
     . == [
-      {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref5 | jq -R .)},
       {ref: $(echo $ref6 | jq -R .)}
     ]
@@ -180,7 +163,6 @@ it_checks_given_ignored_paths() {
 
   check_uri_from_paths_ignoring $repo $ref1 'file-*' 'file-b' 'file-c' | jq -e "
     . == [
-      {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref5 | jq -R .)}
     ]
   "
@@ -225,7 +207,6 @@ it_skips_marked_commits() {
 
   check_uri_from $repo $ref1 | jq -e "
     . == [
-      {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref3 | jq -R .)}
     ]
   "
@@ -251,7 +232,6 @@ it_can_check_empty_commits() {
 
   check_uri_from $repo $ref1 | jq -e "
     . == [
-      {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref2 | jq -R .)}
     ]
   "

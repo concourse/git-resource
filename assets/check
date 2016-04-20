@@ -45,7 +45,7 @@ else
 fi
 
 if [ -n "$ref" ] && git cat-file -e "$ref"; then
-  log_range="--reverse ${ref}~1..HEAD"
+  log_range="--reverse ${ref}..HEAD"
 else
   log_range="-1"
 fi
