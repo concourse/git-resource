@@ -45,7 +45,12 @@ else
 fi
 
 if [ -n "$ref" ] && git cat-file -e "$ref"; then
-  log_range="--reverse ${ref}..HEAD"
+  init_commit=$(git rev-list --max-parents=0 HEAD)
+  if [ "${ref}" = "${init_commit}" ]; then
+    log_range="--reverse HEAD"
+  else
+    log_range="--reverse ${ref}~1..HEAD"
+  fi
 else
   log_range="-1"
 fi

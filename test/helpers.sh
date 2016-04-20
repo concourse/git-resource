@@ -128,6 +128,11 @@ check_uri() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+get_initial_ref() {
+  local repo=$1
+
+  git -C $repo rev-list HEAD | tail -n 1
+}
 
 check_uri_with_key() {
   jq -n "{
