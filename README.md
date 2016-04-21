@@ -93,7 +93,7 @@ Pushing local commits to the repo:
 ### `check`: Check for new commits.
 
 The repository is cloned (or pulled if already present), and any commits
-made after the given version are returned. If no version is given, the ref
+from the given version on are returned. If no version is given, the ref
 for `HEAD` is returned.
 
 Any commits that contain the string `[ci skip]` will be ignored. This
