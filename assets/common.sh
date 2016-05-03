@@ -47,7 +47,7 @@ git_metadata() {
   if [ "$branch" == "HEAD" ]; then
     branch="$commit"
   else
-	branch=$(echo -n $branch | jq -s -R .)
+    branch=$(echo -n $branch | jq -s -R .)
   fi
 
   if [ "$author" = "$committer" ] && [ "$author_date" = "$committer_date" ]; then
