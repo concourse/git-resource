@@ -192,6 +192,28 @@ it_can_get_and_set_git_config() {
   test "$(git config --global credential.helper)" == '!true long command with variables $@'
 }
 
+it_returns_same_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "other tag")
+  local ref3=$(make_annotated_tag $repo "0.9-production" "a tag")
+  local ref4=$(make_commit $repo)
+  local ref5=$(make_annotated_tag $repo "1.1-staging" "another tag")
+  local ref6=$(make_commit $repo)
+
+  get_uri_at_ref $repo $ref1 $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+  "
+  rm -rf $TMPDIR/destination
+  get_uri_at_ref $repo $ref2 $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+  rm -rf $TMPDIR/destination
+  get_uri_at_ref $repo $ref3 $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref3 | jq -R .)}
+  "
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
@@ -202,3 +224,4 @@ run it_returns_list_of_tags_in_metadata
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
 run it_can_get_and_set_git_config
+run it_returns_same_ref

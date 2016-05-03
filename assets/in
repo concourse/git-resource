@@ -72,7 +72,13 @@ for branch in $fetch; do
   git branch $branch FETCH_HEAD
 done
 
+if [ "$ref" == "HEAD" ]; then
+  return_ref=$(git rev-parse HEAD)
+else
+  return_ref=$ref
+fi
+
 jq -n "{
-  version: {ref: $(git rev-parse HEAD | jq -R .)},
+  version: {ref: $(echo $return_ref | jq -R .)},
   metadata: $(git_metadata)
 }" >&3

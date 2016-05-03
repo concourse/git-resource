@@ -102,10 +102,11 @@ allows you to commit to your repository without triggering a new version.
 ### `in`: Clone the repository, at the given ref.
 
 Clones the repository to the destination, and locks it down to a given ref.
-Returns the resulting ref as the version.
+
+It will return the same ref as version, unless ref is `HEAD`, which
+will result in the hash after locking down as the version.
 
 Submodules are initialized and updated recursively.
-
 
 #### Parameters
 
