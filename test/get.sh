@@ -114,7 +114,7 @@ it_returns_empty_tags_in_metadata() {
   get_uri_at_branch $repo branch-a $dest | jq -e "
     .version == {ref: $(echo $ref1 | jq -R .)}
     and
-	(.metadata | .[] | select(.name == \"tags\") | .value == [])
+	(.metadata | .[] | select(.name == \"tags\") | .value == \"\")
   "
 }
 
@@ -130,7 +130,7 @@ it_returns_list_of_tags_in_metadata() {
   get_uri_at_branch $repo branch-a $dest | jq -e "
     .version == {ref: $(echo $ref1 | jq -R .)}
     and
-	(.metadata | .[] | select(.name == \"tags\") | .value | contains([\"v1.1-final\", \"v1.1-pre\"]))
+	(.metadata | .[] | select(.name == \"tags\") | .value == \"v1.1-final,v1.1-pre\")
   "
 }
 

@@ -43,7 +43,7 @@ git_metadata() {
   local committer_date=$(git log -1 --format=format:%ci | jq -R .)
   local message=$(git log -1 --format=format:%B | jq -s -R .)
   local branch=$(git rev-parse --abbrev-ref HEAD)
-  local tags=$(git tag --points-at HEAD | jq -R  ". | select(. != \"\")" | jq -s "map(.)")
+  local tags=$(git tag --points-at HEAD | jq -R  ". | select(. != \"\")" | jq -s "map(.) | join(\",\")")
   if [ "$branch" == "HEAD" ]; then
     branch="$commit"
   else
