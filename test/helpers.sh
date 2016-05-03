@@ -134,6 +134,12 @@ get_initial_ref() {
   git -C $repo rev-list HEAD | tail -n 1
 }
 
+get_current_ref() {
+  local repo=$1
+
+  git -C $repo log --pretty=format:'%H' -n 1
+}
+
 check_uri_with_key() {
   jq -n "{
     source: {
@@ -359,6 +365,33 @@ get_uri_with_config() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_with_tag_filter() {
+  local uri=$1
+  local tag_filter=$2
+  local dir=$3
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_filter: $(echo $tag_filter | jq -R .)
+    }
+  }" | ${resource_dir}/in "$dir" | tee /dev/stderr
+}
+
+get_uri_at_ref_with_tag_filter() {
+  local uri=$1
+  local ref=$2
+  local tag_filter=$3
+  local dir=$4
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_filter: $(echo $tag_filter | jq -R .)
+    },
+    version: {
+      ref: $(echo $ref | jq -R .)
+    }
+  }" | ${resource_dir}/in "$dir" | tee /dev/stderr
+}
 
 put_uri() {
   jq -n "{
