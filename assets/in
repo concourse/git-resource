@@ -27,6 +27,7 @@ configure_git_ssl_verification $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
@@ -72,7 +73,13 @@ for branch in $fetch; do
   git branch $branch FETCH_HEAD
 done
 
+return_ref=""
+if [ -n "$tag_filter" ]; then
+  return_ref=$(git tag -l --points-at HEAD --sort='version:refname' $tag_filter | tail -n 1)
+fi
+[ -n "$return_ref" ] || return_ref=$(git rev-parse HEAD)
+
 jq -n "{
-  version: {ref: $(git rev-parse HEAD | jq -R .)},
+  version: {ref: $(echo "$return_ref" | jq -R .)},
   metadata: $(git_metadata)
 }" >&3

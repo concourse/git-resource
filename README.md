@@ -102,10 +102,12 @@ allows you to commit to your repository without triggering a new version.
 ### `in`: Clone the repository, at the given ref.
 
 Clones the repository to the destination, and locks it down to a given ref.
-Returns the resulting ref as the version.
+
+Returns the resulting ref after locking down as the version. If `tag_filter`
+is defined, it will return the give ref it is a tag  or the latest tag
+pointing to it.
 
 Submodules are initialized and updated recursively.
-
 
 #### Parameters
 

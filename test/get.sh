@@ -192,6 +192,66 @@ it_can_get_and_set_git_config() {
   test "$(git config --global credential.helper)" == '!true long command with variables $@'
 }
 
+it_returns_ref_when_using_tag_filter() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref2=$(make_commit $repo)
+  get_uri_with_tag_filter $repo "*-staging" $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+}
+
+it_returns_tag_when_using_tag_filter() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.1-staging" "another tag")
+  get_uri_with_tag_filter $repo "*-staging" $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref4 | jq -R .)}
+  "
+}
+
+it_returns_tag_at_tag_when_using_tag_filter() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "other tag")
+  local ref3=$(make_annotated_tag $repo "0.9-production" "a tag")
+  local ref4=$(make_commit $repo)
+  local ref5=$(make_annotated_tag $repo "1.1-staging" "another tag")
+  local ref6=$(make_commit $repo)
+  get_uri_at_ref_with_tag_filter $repo $ref2 "*-staging" $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+}
+
+it_returns_tag_at_ref_when_using_tag_filter() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "other tag")
+  local ref3=$(make_annotated_tag $repo "0.9-production" "a tag")
+  local ref4=$(make_commit $repo)
+  local ref5=$(make_annotated_tag $repo "1.1-staging" "another tag")
+  local ref6=$(make_commit $repo)
+  get_uri_at_ref_with_tag_filter $repo $ref1 "*-staging" $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+}
+
+it_returns_matching_tag_at_tag_when_using_tag_filter() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "other tag")
+  local ref3=$(make_annotated_tag $repo "0.9-production" "a tag")
+  local ref4=$(make_commit $repo)
+  local ref5=$(make_annotated_tag $repo "1.1-staging" "another tag")
+  local ref6=$(make_commit $repo)
+  get_uri_at_ref_with_tag_filter $repo $ref2 "*-production" $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref3 | jq -R .)}
+  "
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
@@ -202,3 +262,9 @@ run it_returns_list_of_tags_in_metadata
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
 run it_can_get_and_set_git_config
+run it_returns_ref_when_using_tag_filter
+run it_returns_tag_when_using_tag_filter
+run it_returns_tag_at_tag_when_using_tag_filter
+run it_returns_tag_at_ref_when_using_tag_filter
+run it_returns_matching_tag_at_tag_when_using_tag_filter
+
