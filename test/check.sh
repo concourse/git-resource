@@ -309,6 +309,25 @@ it_can_check_and_set_git_config() {
   test "$(git config --global credential.helper)" == '!true long command with variables $@'
 }
 
+it_can_check_commits_in_topo_order() {
+  local repo=$(init_repo)
+  local master_ref1=$(make_commit_to_file_on_branch $repo a_file master)
+  local branch_ref1=$(make_commit_to_file_on_branch $repo other_file a_branch)
+  local branch_ref2=$(make_commit_to_file_on_branch $repo other_file a_branch)
+  local master_ref2=$(make_commit_to_file_on_branch $repo a_file master)
+  local merge_ref=$(make_merge_into_master $repo a_branch)
+
+  check_uri_from $repo $master_ref1 | jq -e "
+    . == [
+      {ref: $(echo $master_ref1 | jq -R .)},
+      {ref: $(echo $master_ref2 | jq -R .)},
+      {ref: $(echo $branch_ref1 | jq -R .)},
+      {ref: $(echo $branch_ref2 | jq -R .)},
+      {ref: $(echo $merge_ref | jq -R .)}
+    ]
+  "
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_first_commit_in_repo
@@ -324,3 +343,4 @@ run it_can_check_empty_commits
 run it_can_check_with_tag_filter
 run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
+run it_can_check_commits_in_topo_order
