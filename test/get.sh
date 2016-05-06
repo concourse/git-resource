@@ -87,22 +87,16 @@ it_returns_branch_in_metadata() {
   get_uri_at_branch $repo branch-a $dest | jq -e "
     .version == {ref: $(echo $ref1 | jq -R .)}
     and
-	(.metadata | .[] | select(.name == \"branch\") | .value == $(echo branch-a | jq -R .))
+    (.metadata | .[] | select(.name == \"branch\") | .value == $(echo branch-a | jq -R .))
   "
-
-  test -e $dest/some-file
-  test "$(git -C $dest rev-parse HEAD)" = $ref1
 
   rm -rf $dest
 
   get_uri_at_ref $repo $ref2 $dest | jq -e "
     .version == {ref: $(echo $ref2 | jq -R .)}
     and
-	(.metadata | .[] | select(.name == \"branch\") | .value == $(echo $ref2 | jq -R .))
+    ([.metadata | .[] | select(.name == \"branch\")] == [])
   "
-
-  test -e $dest/some-file
-  test "$(git -C $dest rev-parse HEAD)" = $ref2
 }
 
 it_omits_empty_tags_in_metadata() {
@@ -130,7 +124,7 @@ it_returns_list_of_tags_in_metadata() {
   get_uri_at_branch $repo branch-a $dest | jq -e "
     .version == {ref: $(echo $ref1 | jq -R .)}
     and
-	(.metadata | .[] | select(.name == \"tags\") | .value == \"v1.1-final,v1.1-pre\")
+    (.metadata | .[] | select(.name == \"tags\") | .value == \"v1.1-final,v1.1-pre\")
   "
 }
 
