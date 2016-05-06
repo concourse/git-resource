@@ -87,7 +87,6 @@ Pushing local commits to the repo:
   params: {repository: some-other-repo}
 ```
 
-
 ## Behavior
 
 ### `check`: Check for new commits.
@@ -102,9 +101,7 @@ allows you to commit to your repository without triggering a new version.
 ### `in`: Clone the repository, at the given ref.
 
 Clones the repository to the destination, and locks it down to a given ref.
-
-It will return the same ref as version, unless ref is `HEAD`, which
-will result in the hash after locking down as the version.
+It will return the same given ref as version.
 
 Submodules are initialized and updated recursively.
 
