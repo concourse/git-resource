@@ -77,6 +77,23 @@ it_can_get_from_url_only_single_branch() {
   ! git -C $dest rev-parse origin/bogus
 }
 
+it_omits_empty_branch_in_metadata() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_commit_to_branch $repo branch-a)
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_commit $repo)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_at_ref $repo $ref2 $dest | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+    and
+    ([.metadata | .[] | select(.name == \"branch\")] == [])
+  "
+}
+
+
 it_returns_branch_in_metadata() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
@@ -95,7 +112,7 @@ it_returns_branch_in_metadata() {
   get_uri_at_ref $repo $ref2 $dest | jq -e "
     .version == {ref: $(echo $ref2 | jq -R .)}
     and
-    ([.metadata | .[] | select(.name == \"branch\")] == [])
+    (.metadata | .[] | select(.name == \"branch\") | .value == $(echo master | jq -R .))
   "
 }
 
@@ -212,6 +229,7 @@ run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
+run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata

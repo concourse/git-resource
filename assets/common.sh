@@ -64,9 +64,11 @@ add_git_metadata_committer() {
 }
 
 add_git_metadata_branch() {
-  local branch=$(git rev-parse --abbrev-ref HEAD)
+  local branch=$(git show-ref --heads | \
+    sed -n "s/^$(git rev-parse HEAD) refs\/heads\/\(.*\)/\1/p" |  \
+    jq -R  ". | select(. != \"\")" | jq -r -s "map(.) | join (\",\")")
 
-  if [ "${branch}" != "HEAD" ]; then
+  if [ -n "${branch}" ]; then
     jq ". + [
       {name: \"branch\", value: \"${branch}\"}
     ]"
