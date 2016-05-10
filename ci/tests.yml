@@ -1,0 +1,12 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: concourse/git-resource}
+
+inputs:
+- name: git-resource
+
+run:
+  path: git-resource/test/all.sh
