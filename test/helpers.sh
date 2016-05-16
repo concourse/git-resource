@@ -278,6 +278,18 @@ check_uri_with_config() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_disable_ci_skip() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      disable_ci_skip: true
+    },
+    version: {
+      ref: $(echo $2 | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 get_uri() {
   jq -n "{
     source: {

@@ -261,6 +261,21 @@ it_skips_marked_commits_with_no_version() {
   "
 }
 
+it_does_not_skip_marked_commits_when_disable_skip_configured() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit_to_be_skipped $repo)
+  local ref3=$(make_commit $repo)
+
+  check_uri_disable_ci_skip $repo $ref1 | jq -e "
+    . == [
+      {ref: $(echo $ref1 | jq -R .)},
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref3 | jq -R .)}
+    ]
+  "
+}
+
 it_can_check_empty_commits() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -319,6 +334,7 @@ run it_checks_given_ignored_paths
 run it_can_check_when_not_ff
 run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
+run it_does_not_skip_marked_commits_when_disable_skip_configured
 run it_fails_if_key_has_password
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
