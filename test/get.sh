@@ -145,6 +145,14 @@ it_returns_list_of_tags_in_metadata() {
   "
 }
 
+it_can_use_submodlues_without_perl_warning() {
+  local repo=$(init_repo_with_submodule | cut -d "," -f1)
+  local dest=$TMPDIR/destination
+
+  output=$(get_uri_with_submodules_all "file://"$repo 1 $dest 2>&1)
+  ! echo "${output}" | grep "perl: not found"
+}
+
 it_honors_the_depth_flag() {
   local repo=$(init_repo)
   local firstCommitRef=$(make_commit $repo)
@@ -233,6 +241,7 @@ run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
+run it_can_use_submodlues_without_perl_warning
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
 run it_can_get_and_set_git_config
