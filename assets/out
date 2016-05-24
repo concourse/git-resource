@@ -118,7 +118,7 @@ elif [ "$rebase" = "true" ]; then
     fi
 
     # failed for reason other than non-fast-forward / fetch-first
-    if ! grep -q '\[rejected\]' /tmp/push-failure; then
+    if ! grep -q '\[rejected\]\|\[remote rejected\].*cannot lock ref' /tmp/push-failure; then
       echo "failed with non-rebase error"
       exit 1
     fi
