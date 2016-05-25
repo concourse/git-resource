@@ -27,12 +27,15 @@ configure_git_ssl_verification $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 repository=$(jq -r '.params.repository // ""' < $payload)
 tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
+
+configure_git_global "${git_config_payload}"
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri)"

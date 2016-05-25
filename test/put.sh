@@ -278,6 +278,8 @@ it_can_put_and_set_git_config() {
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
 
+  cp ~/.gitconfig ~/.gitconfig.orig
+
   put_uri_with_config $repo1 $src repo | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
   "
@@ -287,6 +289,8 @@ it_can_put_and_set_git_config() {
 
   test "$(git config --global core.pager)" == 'true'
   test "$(git config --global credential.helper)" == '!true long command with variables $@'
+
+  mv ~/.gitconfig.orig ~/.gitconfig
 }
 
 run it_can_put_to_url

@@ -195,12 +195,16 @@ it_can_get_and_set_git_config() {
   local ref=$(make_commit $repo)
   local dest=$TMPDIR/destination
 
+  cp ~/.gitconfig ~/.gitconfig.orig
+
   get_uri_with_config $repo $dest | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
   "
 
   test "$(git config --global core.pager)" == 'true'
   test "$(git config --global credential.helper)" == '!true long command with variables $@'
+
+  mv ~/.gitconfig.orig ~/.gitconfig
 }
 
 it_returns_same_ref() {

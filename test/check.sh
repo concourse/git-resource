@@ -316,12 +316,15 @@ it_can_check_and_set_git_config() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
 
+  cp ~/.gitconfig ~/.gitconfig.orig
+
   check_uri_with_config $repo | jq -e "
     . == [{ref: $(echo $ref | jq -R .)}]
   "
-  set -x
   test "$(git config --global core.pager)" == 'true'
   test "$(git config --global credential.helper)" == '!true long command with variables $@'
+
+  mv ~/.gitconfig.orig ~/.gitconfig
 }
 
 run it_can_check_from_head
