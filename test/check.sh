@@ -50,24 +50,35 @@ it_can_check_with_credentials() {
     . == [{ref: $(echo $ref | jq -R .)}]
   "
 
-  # only check that the expected credential helper is set 
+  # only check that the expected credential helper is set
   # because it is not easily possible to simulate a git http backend that needs credentials
   local expected_netrc="default login user1 password pass1"
   [ "$(cat $HOME/.netrc)" = "$expected_netrc" ]
-}
 
-it_does_not_add_credential_helper_if_credentials_are_not_given() {
-  local repo=$(init_repo)
-  local ref=$(make_commit $repo)
-
+  # make sure it clears out .netrc for this request without credentials
   check_uri_with_credentials $repo "" "" | jq -e "
     . == [{ref: $(echo $ref | jq -R .)}]
   "
-
-  local expected_helper='!f() { echo "username=user1"; echo "password=pass1"; }; f'
-  [ "" = "$expected_helper" ]
+  [ ! -f "$HOME/.netrc" ]
 }
 
+it_clears_netrc_even_after_errors() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  if check_uri_with_credentials "non_existent_repo" "user1" "pass1" ; then
+    exit 1
+  fi
+
+  local expected_netrc="default login user1 password pass1"
+  [ "$(cat $HOME/.netrc)" = "$expected_netrc" ]
+
+  # make sure it clears out .netrc for this request without credentials
+  if check_uri_with_credentials "non_existent_repo" "" "" ; then
+    exit 1
+  fi
+  [ ! -f "$HOME/.netrc" ]
+}
 
 it_can_check_from_a_ref() {
   local repo=$(init_repo)
@@ -367,6 +378,7 @@ run it_skips_marked_commits_with_no_version
 run it_does_not_skip_marked_commits_when_disable_skip_configured
 run it_fails_if_key_has_password
 run it_can_check_with_credentials
+run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
 run it_can_check_from_head_only_fetching_single_branch
