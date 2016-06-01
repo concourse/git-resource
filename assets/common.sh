@@ -116,3 +116,12 @@ configure_credentials() {
     echo "default login $username password $password" > $HOME/.netrc
   fi
 }
+
+configure_credentials() {
+  local username=$(jq -r '.source.username // ""' < $1)
+  local password=$(jq -r '.source.password // ""' < $1)
+
+  if [ "$username" != "" -a "$password" != "" ]; then
+    echo "default login $username password $password" > $HOME/.netrc
+  fi
+}
