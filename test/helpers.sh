@@ -110,6 +110,22 @@ make_empty_commit() {
   git -C $repo rev-parse HEAD
 }
 
+make_merge_into_master() {
+  local repo=$1
+  local branch=$2
+  local msg=${3-}
+
+  git -C $repo checkout -q master
+  set -x
+  git -C $repo \
+    -c user.name='test' \
+    -c user.email='test@example.com' \
+    merge -q --no-ff -m "merge $msg" $branch
+  set +x
+  # output resulting sha
+  git -C $repo rev-parse HEAD
+}
+
 make_annotated_tag() {
   local repo=$1
   local tag=$2

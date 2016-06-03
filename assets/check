@@ -73,6 +73,6 @@ elif [ "$skip_ci_disabled" = "true" ]; then
 } | jq -R '.' | jq -s "map({ref: .})" >&3
 else
 {
-  git log --grep '\[ci skip\]' --invert-grep --format='%H' $log_range $paths_search
+  git log --grep '\[ci skip\]' --topo-order --invert-grep --format='%H' $log_range $paths_search
 } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
