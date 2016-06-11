@@ -342,14 +342,40 @@ it_can_check_from_head_with_empty_commits() {
 it_can_check_with_tag_filter() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "tag 1")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "tag 2")
+  local ref5=$(make_commit $repo)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit $repo)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit $repo)
+
+
+  check_uri_with_tag_filter $repo "*-staging" | jq -e '
+    . == [{ref: "2.0-staging"}]
+  '
+}
+
+it_can_check_with_tag_filter_with_cursor() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
   local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
   local ref3=$(make_commit $repo)
   local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
   local ref5=$(make_commit $repo)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit $repo)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit $repo)
+  local ref10=$(make_annotated_tag $repo "3.0-staging" "tag 5")
+  local ref11=$(make_commit $repo)
+  local ref12=$(make_annotated_tag $repo "3.0-production" "tag 6")
+  local ref13=$(make_commit $repo)
 
-  check_uri_with_tag_filter $repo "*-staging" | jq -e "
-    . == [{ref: $(echo $ref2 | jq -R .)}]
-  "
+  check_uri_with_tag_filter_from $repo "*-staging" "2.0-staging" | jq -e '
+    . == [{ref: "2.0-staging"}, {ref: "3.0-staging"}]
+  '
 }
 
 it_can_check_and_set_git_config() {
@@ -383,5 +409,6 @@ run it_can_check_with_credentials
 run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
+run it_can_check_with_tag_filter_with_cursor
 run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
