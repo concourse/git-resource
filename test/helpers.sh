@@ -90,7 +90,7 @@ make_commit_to_branch() {
 }
 
 make_commit() {
-  make_commit_to_file $1 some-file
+  make_commit_to_file $1 some-file "${2:-}"
 }
 
 make_commit_to_be_skipped() {

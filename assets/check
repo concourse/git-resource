@@ -63,16 +63,17 @@ else
   paths_search="-- $paths $ignore_paths"
 fi
 
+ci_skip=""
+if [ "$skip_ci_disabled" != "true" ]; then
+  ci_skip="--grep \\[ci\sskip\\] --invert-grep"
+fi
+
 if [ -n "$tag_filter" ]; then
 {
   git describe --tags --abbrev=0 --match "$tag_filter"
 } | jq -R '.' | jq -s "map({ref: .})" >&3
-elif [ "$skip_ci_disabled" = "true" ]; then
-{
-  git log --format='%H' $log_range $paths_search
-} | jq -R '.' | jq -s "map({ref: .})" >&3
 else
-{
-  git log --grep '\[ci skip\]' --invert-grep --format='%H' $log_range $paths_search
-} | jq -R '.' | jq -s "map({ref: .})" >&3
+  {
+    git log $ci_skip --format='%H' $log_range $paths_search
+  } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
