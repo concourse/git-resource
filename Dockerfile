@@ -1,4 +1,4 @@
-FROM concourse/busyboxplus:git
+FROM concourse/buildroot:git
 
 ENV LANG C
 
