@@ -56,7 +56,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   See the [`git-config(1)` manual page](https://www.kernel.org/pub/software/scm/git/docs/git-config.html)
   for more information and documentation of existing git options.
 
-* `disable_ci_skip`: *Optional* Allows for commits that have been labed with `[ci skip]`
+* `disable_ci_skip`: *Optional* Allows for commits that have been labeled with `[ci skip]`
    previously to be discovered by the resource.
 
 ### Example
