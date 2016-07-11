@@ -70,6 +70,7 @@ elif [ "$submodules" != "none" ]; then
     git submodule update --init $depthflag --recursive $submodule
   done
 fi
+git submodule foreach "git lfs fetch && git lfs checkout"
 
 for branch in $fetch; do
   git fetch origin $branch
