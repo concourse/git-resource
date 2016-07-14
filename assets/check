@@ -34,7 +34,7 @@ destination=$TMPDIR/git-resource-repo-cache
 
 if [ -d $destination ]; then
   cd $destination
-  git fetch
+  git fetch --tags
   git reset --hard FETCH_HEAD
 else
   branchflag=""
