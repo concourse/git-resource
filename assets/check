@@ -57,7 +57,7 @@ else
   log_range="-1"
 fi
 
-if [ $paths = '.' ] && [ -z $ignore_paths ]; then
+if [ "$paths" = "." ] && [ -z "$ignore_paths" ]; then
   paths_search=""
 else
   paths_search="-- $paths $ignore_paths"
