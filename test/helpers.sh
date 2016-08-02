@@ -4,7 +4,11 @@ set -e -u
 
 set -o pipefail
 
-resource_dir=/opt/resource
+if [ -d /opt/resource ]; then
+  resource_dir=/opt/resource
+else
+  resource_dir=$(cd $(dirname $0)/../assets && pwd)
+fi
 
 run() {
   export TMPDIR=$(mktemp -d ${TMPDIR_ROOT}/git-tests.XXXXXX)
