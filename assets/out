@@ -98,7 +98,7 @@ elif [ "$rebase" = "true" ]; then
     git pull --rebase push-target $branch
 
     # oh god this is really the only way to do this
-    result_file=$(mktemp /tmp/git-result.XXXXXX)
+    result_file=$(mktemp $TMPDIR/git-result.XXXXXX)
 
     echo 0 > $result_file
 
@@ -106,7 +106,7 @@ elif [ "$rebase" = "true" ]; then
       tag 2>&1 && push_src_and_tags 2>&1 || {
         echo $? > $result_file
       }
-    } | tee /tmp/push-failure
+    } | tee $TMPDIR/push-failure
 
     # despite what you may think, the embedded cat does not include the
     # trailing linebreak
@@ -122,7 +122,7 @@ elif [ "$rebase" = "true" ]; then
     fi
 
     # failed for reason other than non-fast-forward / fetch-first
-    if ! grep -q '\[rejected\]\|\[remote rejected\].*cannot lock ref' /tmp/push-failure; then
+    if ! grep -q '\[rejected\]\|\[remote rejected\].*cannot lock ref' $TMPDIR/push-failure; then
       echo "failed with non-rebase error"
       exit 1
     fi
