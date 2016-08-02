@@ -101,6 +101,21 @@ make_commit_to_be_skipped() {
   make_commit_to_file $1 some-file "[ci skip]"
 }
 
+merge_branch() {
+  local repo=$1
+  local target=$2
+  local branch=$3
+
+  # switch to branch
+  git -C $repo checkout -q $target
+
+  # merge in branch
+  git -C $repo merge -q --no-ff $branch
+
+  # output resulting sha
+  git -C $repo rev-parse HEAD
+}
+
 make_empty_commit() {
   local repo=$1
   local msg=${2-}

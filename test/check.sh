@@ -95,6 +95,33 @@ it_can_check_from_a_ref() {
   "
 }
 
+it_can_check_from_a_ref_and_only_show_merge_commit() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo)
+  local branch_ref1=$(make_commit_to_file_on_branch $repo some-branch-file some-branch)
+  local ref3=$(make_commit $repo)
+
+  check_uri_from $repo $ref1 | jq -e "
+    . == [
+      {ref: $(echo $ref1 | jq -R .)},
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref3 | jq -R .)}
+    ]
+  "
+
+  local ref4=$(merge_branch $repo master some-branch)
+
+  check_uri_from $repo $ref1 | jq -e "
+    . == [
+      {ref: $(echo $ref1 | jq -R .)},
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref3 | jq -R .)},
+      {ref: $(echo $ref4 | jq -R .)}
+    ]
+  "
+}
+
 it_can_check_from_a_first_commit_in_repo() {
   local repo=$(init_repo)
   local initial_ref=$(get_initial_ref $repo)
@@ -412,3 +439,4 @@ run it_can_check_with_tag_filter
 run it_can_check_with_tag_filter_with_cursor
 run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
+run it_can_check_from_a_ref_and_only_show_merge_commit
