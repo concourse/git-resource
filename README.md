@@ -126,6 +126,8 @@ Submodules are initialized and updated recursively.
   fetched. If not specified, or if `all` is explicitly specified, all
   submodules are fetched.
 
+* `use_lfs`: *Optional.* If `false`, will not fetch Git LFS files.
+
 
 ### `out`: Push to a repository.
 

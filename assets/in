@@ -33,6 +33,7 @@ ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
+use_lfs=$(jq -r '(.params.use_lfs // true)' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -57,8 +58,12 @@ git clone --single-branch $depthflag $uri $branchflag $destination
 cd $destination
 
 git checkout -q $ref
-git lfs fetch
-git lfs checkout
+
+if [ "$use_lfs" = "true" ]; then
+  git lfs fetch
+  git lfs checkout
+fi
+
 git log -1 --oneline
 git clean --force --force -d
 
@@ -70,7 +75,10 @@ elif [ "$submodules" != "none" ]; then
     git submodule update --init $depthflag --recursive $submodule
   done
 fi
-git submodule foreach "git lfs fetch && git lfs checkout"
+
+if [ "$use_lfs" = "true" ]; then
+  git submodule foreach "git lfs fetch && git lfs checkout"
+fi
 
 for branch in $fetch; do
   git fetch origin $branch
