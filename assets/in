@@ -33,7 +33,7 @@ ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
-use_lfs=$(jq -r '(.params.use_lfs // true)' < $payload)
+use_lfs=$(jq -r '(if .params | has("use_lfs") then .params.use_lfs else true end)' < $payload)
 
 configure_git_global "${git_config_payload}"
 
