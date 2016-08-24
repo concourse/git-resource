@@ -104,6 +104,11 @@ make_commit_to_be_skipped() {
   make_commit_to_file $1 some-file "[ci skip]"
 }
 
+make_commit_to_be_skipped2() {
+  make_commit_to_file $1 some-file "[skip ci]"
+}
+
+
 merge_branch() {
   local repo=$1
   local target=$2

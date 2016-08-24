@@ -329,13 +329,14 @@ it_skips_marked_commits() {
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit_to_be_skipped $repo)
   local ref3=$(make_commit $repo "not ci skipped")
-  local ref4=$(make_commit $repo)
+  local ref4=$(make_commit_to_be_skipped2 $repo)
+  local ref5=$(make_commit $repo)
 
   check_uri_from $repo $ref1 | jq -e "
     . == [
       {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref3 | jq -R .)},
-      {ref: $(echo $ref4 | jq -R .)}
+      {ref: $(echo $ref5 | jq -R .)}
     ]
   "
 }
@@ -344,7 +345,7 @@ it_skips_marked_commits_with_no_version() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit_to_be_skipped $repo)
-  local ref3=$(make_commit_to_be_skipped $repo)
+  local ref3=$(make_commit_to_be_skipped2 $repo)
 
   check_uri $repo | jq -e "
     . == [
@@ -358,12 +359,14 @@ it_does_not_skip_marked_commits_when_disable_skip_configured() {
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit_to_be_skipped $repo)
   local ref3=$(make_commit $repo)
+  local ref4=$(make_commit_to_be_skipped2 $repo)
 
   check_uri_disable_ci_skip $repo $ref1 | jq -e "
     . == [
       {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref2 | jq -R .)},
-      {ref: $(echo $ref3 | jq -R .)}
+      {ref: $(echo $ref3 | jq -R .)},
+      {ref: $(echo $ref4 | jq -R .)}
     ]
   "
 }
