@@ -59,6 +59,17 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `disable_ci_skip`: *Optional* Allows for commits that have been labeled with `[ci skip]` or `[skip ci]`
    previously to be discovered by the resource.
 
+* `commit_verification_keys`: *Optional*. Array of GPG public keys that the
+  resource will check against to verify the commit (details below).
+
+* `commit_verification_key_ids`: *Optional*. Array of GPG public key ids that
+  the resource will check against to verify the commit (details below). The
+  corresponding keys will be fetched from the key server specified in
+  `gpg_keyserver`. The ids can be short id, long id or fingerprint.
+
+* `gpg_keyserver`: *Optional*. GPG keyserver to download the public keys from.
+  Defaults to `hkp:///keys.gnupg.net/`.
+
 ### Example
 
 Resource configuration for a private repo:
@@ -126,6 +137,12 @@ Submodules are initialized and updated recursively.
   fetched. If not specified, or if `all` is explicitly specified, all
   submodules are fetched.
 
+#### GPG signature verification
+
+If `commit_verification_keys` or `commit_verification_key_ids` is specified in
+the source configuration, it will additionally verify that the resulting commit
+has been GPG signed by one of the specified keys. It will error if this is not
+the case.
 
 ### `out`: Push to a repository.
 
