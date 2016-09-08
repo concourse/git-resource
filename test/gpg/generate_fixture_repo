@@ -1,14 +1,20 @@
-The fixture repo was created as follows:
+#!/bin/bash
 
-# Avoid importing fixture key into real keyring.
+set -e -u -x
+
+# avoid importing fixture key into real keyring.
+rm -rf /tmp/gpghome
 mkdir /tmp/gpghome
 export GNUPGHOME=/tmp/gpghome
 
-gpg --import ../private.key
+gpg --import private.key
+
+rm -rf fixture_repo.git
 
 git init --bare fixture_repo.git
 rm fixture_repo.git/hooks/*.sample
 
+rm -rf repo
 git clone fixture_repo.git repo
 cd repo
 
@@ -19,12 +25,14 @@ git \
 
 echo x >> some-file
 git add some-file
+
+echo enter passphrase: secret123
+
 git \
   -c user.name='test' \
   -c user.email='test@example.com' \
   commit -q --gpg-sign=B0F5F8EF \
   -m "commit $(wc -l some-file) Test message"
-# enter passphrase: secret123
 
 git push -u origin master
 
