@@ -65,7 +65,7 @@ fi
 
 ci_skip=""
 if [ "$skip_ci_disabled" != "true" ]; then
-  ci_skip="--grep \\[ci\sskip\\] --invert-grep"
+  ci_skip="--grep \\[ci\\sskip\\] --grep \\[skip\\sci\\] --invert-grep"
 fi
 
 if [ -n "$tag_filter" ]; then
