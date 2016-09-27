@@ -137,6 +137,8 @@ Submodules are initialized and updated recursively.
   fetched. If not specified, or if `all` is explicitly specified, all
   submodules are fetched.
 
+* `disable_git_lfs`: *Optional.* If `true`, will not fetch Git LFS files.
+
 #### GPG signature verification
 
 If `commit_verification_keys` or `commit_verification_key_ids` is specified in

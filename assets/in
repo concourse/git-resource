@@ -36,6 +36,7 @@ submodules=$(jq -r '(.params.submodules // "all")' < $payload)
 commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://keys.gnupg.net/"' < $payload)
+disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -83,8 +84,11 @@ if [ ! -z "${commit_verification_keys}" ] || [ ! -z "${commit_verification_key_i
   git verify-commit $(git rev-list -n 1 $ref) || commit_not_signed
 fi
 
-git lfs fetch
-git lfs checkout
+if [ "$disable_git_lfs" != "true" ]; then
+  git lfs fetch
+  git lfs checkout
+fi
+
 git log -1 --oneline
 git clean --force --force -d
 
@@ -96,7 +100,10 @@ elif [ "$submodules" != "none" ]; then
     git submodule update --init $depthflag --recursive $submodule
   done
 fi
-git submodule foreach "git lfs fetch && git lfs checkout"
+
+if [ "$disable_git_lfs" != "true" ]; then
+  git submodule foreach "git lfs fetch && git lfs checkout"
+fi
 
 for branch in $fetch; do
   git fetch origin $branch
