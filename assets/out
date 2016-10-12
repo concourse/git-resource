@@ -28,6 +28,7 @@ configure_credentials $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+branch_file=$(jq -r '.params.branch // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 repository=$(jq -r '.params.repository // ""' < $payload)
 tag=$(jq -r '.params.tag // ""' < $payload)
@@ -43,7 +44,17 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
-if [ -z "$branch" ]; then
+if [ -n "$branch_file" ] && [ -f "$branch_file" ]; then
+  branch_name="$(cat $branch_file)"
+elif [ -n "$branch" ]; then
+  echo "Setting branch to $branch."
+  echo "branch_file value is: $branch_file"
+  ls -larth
+  pwd
+  ls -larth ../
+  cat $branch_file
+  branch_name=$branch
+else
   echo "invalid payload (missing branch)"
   exit 1
 fi
@@ -79,7 +90,7 @@ tag() {
 }
 
 push_src_and_tags() {
-  git push --tags push-target HEAD:refs/heads/$branch
+  git push --tags push-target HEAD:refs/heads/$branch_name
 }
 
 push_tags() {
@@ -95,7 +106,7 @@ elif [ "$rebase" = "true" ]; then
   while true; do
     echo "rebasing..."
 
-    git pull --rebase push-target $branch
+    git pull --rebase push-target $branch_name
 
     # oh god this is really the only way to do this
     result_file=$(mktemp $TMPDIR/git-result.XXXXXX)

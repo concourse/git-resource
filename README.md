@@ -168,6 +168,10 @@ and the `rebase` parameter is not provided, the push will fail.
 prepended with this string. This is useful for adding `v` in front of
 version numbers.
 
+* `branch`: *Optional* If this is set then push to the given branch. The
+  value should be a path to a file containing the name of the branch. Overrides
+  the branch name given in the main resource definition.
+
 * `annotate`: *Optional.* If specified the tag will be an
   [annotated](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags)
   tag rather than a
