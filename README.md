@@ -71,7 +71,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   Defaults to `hkp:///keys.gnupg.net/`.
 
 * `all_branches`: *Optional*. If set to `true` then fetch all branches, not
-  just a single specific branch.
+  just a single specific branch. Particularly useful if you switch branches
+  before pushing to your remote git repository.
 
 ### Example
 
@@ -173,7 +174,8 @@ version numbers.
 
 * `branch`: *Optional* If this is set then push to the given branch. The
   value should be a path to a file containing the name of the branch. Overrides
-  the branch name given in the main resource definition.
+  the branch name given in the main resource definition. This should be paired
+  with the `all_branches` source configuration (see above).
 
 * `annotate`: *Optional.* If specified the tag will be an
   [annotated](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags)
