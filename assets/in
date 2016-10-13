@@ -28,6 +28,7 @@ configure_credentials $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+all_branches=$(jq -r '.source.all_branches // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
@@ -56,7 +57,12 @@ if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination
+singlebranchflag="--single-branch"
+if [ -n "$all_branches" ] && [ "$all_branches" == "true" ]; then
+  singlebranchflag=""
+fi
+
+git clone $singlebranchflag $depthflag $uri $branchflag $destination
 
 cd $destination
 

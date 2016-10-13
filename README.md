@@ -70,6 +70,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `gpg_keyserver`: *Optional*. GPG keyserver to download the public keys from.
   Defaults to `hkp:///keys.gnupg.net/`.
 
+* `all_branches`: *Optional*. If set to `true` then fetch all branches, not
+  just a single specific branch.
+
 ### Example
 
 Resource configuration for a private repo:

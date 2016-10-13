@@ -44,27 +44,21 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
-if [ -n "$branch_file" ] && [ -f "$branch_file" ]; then
-  branch_name="$(cat $branch_file)"
-elif [ -n "$branch" ]; then
-  echo "Setting branch to $branch."
-  echo "branch_file value is: $branch_file"
-  ls -larth
-  pwd
-  ls -larth ../
-  cat $branch_file
-  branch_name=$branch
-else
-  echo "invalid payload (missing branch)"
-  exit 1
-fi
-
 if [ -z "$repository" ]; then
   echo "invalid payload (missing repository)"
   exit 1
 fi
 
 cd $source
+
+if [ -n "$branch_file" ] && [ -f "$branch_file" ]; then
+  branch_name="$(cat $branch_file)"
+elif [ -n "$branch" ]; then
+  branch_name=$branch
+else
+  echo "invalid payload (missing branch)"
+  exit 1
+fi
 
 if [ -n "$tag" ] && [ ! -f "$tag" ]; then
   echo "tag file '$tag' does not exist"
