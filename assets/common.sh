@@ -99,12 +99,28 @@ add_git_metadata_message() {
   ]"
 }
 
+add_git_metadata_url() {
+  local commit=$(git rev-parse HEAD)
+  local org=$(git remote get-url origin|grep github| awk -F'[/:]' '{print $(NF-1) }')
+  local repo=$(basename `git rev-parse --show-toplevel`)
+  local url="https://github.com/$org/$repo/commit/$commit"
+
+  if [ -n "${org}" ]; then
+    jq ". + [
+      {name: \"commit_url\", value: \"${url}\"}
+    ]"
+  else
+    cat
+  fi
+ }
+
 git_metadata() {
   jq -n "[]" | \
     add_git_metadata_basic | \
     add_git_metadata_committer | \
     add_git_metadata_branch | \
     add_git_metadata_tags | \
+    add_git_metadata_url | \
     add_git_metadata_message
 }
 
