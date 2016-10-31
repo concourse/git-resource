@@ -19,12 +19,15 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
       -----END RSA PRIVATE KEY-----
     ```
+    Note: You can also use pipeline templating to hide this private key in source control. (For more information: https://concourse.ci/fly-set-pipeline.html)
 
 * `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
   This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
   and auth is required.
 
-* `password`: *Optional.* Password for HTTP(S) auth when pulling/pushing.
+* `password`: *Optional.* Password for HTTP(S) auth when pulling/pushing. 
+
+   Note: You can also use pipeline templating to hide this password in source control. (For more information: https://concourse.ci/fly-set-pipeline.html)
 
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions from `check`.
