@@ -293,6 +293,116 @@ it_can_put_and_set_git_config() {
   mv ~/.gitconfig.orig ~/.gitconfig
 }
 
+it_will_fail_put_if_conflicts_and_not_force_push() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local expected_ref=$(make_commit $repo1)
+  local unpushable_ref=$(make_commit $repo2)
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local result=$(put_uri $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $unpushable_ref | jq -R .)}
+  " || false)
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $expected_ref
+  test "$(git -C $repo1 log --name-only | grep $unpushable_ref)" = ''
+}
+
+it_can_put_and_force_the_push() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+  local lostref=$(make_commit $repo1)
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_force $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $ref
+  test "$(git -C $repo1 log --name-only | grep $lostref)" = ''
+}
+
+it_can_put_to_url_with_only_tag_and_force_the_push() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  # create a tag in the upstream branch
+  git -C $repo1 tag some-only-tag
+
+  # create the same tag to push upstream
+  git -C $repo2 tag some-only-tag
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_only_tag_with_force $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test ! -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" != $ref
+  test "$(git -C $repo1 rev-parse some-only-tag)" = $ref
+}
+
+it_will_fail_put_with_conflicting_tag_and_not_force_push() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local expected_ref=$(make_commit $repo1)
+  local unpushable_ref=$(make_commit $repo2)
+
+  # create a tag in the upstream branch
+  git -C $repo1 tag some-only-tag
+
+  # create the same tag to push upstream
+  git -C $repo2 tag some-only-tag
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local result=$(put_uri_with_only_tag $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $unpushable_ref | jq -R .)}
+  " || false)
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test "$(git -C $repo1 rev-parse HEAD)" = $expected_ref
+  test "$(git -C $repo1 rev-parse some-only-tag)" = $expected_ref
+}
+
 run it_can_put_to_url
 run it_returns_branch_in_metadata
 run it_can_put_to_url_with_tag
@@ -303,3 +413,7 @@ run it_can_put_to_url_with_rebase_with_tag
 run it_can_put_to_url_with_rebase_with_tag_and_prefix
 run it_can_put_to_url_with_only_tag
 run it_can_put_and_set_git_config
+run it_will_fail_put_if_conflicts_and_not_force_push
+run it_can_put_and_force_the_push
+run it_can_put_to_url_with_only_tag_and_force_the_push
+run it_will_fail_put_with_conflicting_tag_and_not_force_push
