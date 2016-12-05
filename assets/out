@@ -33,6 +33,7 @@ repository=$(jq -r '.params.repository // ""' < $payload)
 tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
+force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
 
@@ -60,6 +61,11 @@ if [ -n "$tag" ] && [ ! -f "$tag" ]; then
   exit 1
 fi
 
+forceflag=""
+if [ $force = "true" ]; then
+  forceflag="--force"
+fi
+
 tag_name=""
 if [ -n "$tag" ]; then
   tag_name="$(cat $tag)"
@@ -79,11 +85,11 @@ tag() {
 }
 
 push_src_and_tags() {
-  git push --tags push-target HEAD:refs/heads/$branch
+  git push --tags push-target HEAD:refs/heads/$branch $forceflag
 }
 
 push_tags() {
-  git push --tags push-target
+  git push --tags push-target $forceflag
 }
 
 git remote add push-target $uri

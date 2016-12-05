@@ -168,6 +168,9 @@ and the `rebase` parameter is not provided, the push will fail.
 prepended with this string. This is useful for adding `v` in front of
 version numbers.
 
+* `force`: *Optional.* When set to 'true' this will force the branch to be
+pushed regardless of the upstream state.
+
 * `annotate`: *Optional.* If specified the tag will be an
   [annotated](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags)
   tag rather than a

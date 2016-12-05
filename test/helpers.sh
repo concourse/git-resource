@@ -538,6 +538,19 @@ put_uri() {
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
 
+put_uri_with_force() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      force: true
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
 put_uri_with_only_tag() {
   jq -n "{
     source: {
@@ -547,6 +560,20 @@ put_uri_with_only_tag() {
     params: {
       repository: $(echo $3 | jq -R .),
       only_tag: true
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_only_tag_with_force() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      only_tag: true,
+      force: true
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
