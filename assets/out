@@ -36,6 +36,7 @@ rebase=$(jq -r '.params.rebase // false' < $payload)
 force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
+notes_file=$(jq -r '.params.notes // ""' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -92,6 +93,13 @@ push_tags() {
   git push --tags push-target $forceflag
 }
 
+add_and_push_notes() {
+  if [ -n "$notes_file" ]; then
+    git notes add -F "../${notes_file}"
+    git push push-target refs/notes/*
+  fi
+}
+
 git remote add push-target $uri
 
 if [ "$only_tag" = "true" ]; then
@@ -101,6 +109,7 @@ elif [ "$rebase" = "true" ]; then
   while true; do
     echo "rebasing..."
 
+    git fetch push-target "refs/notes/*:refs/notes/*"
     git pull --rebase push-target $branch
 
     # oh god this is really the only way to do this
@@ -109,7 +118,7 @@ elif [ "$rebase" = "true" ]; then
     echo 0 > $result_file
 
     {
-      tag 2>&1 && push_src_and_tags 2>&1 || {
+      tag 2>&1 && push_src_and_tags 2>&1 && add_and_push_notes 2>&1 || {
         echo $? > $result_file
       }
     } | tee $TMPDIR/push-failure
@@ -138,6 +147,7 @@ elif [ "$rebase" = "true" ]; then
 else
   tag
   push_src_and_tags
+  add_and_push_notes
 fi
 
 jq -n "{

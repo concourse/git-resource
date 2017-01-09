@@ -60,6 +60,7 @@ git clone --single-branch $depthflag $uri $branchflag $destination
 
 cd $destination
 
+git fetch origin refs/notes/*:refs/notes/*
 git checkout -q $ref
 
 invalid_key() {
