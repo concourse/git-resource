@@ -179,3 +179,6 @@ pushed regardless of the upstream state.
   tag rather than a
   [lightweight](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags)
   tag. The value should be a path to a file containing the annotation message.
+
+* `notes`: *Optional.* If this is set then notes will be added to HEAD to the
+  `refs/notes/commits` ref. The value should be a path to a file containing the notes.

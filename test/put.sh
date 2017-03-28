@@ -263,6 +263,66 @@ it_can_put_to_url_with_only_tag() {
   test "$(git -C $repo1 rev-parse some-only-tag)" = $ref
 }
 
+it_can_put_to_url_with_notes() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  echo some-notes > $src/notes-file
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_notes $repo1 $src notes-file repo | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+    and
+  (.metadata | .[] | select(.name == \"branch\") | .value == $(echo master | jq -R .))
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $ref
+  test "$(git -C $repo1 notes show)" = some-notes
+}
+
+it_can_put_to_url_with_rebase_with_notes() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  echo some-notes > $src/notes-file
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
+
+  put_uri_with_rebase_with_notes $repo1 $src notes-file repo > $response
+
+  local rebased_ref=$(git -C $repo2 rev-parse HEAD)
+
+  jq -e "
+    .version == {ref: $(echo $rebased_ref | jq -R .)}
+  " < $response
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $ref
+  test "$(git -C $repo1 notes show)" = some-notes
+}
+
 it_can_put_and_set_git_config() {
   local repo1=$(init_repo)
 
@@ -408,6 +468,8 @@ run it_returns_branch_in_metadata
 run it_can_put_to_url_with_tag
 run it_can_put_to_url_with_tag_and_prefix
 run it_can_put_to_url_with_tag_and_annotation
+run it_can_put_to_url_with_notes
+run it_can_put_to_url_with_rebase_with_notes
 run it_can_put_to_url_with_rebase
 run it_can_put_to_url_with_rebase_with_tag
 run it_can_put_to_url_with_rebase_with_tag_and_prefix
