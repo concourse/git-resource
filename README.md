@@ -7,7 +7,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `uri`: *Required.* The location of the repository.
 
-* `branch`: *Required.* The branch to track.
+* `branch`: The branch to track. This is *optional* if the resource is 
+   only used in `get` steps (default value in this case is `master`). 
+   However, it is *required* when used in a `put` step.
 
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
