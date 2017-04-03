@@ -7,8 +7,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `uri`: *Required.* The location of the repository.
 
-* `branch`: The branch to track. This is *optional* if the resource is 
-   only used in `get` steps (default value in this case is `master`). 
+* `branch`: The branch to track. This is *optional* if the resource is
+   only used in `get` steps (default value in this case is `master`).
    However, it is *required* when used in a `put` step.
 
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
@@ -27,7 +27,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
   and auth is required.
 
-* `password`: *Optional.* Password for HTTP(S) auth when pulling/pushing. 
+* `password`: *Optional.* Password for HTTP(S) auth when pulling/pushing.
 
    Note: You can also use pipeline templating to hide this password in source control. (For more information: https://concourse.ci/fly-set-pipeline.html)
 
@@ -163,6 +163,10 @@ and the `rebase` parameter is not provided, the push will fail.
 
 * `rebase`: *Optional.* If pushing fails with non-fast-forward, continuously
   attempt rebasing and pushing.
+
+* `merge`: *Optional.* If pushing fails with non-fast-forward, continuously
+  attempt to merge remote to local before pushing. Only one of `merge` or
+  `rebase` can be provided, but not both.
 
 * `tag`: *Optional.* If this is set then HEAD will be tagged. The value should be
   a path to a file containing the name of the tag.

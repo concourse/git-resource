@@ -591,6 +591,33 @@ put_uri_with_rebase() {
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
 
+put_uri_with_merge() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      merge: true
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_merge_and_rebase() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      merge: true,
+      rebase: true
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
 put_uri_with_tag() {
   jq -n "{
     source: {

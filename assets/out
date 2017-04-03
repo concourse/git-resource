@@ -33,6 +33,7 @@ repository=$(jq -r '.params.repository // ""' < $payload)
 tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
+merge=$(jq -r '.params.merge // false' < $payload)
 force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
@@ -52,6 +53,11 @@ fi
 
 if [ -z "$repository" ]; then
   echo "invalid payload (missing repository)"
+  exit 1
+fi
+
+if [ "$merge" = "true" ] && [ "$rebase" = "true" ]; then
+  echo "invalid push strategy (either merge or rebase can be set, but not both)"
   exit 1
 fi
 
@@ -100,11 +106,57 @@ add_and_push_notes() {
   fi
 }
 
+push_with_result_check() {
+  # oh god this is really the only way to do this
+  result_file=$(mktemp $TMPDIR/git-result.XXXXXX)
+
+  echo 0 > $result_file
+
+  {
+    tag 2>&1 && push_src_and_tags 2>&1 && add_and_push_notes 2>&1 || {
+      echo $? > $result_file
+    }
+  } | tee $TMPDIR/push-failure
+
+  # despite what you may think, the embedded cat does not include the
+  # trailing linebreak
+  #
+  # $() appears to trim it
+  #
+  # someone rewrite this please
+  #
+  # pull requests welcome
+  if [ "$(cat $result_file)" = "0" ]; then
+    echo "pushed"
+    break
+  fi
+
+  # failed for reason other than non-fast-forward / fetch-first
+  if ! grep -q '\[rejected\]\|\[remote rejected\].*cannot lock ref' $TMPDIR/push-failure; then
+    echo "failed with non-rebase error"
+    exit 1
+  fi
+}
+
 git remote add push-target $uri
+commit_to_push=$(git rev-parse HEAD)
 
 if [ "$only_tag" = "true" ]; then
   tag
   push_tags
+elif [ "$merge" = "true" ]; then
+  while true; do
+    echo "merging..."
+
+    git reset --hard $commit_to_push
+
+    git fetch push-target "refs/notes/*:refs/notes/*"
+    git pull --no-edit push-target $branch
+
+    push_with_result_check
+
+    echo "merging and trying again..."
+  done
 elif [ "$rebase" = "true" ]; then
   while true; do
     echo "rebasing..."
@@ -112,35 +164,7 @@ elif [ "$rebase" = "true" ]; then
     git fetch push-target "refs/notes/*:refs/notes/*"
     git pull --rebase=preserve push-target $branch
 
-    # oh god this is really the only way to do this
-    result_file=$(mktemp $TMPDIR/git-result.XXXXXX)
-
-    echo 0 > $result_file
-
-    {
-      tag 2>&1 && push_src_and_tags 2>&1 && add_and_push_notes 2>&1 || {
-        echo $? > $result_file
-      }
-    } | tee $TMPDIR/push-failure
-
-    # despite what you may think, the embedded cat does not include the
-    # trailing linebreak
-    #
-    # $() appears to trim it
-    #
-    # someone rewrite this please
-    #
-    # pull requests welcome
-    if [ "$(cat $result_file)" = "0" ]; then
-      echo "pushed"
-      break
-    fi
-
-    # failed for reason other than non-fast-forward / fetch-first
-    if ! grep -q '\[rejected\]\|\[remote rejected\].*cannot lock ref' $TMPDIR/push-failure; then
-      echo "failed with non-rebase error"
-      exit 1
-    fi
+    push_with_result_check
 
     echo "rebasing and trying again..."
   done

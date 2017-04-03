@@ -236,6 +236,66 @@ it_can_put_to_url_with_rebase_with_tag_and_prefix() {
   test "$(git -C $repo1 rev-parse v1.0)" = $rebased_ref
 }
 
+it_can_put_to_url_with_merge_commit() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  # make a commit that will require rebasing
+  local baseref=$(make_commit_to_file $repo1 some-other-file)
+
+  local ref=$(make_commit $repo2)
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
+
+  put_uri_with_merge $repo1 $src repo > $response
+
+  local merged_ref=$(git -C $repo2 rev-parse HEAD)
+
+  jq -e "
+    .version == {ref: $(echo $merged_ref | jq -R .)}
+  " < $response
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+
+  test "$(git -C $repo1 rev-parse HEAD)" = $merged_ref
+
+  local latest_merge_ref=$(git -C $repo1 log -n 1 --merges --pretty=format:"%H")
+
+  test $latest_merge_ref = $merged_ref
+}
+
+it_will_fail_put_if_merge_and_rebase_are_set() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local expected_ref=$(make_commit $repo1)
+  local unpushable_ref=$(make_commit $repo2)
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local result=$(put_uri_with_merge_and_rebase $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $unpushable_ref | jq -R .)}
+  " || false)
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test "$(git -C $repo1 rev-parse HEAD)" = $expected_ref
+}
+
 it_can_put_to_url_with_only_tag() {
   local repo1=$(init_repo)
 
@@ -473,6 +533,8 @@ run it_can_put_to_url_with_rebase_with_notes
 run it_can_put_to_url_with_rebase
 run it_can_put_to_url_with_rebase_with_tag
 run it_can_put_to_url_with_rebase_with_tag_and_prefix
+run it_will_fail_put_if_merge_and_rebase_are_set
+run it_can_put_to_url_with_merge_commit
 run it_can_put_to_url_with_only_tag
 run it_can_put_and_set_git_config
 run it_will_fail_put_if_conflicts_and_not_force_push
