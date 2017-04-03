@@ -110,7 +110,7 @@ elif [ "$rebase" = "true" ]; then
     echo "rebasing..."
 
     git fetch push-target "refs/notes/*:refs/notes/*"
-    git pull --rebase push-target $branch
+    git pull --rebase=preserve push-target $branch
 
     # oh god this is really the only way to do this
     result_file=$(mktemp $TMPDIR/git-result.XXXXXX)
