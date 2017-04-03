@@ -128,14 +128,18 @@ push_with_result_check() {
   # pull requests welcome
   if [ "$(cat $result_file)" = "0" ]; then
     echo "pushed"
-    break
+    eval "$1=0"
+    return
   fi
 
   # failed for reason other than non-fast-forward / fetch-first
   if ! grep -q '\[rejected\]\|\[remote rejected\].*cannot lock ref' $TMPDIR/push-failure; then
     echo "failed with non-rebase error"
-    exit 1
+    eval "$1=1"
+    return
   fi
+
+  eval "$1=2"
 }
 
 git remote add push-target $uri
@@ -153,7 +157,13 @@ elif [ "$merge" = "true" ]; then
     git fetch push-target "refs/notes/*:refs/notes/*"
     git pull --no-edit push-target $branch
 
-    push_with_result_check
+    result="0"
+    push_with_result_check result
+    if [ "$result" = "0" ]; then
+      break
+    elif [ "$result" = "1" ]; then
+      exit 1
+    fi
 
     echo "merging and trying again..."
   done
@@ -164,7 +174,13 @@ elif [ "$rebase" = "true" ]; then
     git fetch push-target "refs/notes/*:refs/notes/*"
     git pull --rebase=preserve push-target $branch
 
-    push_with_result_check
+    result="0"
+    push_with_result_check result
+    if [ "$result" = "0" ]; then
+      break
+    elif [ "$result" = "1" ]; then
+      exit 1
+    fi
 
     echo "rebasing and trying again..."
   done
