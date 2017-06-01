@@ -78,6 +78,6 @@ if [ -n "$tag_filter" ]; then
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 else
   {
-    git log $ci_skip --format='%H' --first-parent $log_range $paths_search
+    set -f; git log $ci_skip --format='%H' --first-parent $log_range $paths_search; set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
