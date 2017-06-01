@@ -144,6 +144,8 @@ Submodules are initialized and updated recursively.
 
 * `disable_git_lfs`: *Optional.* If `true`, will not fetch Git LFS files.
 
+* `disable_recursive_submodules`: *Optional.* If `true`, will not fetch submodules recursively.
+
 #### GPG signature verification
 
 If `commit_verification_keys` or `commit_verification_key_ids` is specified in

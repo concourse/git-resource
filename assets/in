@@ -37,6 +37,7 @@ commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://keys.gnupg.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
+disable_recursive_submodules=$(jq -r '(.params.disable_recursive_submodules // false)' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -54,6 +55,11 @@ fi
 depthflag=""
 if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
+fi
+
+recursiveflag="--recursive"
+if [ "$disable_recursive_submodules" == "true" ]; then
+  recursiveflag=""
 fi
 
 git clone --single-branch $depthflag $uri $branchflag $destination
@@ -95,11 +101,11 @@ git clean --force --force -d
 git submodule sync
 
 if [ "$submodules" == "all" ]; then
-  git submodule update --init  $depthflag --recursive
+  git submodule update --init  $depthflag $recursiveflag
 elif [ "$submodules" != "none" ]; then
   submodules=$(echo $submodules | jq -r '(.[])')
   for submodule in $submodules; do
-    git submodule update --init $depthflag --recursive $submodule
+    git submodule update --init $depthflag $recursiveflag $submodule
   done
 fi
 
