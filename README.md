@@ -1,4 +1,5 @@
-# Git Resource
+# Modified git resource plugin for concourse which checks & gets latest tags
+
 
 Tracks the commits in a [git](http://git-scm.com/) repository.
 
