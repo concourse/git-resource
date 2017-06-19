@@ -332,7 +332,7 @@ it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id() {
 
   echo $output
   test "${exit_code}" = 123
-  echo "${output}" | grep "gpg: keyserver communications error: Not found"
+  echo "${output}" | grep "gpg: keyserver receive failed: No data"
 }
 
 it_can_get_signed_commit_when_using_keyserver() {
