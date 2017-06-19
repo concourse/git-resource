@@ -246,10 +246,10 @@ it_checks_given_paths() {
 it_checks_given_glob_paths() { # issue gh-120
   local repo=$(init_repo)
   mkdir -p $repo/a/b
-  local ref1=$(make_commit_to_file $repo a/file)
-  local ref2=$(make_commit_to_file $repo a/b/file)
+  make_commit_to_file $repo a/file > /dev/null
+  local ref1=$(make_commit_to_file $repo a/b/file)
   check_uri_paths $repo "**/file" | jq -e "
-    . == [{ref: $(echo $ref2 | jq -R .)}]
+    . == [{ref: $(echo $ref1 | jq -R .)}]
   "
 }
 
@@ -299,6 +299,19 @@ it_checks_given_ignored_paths() {
     . == [
       {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref5 | jq -R .)}
+    ]
+  "
+  local ref8=$(make_commit_to_file $repo another-file)
+
+  check_uri_paths_ignoring $repo '*-file' 'another-file' | jq -e "
+    . == [
+      {ref: $(echo $ref7 | jq -R .)}
+    ]
+  "
+
+  check_uri_paths_ignoring $repo '.' 'file-*' | jq -e "
+    . == [
+      {ref: $(echo $ref8 | jq -R .)}
     ]
   "
 }
