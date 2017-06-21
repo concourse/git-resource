@@ -347,6 +347,21 @@ it_can_get_signed_commit_when_using_keyserver() {
   test "$(git -C $dest rev-parse HEAD)" = $ref
 }
 
+it_can_get_committer_email() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+  local committer_email="test@example.com"
+
+  get_uri $repo $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  test -e $dest/.git/committer || echo ".git/committer does not exist."
+  test "$(cat $dest/.git/committer)" = $committer_email || echo "Committer email not found."
+
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
@@ -368,3 +383,4 @@ run it_cant_get_signed_commit_when_using_keyserver_and_bogus_key
 run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
 run it_can_get_signed_commit_when_using_keyserver
 run it_can_get_signed_commit_via_tag
+run it_can_get_committer_email
