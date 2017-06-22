@@ -151,6 +151,12 @@ the source configuration, it will additionally verify that the resulting commit
 has been GPG signed by one of the specified keys. It will error if this is not
 the case.
 
+#### Committer notification on failed builds
+
+For ease of use there is a special file `.git/committer` which is populated with
+the email address of the author of the last commit. This can be used together with 
+an email resource like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource) to notify the committer in an on_failure step.
+
 ### `out`: Push to a repository.
 
 Push the checked-out reference to the source's URI and branch. All tags are
