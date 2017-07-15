@@ -80,7 +80,7 @@ fi
 
 annotate=""
 if [ -n "$annotation_file" ]; then
-  annotate=" -a -F $annotation_file"
+  annotate=" -a -F ../$annotation_file"
 fi
 
 cd $repository
