@@ -52,6 +52,11 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   that have a tag matching the specified expression. Patterns are
   [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html) compatible (as
   in, bash compatible).
+  
+* `tag_sort`: *Optional.* Only applicable when using tag_filter. If specified, 
+  the detected commits will be sorted by the specified sort field as defined by 
+  the `--sort` option on [`git-tag(1)` manual page](https://www.kernel.org/pub/software/scm/git/docs/git-tag.html).
+  Defaults to `creatordate`.
 
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
   it will configure git global options, setting each name with each value.
