@@ -117,3 +117,11 @@ configure_credentials() {
     echo "default login $username password $password" > $HOME/.netrc
   fi
 }
+
+configure_proxy_command() {
+  local cmd=$(jq -r '.source.proxy_command // ""' < $1)
+
+  if [ "$proxy_command" != "" ]; then
+    echo "ProxyCommand ${cmd}" >> ~/.ssh/config
+  fi
+}

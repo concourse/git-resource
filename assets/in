@@ -25,6 +25,7 @@ cat > $payload <&0
 load_pubkey $payload
 configure_git_ssl_verification $payload
 configure_credentials $payload
+configure_proxy_command $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
