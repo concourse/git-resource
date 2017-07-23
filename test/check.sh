@@ -243,6 +243,16 @@ it_checks_given_paths() {
   "
 }
 
+it_checks_given_glob_paths() { # issue gh-120
+  local repo=$(init_repo)
+  mkdir -p $repo/a/b
+  make_commit_to_file $repo a/file > /dev/null
+  local ref1=$(make_commit_to_file $repo a/b/file)
+  check_uri_paths $repo "**/file" | jq -e "
+    . == [{ref: $(echo $ref1 | jq -R .)}]
+  "
+}
+
 it_checks_given_ignored_paths() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_file $repo file-a)
@@ -289,6 +299,19 @@ it_checks_given_ignored_paths() {
     . == [
       {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref5 | jq -R .)}
+    ]
+  "
+  local ref8=$(make_commit_to_file $repo another-file)
+
+  check_uri_paths_ignoring $repo '*-file' 'another-file' | jq -e "
+    . == [
+      {ref: $(echo $ref7 | jq -R .)}
+    ]
+  "
+
+  check_uri_paths_ignoring $repo '.' 'file-*' | jq -e "
+    . == [
+      {ref: $(echo $ref8 | jq -R .)}
     ]
   "
 }
@@ -454,6 +477,7 @@ run it_can_check_from_a_first_commit_in_repo
 run it_can_check_from_a_bogus_sha
 run it_skips_ignored_paths
 run it_checks_given_paths
+run it_checks_given_glob_paths
 run it_checks_given_ignored_paths
 run it_can_check_when_not_ff
 run it_skips_marked_commits
