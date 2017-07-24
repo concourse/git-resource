@@ -456,6 +456,26 @@ it_can_check_with_tag_filter_with_cursor() {
   '
 }
 
+it_checks_most_recent_tag() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "tag 1")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "tag 2")
+  local ref5=$(make_commit $repo)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit $repo)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit $repo)
+
+
+  local latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+
+  check_uri_with_tag_filter $repo $latest_tag | jq -e '
+    . == [{ref: "2.0*"}]
+  '
+}
+
 it_can_check_and_set_git_config() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -493,3 +513,4 @@ run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
 run it_can_check_from_a_ref_with_paths_merged_in
+run it_checks_most_recent_tag
