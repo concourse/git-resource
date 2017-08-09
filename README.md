@@ -23,6 +23,29 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     ```
     Note: You can also use pipeline templating to hide this private key in source control. (For more information: https://concourse.ci/fly-set-pipeline.html)
 
+* `ssh_config`: *Optional.* SSH config to use when pulling/pushing. If this
+   if this is not specified a default ssh config that disables strict host 
+   key checking will be used. 
+    Example:
+    ```
+    ssh_config: |
+      Host 10.34.100.110
+      	StrictHostKeyChecking no
+      
+      Host gitserver
+    	ProxyCommand ssh -q proxyuser@94.14.162.172 nc 183.66.155.40 22
+    ```
+    Note: You can also use pipeline templating to hide this config in source control. (For more information: https://concourse.ci/fly-set-pipeline.html)
+
+* `known_hosts`: *Optional.* SSH known_hosts file to use when pulling/pushing.
+    Example:
+    ```
+    known_hosts: |
+      |1|KCXSa0KJnCIzB5UucUO... <more random chars> ...9EZvpaqtbxhZk8DR+xrI=
+      |1|01LwurJMVF6YVwfCv9o... <more random chars> ...ASnaJocGBNYwieuBC49U=
+    ```
+    Note: You can also use pipeline templating to hide the known hosts in source control. (For more information: https://concourse.ci/fly-set-pipeline.html)
+
 * `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
   This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
   and auth is required.

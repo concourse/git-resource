@@ -2,6 +2,7 @@
 
 set -e
 
+$(dirname $0)/setup_ssh.sh
 $(dirname $0)/image.sh
 $(dirname $0)/check.sh
 $(dirname $0)/get.sh
