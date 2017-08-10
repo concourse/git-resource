@@ -1,9 +1,15 @@
 export TMPDIR=${TMPDIR:-/tmp}
 
-load_pubkey() {
+configure_ssh() {
   local private_key_path=$TMPDIR/git-resource-private-key
+  local public_key_path=$TMPDIR/git-resource-private-key.pub
+
+  mkdir -p ~/.ssh
 
   (jq -r '.source.private_key // empty' < $1) > $private_key_path
+  (jq -r '.source.public_key // empty' < $1) > $public_key_path
+  (jq -r '.source.ssh_config // empty' < $1) > ~/.ssh/config
+  (jq -r '.source.known_hosts // empty' < $1) > ~/.ssh/known_hosts
 
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path
@@ -13,13 +19,18 @@ load_pubkey() {
 
     SSH_ASKPASS=$(dirname $0)/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
 
-    mkdir -p ~/.ssh
+  fi
+  
+  if [ ! -s ~/.ssh/config ]; then
+
     cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
-    chmod 0600 ~/.ssh/config
   fi
+
+  chmod 0600 ~/.ssh/config
+  chmod 0600 ~/.ssh/known_hosts
 }
 
 configure_git_global() {
