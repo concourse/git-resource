@@ -23,26 +23,19 @@ perl -p -i -e 's|AuthorizedKeysFile.*|AuthorizedKeysFile %h/.ssh/authorized_keys
 
 mkdir -p /root/.ssh
 cat << EOF > /root/.ssh/config
-Host testy
+Host githost
   HostName 127.0.0.1
   ProxyCommand ssh proxy@127.0.0.1 -W 127.0.0.1:22
 EOF
 
-# set up root to know this host
+# set up root to know target host
 ssh-keyscan 127.0.0.1 > /root/.ssh/known_hosts
-#ssh-keyscan -t rsa testy > /root/.ssh/known_hosts
 
 # make root's key
 ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
 
+# make user accounts to ssh through
 make_user proxy /root/.ssh/id_rsa.pub
-su proxy -c 'ssh-keygen -t rsa -N "" -f /home/proxy/.ssh/id_rsa'
-su proxy -c 'ssh-keyscan 127.0.0.1 > /home/proxy/.ssh/known_hosts'
-
 make_user git /root/.ssh/id_rsa.pub
 
-  #ProxyCommand ssh proxy@127.0.0.1
-  #ProxyCommand ssh proxy@127.0.0.1 ssh git@127.0.0.1
-
-ssh git@testy 'echo $USER'
-cat /root/.ssh/known_hosts
+ssh git@githost 'echo $USER'
