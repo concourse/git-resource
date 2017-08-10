@@ -156,12 +156,13 @@ it_can_use_submodlues_without_perl_warning() {
 
 it_can_use_submodlues() {
   local submodule_name="test_submodule"
-  local repo_and_submodule=$(init_repo_with_remote_submodule $submodule_name)
+  local repo_and_submodule=$(init_repo_with_remote_submodule)
   local repo=$(echo $repo_and_submodule | cut -d "," -f1)
+  local submodule=$(echo $repo_and_submodule | cut -d "," -f2)
 
   local dest=$TMPDIR/destination
   get_uri_with_submodules_all "file://"$repo 1  $dest 2>&1
-  test -f "$dest/$submodule_name/some-file"
+  test -f "$dest/${submodule##*/}/some-file"
 }
 
 it_honors_the_depth_flag() {

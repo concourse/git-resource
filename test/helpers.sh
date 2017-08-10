@@ -81,7 +81,7 @@ init_repo_with_remote_submodule() {
   local submodule=$(ssh -q git@githost "source $(dirname $0)/helpers.sh && init_remote_repo")
 
   local project=$(init_repo)
-  git -C $project submodule add "git@githost:$submodule" "$1" >/dev/null
+  git -C $project submodule add "git@githost:$submodule" >/dev/null
   git -C $project commit -m "Adding Submodule" >/dev/null
   echo $project,$submodule
 }
