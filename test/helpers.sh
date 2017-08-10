@@ -4,8 +4,19 @@ set -e -u
 
 set -o pipefail
 
+cleanup() {
+  # remove tempdir for root
+  rm -rf "$TMPDIR_ROOT"
+  # if we have set the remote submodule path in this scope
+  # then clean that too. We need to switch to the git user
+  # in order to access their "/tmp" path.
+  if [[ "${REMOTE_SUBMODULE:-}" != "" ]]; then
+    su -c "rm -rf $REMOTE_SUBMODULE" git
+  fi
+}
+
 export TMPDIR_ROOT=$(mktemp -d /tmp/git-tests.XXXXXX)
-#trap "rm -rf $TMPDIR_ROOT" EXIT
+trap "cleanup" EXIT
 
 if [ -d /opt/resource ]; then
   resource_dir=/opt/resource
@@ -53,6 +64,7 @@ init_repo_at() {
     pwd
   )
 }
+
 init_repo() {
   init_repo_at $(mktemp -d $TMPDIR/repo.XXXXXX)
 }
@@ -76,11 +88,11 @@ init_remote_repo() {
   echo $repo_path
 }
 
-# $1 -> submodule_name
 init_repo_with_remote_submodule() {
   local submodule=$(ssh -q git@githost "source $(dirname $0)/helpers.sh && init_remote_repo")
 
   local project=$(init_repo)
+  export REMOTE_SUBMODULE="$submodule"
   git -C $project submodule add "git@githost:$submodule" >/dev/null
   git -C $project commit -m "Adding Submodule" >/dev/null
   echo $project,$submodule

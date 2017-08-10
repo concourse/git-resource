@@ -154,7 +154,7 @@ it_can_use_submodlues_without_perl_warning() {
 }
 
 
-it_can_use_submodlues() {
+it_can_retrieve_submodules_requiring_ssh_config() {
   local submodule_name="test_submodule"
   local repo_and_submodule=$(init_repo_with_remote_submodule)
   local repo=$(echo $repo_and_submodule | cut -d "," -f1)
@@ -383,7 +383,7 @@ it_can_get_committer_email() {
 #run it_omits_empty_tags_in_metadata
 #run it_returns_list_of_tags_in_metadata
 #run it_can_use_submodlues_without_perl_warning
-run it_can_use_submodlues
+run it_can_retrieve_submodules_requiring_ssh_config
 #run it_honors_the_depth_flag
 #run it_honors_the_depth_flag_for_submodules
 #run it_can_get_and_set_git_config
