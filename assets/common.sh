@@ -1,36 +1,32 @@
 export TMPDIR=${TMPDIR:-/tmp}
 
 configure_ssh() {
-  local private_key_path=$TMPDIR/git-resource-private-key
-  local public_key_path=$TMPDIR/git-resource-private-key.pub
-
   mkdir -p ~/.ssh
 
-  (jq -r '.source.private_key // empty' < $1) > $private_key_path
-  (jq -r '.source.public_key // empty' < $1) > $public_key_path
+  rm ~/.ssh/id_rsa.pub
+  (jq -r '.source.private_key // empty' < $1) > ~/.ssh/id_rsa
   (jq -r '.source.ssh_config // empty' < $1) > ~/.ssh/config
   (jq -r '.source.known_hosts // empty' < $1) > ~/.ssh/known_hosts
 
-  if [ -s $private_key_path ]; then
-    chmod 0600 $private_key_path
+  if [ -s ~/.ssh/is_rsa ]; then
+    chmod 0600 ~/.ssh/is_rsa
 
     eval $(ssh-agent) >/dev/null 2>&1
     trap "kill $SSH_AGENT_PID" 0
 
-    SSH_ASKPASS=$(dirname $0)/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
-
+    SSH_ASKPASS=$(dirname $0)/askpass.sh DISPLAY= ssh-add ~/.ssh/is_rsa >/dev/null
   fi
   
   if [ ! -s ~/.ssh/config ]; then
-
     cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
   fi
 
-  chmod 0600 ~/.ssh/config
-  chmod 0600 ~/.ssh/known_hosts
+  if [ -s ~/.ssh/known_hosts ]; then
+    chmod 0600 ~/.ssh/known_hosts
+  fi
 }
 
 configure_git_global() {

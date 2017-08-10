@@ -438,6 +438,29 @@ get_uri_with_submodules_all() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+# $1 -> repo uri
+# $2 -> depth to clone at
+# $3 -> clone destination 
+# $4 -> private key
+# $5 -> public key
+# $6 -> ssh config
+# $7 -> known hosts
+get_uri_with_submodules_all_and_ssh_config() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      private_key: $(echo "$4" | jq -s -R .),
+      public_key: $(echo "$5" | jq -s -R .),
+      ssh_config: $(echo "$6" | jq -s -R .),
+      known_hosts: $(echo "$7" | jq -s -R .),
+    },
+    params: {
+      depth: $(echo $2 | jq -R .),
+      submodules: \"all\",
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
 get_uri_at_ref() {
   jq -n "{
     source: {

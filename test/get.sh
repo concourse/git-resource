@@ -159,9 +159,21 @@ it_can_retrieve_submodules_requiring_ssh_config() {
   local repo_and_submodule=$(init_repo_with_remote_submodule)
   local repo=$(echo $repo_and_submodule | cut -d "," -f1)
   local submodule=$(echo $repo_and_submodule | cut -d "," -f2)
-
   local dest=$TMPDIR/destination
-  get_uri_with_submodules_all "file://"$repo 1  $dest 2>&1
+
+  private_key=$(<~/.ssh/id_rsa)
+  public_key=$(<~/.ssh/id_rsa.pub)
+  ssh_config=$(<~/.ssh/config)
+  known_hosts=$(<~/.ssh/known_hosts)
+  get_uri_with_submodules_all_and_ssh_config \
+	  "file://"$repo \
+	  1 \
+	  $dest \
+	  "$private_key" \
+	  "$public_key" \
+	  "$ssh_config" \
+	  "$known_hosts" 2>&1
+
   test -f "$dest/${submodule##*/}/some-file"
 }
 
