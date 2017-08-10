@@ -155,18 +155,13 @@ it_can_use_submodlues_without_perl_warning() {
 
 
 it_can_use_submodlues() {
-  local repo=$(init_repo_with_remote_submodule | cut -d "," -f1)
-  echo $repo
+  local submodule_name="test_submodule"
+  local repo_and_submodule=$(init_repo_with_remote_submodule $submodule_name)
+  local repo=$(echo $repo_and_submodule | cut -d "," -f1)
+
   local dest=$TMPDIR/destination
   get_uri_with_submodules_all "file://"$repo 1  $dest 2>&1
-
-#init_repo_with_submodule
-
-#init_repo_with_submodule 
-#  local repo=$(init_repo_with_submodule | cut -d "," -f1)
-#  local dest=$TMPDIR/destination
-#
-#  get_uri_with_submodules_all "file://"$repo 1  $dest 2>&1
+  test -f "$dest/$submodule_name/some-file"
 }
 
 it_honors_the_depth_flag() {

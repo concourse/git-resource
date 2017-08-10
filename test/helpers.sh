@@ -5,7 +5,7 @@ set -e -u
 set -o pipefail
 
 export TMPDIR_ROOT=$(mktemp -d /tmp/git-tests.XXXXXX)
-trap "rm -rf $TMPDIR_ROOT" EXIT
+#trap "rm -rf $TMPDIR_ROOT" EXIT
 
 if [ -d /opt/resource ]; then
   resource_dir=/opt/resource
@@ -76,12 +76,12 @@ init_remote_repo() {
   echo $repo_path
 }
 
+# $1 -> submodule_name
 init_repo_with_remote_submodule() {
-  local submodule_path=$(ssh -q git@githost "source $(dirname $0)/helpers.sh && init_remote_repo")
-  local submodule="git@githost:$submodule_path"
+  local submodule=$(ssh -q git@githost "source $(dirname $0)/helpers.sh && init_remote_repo")
 
   local project=$(init_repo)
-  git -C $project submodule add "$submodule" >/dev/null
+  git -C $project submodule add "git@githost:$submodule" "$1" >/dev/null
   git -C $project commit -m "Adding Submodule" >/dev/null
   echo $project,$submodule
 }
