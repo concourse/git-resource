@@ -38,4 +38,34 @@ ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
 make_user proxy /root/.ssh/id_rsa.pub
 make_user git /root/.ssh/id_rsa.pub
 
-ssh git@githost 'echo $USER'
+# ensure git executables on path
+ln -s /usr/libexec/git-core/git-receive-pack /usr/bin/git-receive-pack
+
+
+ssh git@githost 'mkdir testsubmodule.git && cd testsubmodule.git && git init --bare'
+
+git clone git@githost:/home/git/testsubmodule.git
+(
+cd testsubmodule
+git status
+echo "hello" > hello
+git add hello
+git commit -m "adding hello"
+git push origin master
+)
+
+mkdir parent.git
+(
+cd parent.git
+git init
+echo "hello" > hello
+git add hello
+git commit -m "adding hello"
+git submodule add git@githost:/home/git/testsubmodule.git
+git commit -m "adding submodule"
+)
+
+git clone --recursive parent.git testrepo
+ls -R testrepo
+
+
