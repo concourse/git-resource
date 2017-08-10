@@ -153,6 +153,22 @@ it_can_use_submodlues_without_perl_warning() {
   ! echo "${output}" | grep "perl: not found"
 }
 
+
+it_can_use_submodlues() {
+  local repo=$(init_repo_with_remote_submodule | cut -d "," -f1)
+  echo $repo
+  local dest=$TMPDIR/destination
+  get_uri_with_submodules_all "file://"$repo 1  $dest 2>&1
+
+#init_repo_with_submodule
+
+#init_repo_with_submodule 
+#  local repo=$(init_repo_with_submodule | cut -d "," -f1)
+#  local dest=$TMPDIR/destination
+#
+#  get_uri_with_submodules_all "file://"$repo 1  $dest 2>&1
+}
+
 it_honors_the_depth_flag() {
   local repo=$(init_repo)
   local firstCommitRef=$(make_commit $repo)
@@ -362,25 +378,26 @@ it_can_get_committer_email() {
 
 }
 
-run it_can_get_from_url
-run it_can_get_from_url_at_ref
-run it_can_get_from_url_at_branch
-run it_can_get_from_url_only_single_branch
-run it_omits_empty_branch_in_metadata
-run it_returns_branch_in_metadata
-run it_omits_empty_tags_in_metadata
-run it_returns_list_of_tags_in_metadata
-run it_can_use_submodlues_without_perl_warning
-run it_honors_the_depth_flag
-run it_honors_the_depth_flag_for_submodules
-run it_can_get_and_set_git_config
-run it_returns_same_ref
-run it_cant_get_commit_with_invalid_key
-run it_cant_get_commit_not_signed
-run it_can_get_signed_commit
-run it_cant_get_commit_signed_with_unknown_key
-run it_cant_get_signed_commit_when_using_keyserver_and_bogus_key
-run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
-run it_can_get_signed_commit_when_using_keyserver
-run it_can_get_signed_commit_via_tag
-run it_can_get_committer_email
+#run it_can_get_from_url
+#run it_can_get_from_url_at_ref
+#run it_can_get_from_url_at_branch
+#run it_can_get_from_url_only_single_branch
+#run it_omits_empty_branch_in_metadata
+#run it_returns_branch_in_metadata
+#run it_omits_empty_tags_in_metadata
+#run it_returns_list_of_tags_in_metadata
+#run it_can_use_submodlues_without_perl_warning
+run it_can_use_submodlues
+#run it_honors_the_depth_flag
+#run it_honors_the_depth_flag_for_submodules
+#run it_can_get_and_set_git_config
+#run it_returns_same_ref
+#run it_cant_get_commit_with_invalid_key
+#run it_cant_get_commit_not_signed
+#run it_can_get_signed_commit
+#run it_cant_get_commit_signed_with_unknown_key
+#run it_cant_get_signed_commit_when_using_keyserver_and_bogus_key
+#run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
+#run it_can_get_signed_commit_when_using_keyserver
+#run it_can_get_signed_commit_via_tag
+#run it_can_get_committer_email

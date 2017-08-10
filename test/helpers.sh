@@ -24,11 +24,11 @@ run() {
   echo ""
 }
 
-init_repo() {
+init_repo_at() {
   (
     set -e
 
-    cd $(mktemp -d $TMPDIR/repo.XXXXXX)
+    cd $1
 
     git init -q
 
@@ -53,6 +53,9 @@ init_repo() {
     pwd
   )
 }
+init_repo() {
+  init_repo_at $(mktemp -d $TMPDIR/repo.XXXXXX)
+}
 
 init_repo_with_submodule() {
   local submodule=$(init_repo)
@@ -61,6 +64,24 @@ init_repo_with_submodule() {
 
   local project=$(init_repo)
   git -C $project submodule add "file://$submodule" >/dev/null
+  git -C $project commit -m "Adding Submodule" >/dev/null
+  echo $project,$submodule
+}
+
+init_remote_repo() {
+  local path=$(mktemp -d git-tests-repo.XXXXXX)
+  local repo_path=$(init_repo_at "${path}")
+  make_commit "${path}" >/dev/null
+  make_commit "${path}" >/dev/null
+  echo $repo_path
+}
+
+init_repo_with_remote_submodule() {
+  local submodule_path=$(ssh -q git@githost "source $(dirname $0)/helpers.sh && init_remote_repo")
+  local submodule="git@githost:$submodule_path"
+
+  local project=$(init_repo)
+  git -C $project submodule add "$submodule" >/dev/null
   git -C $project commit -m "Adding Submodule" >/dev/null
   echo $project,$submodule
 }
