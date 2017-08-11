@@ -18,6 +18,8 @@ rm -rf repo
 git clone fixture_repo.git repo
 cd repo
 
+git config user.signingkey B0F5F8EF
+
 git \
   -c user.name='test' \
   -c user.email='test@example.com' \
@@ -28,13 +30,50 @@ git add some-file
 
 echo enter passphrase: secret123
 
+GPG_TTY=$(tty) \
 git \
   -c user.name='test' \
   -c user.email='test@example.com' \
-  commit -q --gpg-sign=B0F5F8EF \
+  -c user.signingkey='B0F5F8EF' \
+  commit -q -S \
   -m "commit $(wc -l some-file) Test message"
 
 git push -u origin master
+
+cd ..
+rm -rf repo
+
+rm -rf fixture_repo_tags.git
+cp -R fixture_repo.git fixture_repo_tags.git
+
+git clone fixture_repo_tags.git repo
+cd repo
+
+echo x >> some-file
+git add some-file
+
+git \
+  -c user.name='test' \
+  -c user.email='test@example.com' \
+  commit -q \
+  -m "commit $(wc -l some-file) Test message"
+
+git \
+  -c user.name='test' \
+  -c user.email='test@example.com' \
+  tag 'v1.2.3-rc' \
+  -m 'my un-signed tag v1.2.3-rc'
+
+GPG_TTY=$(tty) \
+git \
+  -c user.name='test' \
+  -c user.email='test@example.com' \
+  -c user.signingkey='B0F5F8EF' \
+  tag 'v1.2.3' -s \
+  -m 'my signed tag v1.2.3'
+
+git push -u origin master
+git push -u origin --tags
 
 cd ..
 rm -rf repo
