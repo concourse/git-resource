@@ -347,6 +347,33 @@ it_can_get_signed_commit_when_using_keyserver() {
   test "$(git -C $dest rev-parse HEAD)" = $ref
 }
 
+it_cant_get_tag_not_signed() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  set +e
+  export resource_dir=/code/assets
+  output=$(get_uri_with_verification_key_and_verify_tag $repo $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  test "${exit_code}" == 1
+  echo "${output}" | grep "The commit ${ref} has no signed tags pointing to it"
+}
+
+it_can_get_tag_signed() {
+  local repo=$(gpg_fixture_repo_tags_path)
+  local ref=$(fetch_head_ref $repo)
+  test "$ref" != ""
+  local dest=$TMPDIR/destination
+
+  get_uri_with_verification_key_and_verify_tag $repo $dest
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref
+}
+
 it_can_get_committer_email() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -383,4 +410,6 @@ run it_cant_get_signed_commit_when_using_keyserver_and_bogus_key
 run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
 run it_can_get_signed_commit_when_using_keyserver
 run it_can_get_signed_commit_via_tag
+run it_cant_get_tag_not_signed
+run it_can_get_tag_signed
 run it_can_get_committer_email

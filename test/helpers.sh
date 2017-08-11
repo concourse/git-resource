@@ -143,6 +143,10 @@ gpg_fixture_repo_path() {
   echo "${test_dir}/gpg/fixture_repo.git"
 }
 
+gpg_fixture_repo_tags_path() {
+  echo "${test_dir}/gpg/fixture_repo_tags.git"
+}
+
 make_empty_commit() {
   local repo=$1
   local msg=${2-}
@@ -448,6 +452,21 @@ get_uri_with_verification_key() {
     source: {
       uri: $(echo $1 | jq -R .),
       commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"]
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+  exit_code=$?
+  delete_public_key
+  return ${exit_code}
+}
+
+get_uri_with_verification_key_and_verify_tag() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"],
+    },
+    params: {
+      verify: [ \"tags\" ]
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
   exit_code=$?

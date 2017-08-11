@@ -36,6 +36,8 @@ submodules=$(jq -r '(.params.submodules // "all")' < $payload)
 commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://keys.gnupg.net/"' < $payload)
+verify_commit=$(jq -r '.params.verify // ["commit"] | if index(["commit"]) then true else false end' < $payload)
+verify_tags=$(jq -r '.params.verify // ["commit"] | if index(["tags"]) then true else false end' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 
 configure_git_global "${git_config_payload}"
@@ -74,6 +76,12 @@ commit_not_signed() {
   exit 1
 }
 
+tags_not_signed() {
+  commit_id=$(git rev-parse ${ref})
+  echo "The commit ${commit_id} has no signed tags pointing to it"
+  exit 1
+}
+
 if [ ! -z "${commit_verification_keys}" ] || [ ! -z "${commit_verification_key_ids}" ] ; then
   if [ ! -z "${commit_verification_keys}" ]; then
     echo "${commit_verification_keys}" | gpg --batch --import || invalid_key "${commit_verification_keys}"
@@ -82,7 +90,21 @@ if [ ! -z "${commit_verification_keys}" ] || [ ! -z "${commit_verification_key_i
     echo "${commit_verification_key_ids}" | \
       xargs --no-run-if-empty -n1 gpg --batch --keyserver $gpg_keyserver --recv-keys
   fi
-  git verify-commit $(git rev-list -n 1 $ref) || commit_not_signed
+  set -x
+  if [ "${verify_commit}" == "true" ]; then
+    git verify-commit $(git rev-list -n 1 $ref) || commit_not_signed
+  fi
+  if [ "${verify_tags}" == "true" ]; then
+    tag_verified=false
+    for tag in $(git tag --list); do
+      if git tag -v "${tag}" > /dev/null 2>&1; then
+        tag_verified=true
+        break
+      fi
+    done
+    [ "$tag_verified" == "true" ] || tags_not_signed
+  fi
+  set +x
 fi
 
 if [ "$disable_git_lfs" != "true" ]; then
