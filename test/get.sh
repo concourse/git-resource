@@ -155,26 +155,59 @@ it_can_use_submodlues_without_perl_warning() {
 
 
 it_can_retrieve_submodules_requiring_ssh_config() {
-  local submodule_name="test_submodule"
-  local repo_and_submodule=$(init_repo_with_remote_submodule)
-  local repo=$(echo $repo_and_submodule | cut -d "," -f1)
-  local submodule=$(echo $repo_and_submodule | cut -d "," -f2)
+
+# set up root to know target host
+mkdir -p ~/.ssh
+#ssh-keyscan 127.0.0.1 > "$TMPDIR/known_hosts"
+ssh-keyscan 127.0.0.1 > ~/.ssh/known_hosts
+
+
+#cat "$TMPDIR/known_hosts"
+
+# make root's key
+#ssh-keygen -t rsa -N "" -f "$TMPDIR/id_rsa"
+ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+
+#ls -al $TMPDIR
+#chmod 600 "$TMPDIR/id_rsa"
+#chmod 600 "$TMPDIR/id_rsa.pub"
+#ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+
+#cat "$TMPDIR/id_rsa.pub"
+# make user accounts to ssh through
+make_sshable_user proxy ~/.ssh/id_rsa.pub
+#make_sshable_user proxy "$TMPDIR/id_rsa.pub"
+make_sshable_user git ~/.ssh/id_rsa.pub
+#make_sshable_user git "$TMPDIR/id_rsa.pub"
+
+
+# Build ssh config
+#cat << EOF > "$TMPDIR/ssh_config"
+cat << EOF > ~/.ssh/config
+Host githost
+  HostName 127.0.0.1
+  ProxyCommand ssh proxy@127.0.0.1 -W 127.0.0.1:22
+EOF
+
+  local repo_with_submodule_info=$(init_repo_with_remote_submodule "git@githost")
+  local project_folder=$(echo $repo_with_submodule_info | cut -d "," -f1)
+  local submodule_folder=$(echo $repo_with_submodule_info | cut -d "," -f2)
   local dest=$TMPDIR/destination
 
   private_key=$(<~/.ssh/id_rsa)
-  public_key=$(<~/.ssh/id_rsa.pub)
   ssh_config=$(<~/.ssh/config)
   known_hosts=$(<~/.ssh/known_hosts)
+
   get_uri_with_submodules_all_and_ssh_config \
-	  "file://"$repo \
+	  "file://"$project_folder \
 	  1 \
 	  $dest \
 	  "$private_key" \
-	  "$public_key" \
 	  "$ssh_config" \
 	  "$known_hosts" 2>&1
 
-  test -f "$dest/${submodule##*/}/some-file"
+  # Verify the submodule has been pulled
+  test -f "$dest/$(basename $submodule_folder)/some-file"
 }
 
 it_honors_the_depth_flag() {

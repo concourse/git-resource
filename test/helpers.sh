@@ -16,7 +16,7 @@ cleanup() {
 }
 
 export TMPDIR_ROOT=$(mktemp -d /tmp/git-tests.XXXXXX)
-trap "cleanup" EXIT
+#trap "cleanup" EXIT
 
 if [ -d /opt/resource ]; then
   resource_dir=/opt/resource
@@ -34,6 +34,23 @@ run() {
   eval "$@" 2>&1 | sed -e 's/^/  /g'
   echo ""
 }
+
+# Creates a user account that can be logged into with
+# the corresponding private part of the given authorized key.
+#
+# $1 = username
+# $2 = authorized key
+make_sshable_user(){
+	mkdir -p  home
+	adduser -D -s /bin/bash $1
+	# unlock the user account so that we can login as this user via ssh
+	perl -p -i -e "s|($1.*?)\!(.*)|\1*\2|" /etc/shadow
+
+	mkdir /home/$1/.ssh
+	chown $1 /home/$1/.ssh
+	cat $2 > /home/$1/.ssh/authorized_keys
+}
+
 
 init_repo_at() {
   (
@@ -88,9 +105,21 @@ init_remote_repo() {
   echo $repo_path
 }
 
-init_repo_with_remote_submodule() {
-  local submodule=$(ssh -q git@githost "source $(dirname $0)/helpers.sh && init_remote_repo")
+# Creates a remote repo on the given host and a local git repo with the
+# remote repo as submodule. Outputs the path to the local repo and the path
+# to the remote repo separated by a comma.
+#
+# $1 -> ssh username and host string
+# $2 -> private key path
+# $3 -> ssh config path
+# $4 -> known hosts path
 
+init_repo_with_remote_submodule() {
+	#>&2 echo ssh -q -i "$2" "$1" "source $(dirname $0)/helpers.sh && init_remote_repo"
+  local submodule=$(ssh -q "$1" "source $(dirname $0)/helpers.sh && init_remote_repo")
+  #local submodule=$(ssh -i "$2" -F "$3" -o UserKnownHostsFile="$4" -q "$1" "source $(dirname $0)/helpers.sh && init_remote_repo")
+
+>&2 echo sssssssss $submodule
   local project=$(init_repo)
   export REMOTE_SUBMODULE="$submodule"
   git -C $project submodule add "git@githost:$submodule" >/dev/null
@@ -442,17 +471,15 @@ get_uri_with_submodules_all() {
 # $2 -> depth to clone at
 # $3 -> clone destination 
 # $4 -> private key
-# $5 -> public key
-# $6 -> ssh config
-# $7 -> known hosts
+# $5 -> ssh config
+# $6 -> known hosts
 get_uri_with_submodules_all_and_ssh_config() {
   jq -n "{
     source: {
       uri: $(echo $1 | jq -R .),
       private_key: $(echo "$4" | jq -s -R .),
-      public_key: $(echo "$5" | jq -s -R .),
-      ssh_config: $(echo "$6" | jq -s -R .),
-      known_hosts: $(echo "$7" | jq -s -R .),
+      ssh_config: $(echo "$5" | jq -s -R .),
+      known_hosts: $(echo "$6" | jq -s -R .),
     },
     params: {
       depth: $(echo $2 | jq -R .),
