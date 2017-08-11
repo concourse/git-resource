@@ -1,20 +1,22 @@
 export TMPDIR=${TMPDIR:-/tmp}
 
+# Configures ssh keys and config are placed in the default location under ~/.ssh
+# rather than under /tmp. This makes writing the ssh cofig much easier.
 configure_ssh() {
+  rm -rf ~/.ssh
   mkdir -p ~/.ssh
 
-  rm ~/.ssh/id_rsa.pub
   (jq -r '.source.private_key // empty' < $1) > ~/.ssh/id_rsa
   (jq -r '.source.ssh_config // empty' < $1) > ~/.ssh/config
   (jq -r '.source.known_hosts // empty' < $1) > ~/.ssh/known_hosts
 
-  if [ -s ~/.ssh/is_rsa ]; then
-    chmod 0600 ~/.ssh/is_rsa
+  if [ -s ~/.ssh/id_rsa ]; then
+    chmod 0600 ~/.ssh/id_rsa
 
     eval $(ssh-agent) >/dev/null 2>&1
     trap "kill $SSH_AGENT_PID" 0
 
-    SSH_ASKPASS=$(dirname $0)/askpass.sh DISPLAY= ssh-add ~/.ssh/is_rsa >/dev/null
+    SSH_ASKPASS=$(dirname $0)/askpass.sh DISPLAY= ssh-add ~/.ssh/id_rsa >/dev/null
   fi
   
   if [ ! -s ~/.ssh/config ]; then
@@ -22,10 +24,6 @@ configure_ssh() {
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
-  fi
-
-  if [ -s ~/.ssh/known_hosts ]; then
-    chmod 0600 ~/.ssh/known_hosts
   fi
 }
 

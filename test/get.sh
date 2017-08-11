@@ -156,34 +156,18 @@ it_can_use_submodlues_without_perl_warning() {
 
 it_can_retrieve_submodules_requiring_ssh_config() {
 
-# set up root to know target host
-mkdir -p ~/.ssh
-#ssh-keyscan 127.0.0.1 > "$TMPDIR/known_hosts"
-ssh-keyscan 127.0.0.1 > ~/.ssh/known_hosts
-
-
-#cat "$TMPDIR/known_hosts"
-
-# make root's key
-#ssh-keygen -t rsa -N "" -f "$TMPDIR/id_rsa"
-ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-
-#ls -al $TMPDIR
-#chmod 600 "$TMPDIR/id_rsa"
-#chmod 600 "$TMPDIR/id_rsa.pub"
-#ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-
-#cat "$TMPDIR/id_rsa.pub"
-# make user accounts to ssh through
-make_sshable_user proxy ~/.ssh/id_rsa.pub
-#make_sshable_user proxy "$TMPDIR/id_rsa.pub"
-make_sshable_user git ~/.ssh/id_rsa.pub
-#make_sshable_user git "$TMPDIR/id_rsa.pub"
-
-
-# Build ssh config
-#cat << EOF > "$TMPDIR/ssh_config"
-cat << EOF > ~/.ssh/config
+  # set up root to know target host
+  mkdir -p ~/.ssh
+  ssh-keyscan 127.0.0.1 > ~/.ssh/known_hosts
+  # make root's key
+  ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+  # make user accounts to ssh through
+  make_sshable_user proxy ~/.ssh/id_rsa.pub
+  make_sshable_user git ~/.ssh/id_rsa.pub
+  
+  # Build ssh config
+  #cat << EOF > "$TMPDIR/ssh_config"
+  cat << EOF > ~/.ssh/config
 Host githost
   HostName 127.0.0.1
   ProxyCommand ssh proxy@127.0.0.1 -W 127.0.0.1:22
