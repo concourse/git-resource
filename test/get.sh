@@ -359,7 +359,43 @@ it_can_get_committer_email() {
 
   test -e $dest/.git/committer || echo ".git/committer does not exist."
   test "$(cat $dest/.git/committer)" = $committer_email || echo "Committer email not found."
+}
 
+it_can_get_returned_ref() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "other tag")
+  local ref3=$(make_annotated_tag $repo "0.9-production" "a tag")
+  local ref4=$(make_commit $repo)
+  local ref5=$(make_annotated_tag $repo "1.1-staging" "another tag")
+  local ref6=$(make_commit $repo)
+
+  get_uri_at_ref $repo $ref1 $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+  "
+  test -e $dest/.git/ref || ( echo ".git/ref does not exist."; return 1 )
+  test "$(cat $dest/.git/ref)" = "${ref1}" || \
+    ( echo ".git/ref does not match. Expected '${ref1}', got '$(cat $dest/.git/ref)'"; return 1 )
+
+  rm -rf $TMPDIR/destination
+  get_uri_at_ref $repo $ref2 $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+  test -e $dest/.git/ref || ( echo ".git/ref does not exist."; return 1 )
+  test "$(cat $dest/.git/ref)" = "${ref2}" || \
+    ( echo ".git/ref does not match. Expected '${ref2}', got '$(cat $dest/.git/ref)'"; return 1 )
+
+  rm -rf $TMPDIR/destination
+  get_uri_at_ref $repo $ref3 $TMPDIR/destination | jq -e "
+    .version == {ref: $(echo $ref3 | jq -R .)}
+  "
+  test -e $dest/.git/ref || ( echo ".git/ref does not exist."; return 1 )
+  test "$(cat $dest/.git/ref)" = "${ref3}" || \
+    ( echo ".git/ref does not match. Expected '${ref3}', got '$(cat $dest/.git/ref)'"; return 1 )
 }
 
 run it_can_get_from_url

@@ -112,15 +112,19 @@ for branch in $fetch; do
   git branch $branch FETCH_HEAD
 done
 
-# Store committer email in .git/committer. Can be used to send email to last committer on failed build
-# Using https://github.com/mdomke/concourse-email-resource for example
-git --no-pager log -1 --pretty=format:"%ae" > .git/committer
-
 if [ "$ref" == "HEAD" ]; then
   return_ref=$(git rev-parse HEAD)
 else
   return_ref=$ref
 fi
+
+# Store committer email in .git/committer. Can be used to send email to last committer on failed build
+# Using https://github.com/mdomke/concourse-email-resource for example
+git --no-pager log -1 --pretty=format:"%ae" > .git/committer
+
+# Store git-resource returned version ref .git/ref. Useful to know concourse
+# pulled ref in following tasks and resources.
+echo "${return_ref}" > .git/ref
 
 jq -n "{
   version: {ref: $(echo $return_ref | jq -R .)},
