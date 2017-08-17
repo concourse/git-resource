@@ -357,9 +357,10 @@ it_can_get_committer_email() {
     .version == {ref: $(echo $ref | jq -R .)}
   "
 
-  test -e $dest/.git/committer || echo ".git/committer does not exist."
-  test "$(cat $dest/.git/committer)" = $committer_email || echo "Committer email not found."
-
+  test -e $dest/.git/committer || \
+    ( echo ".git/committer does not exist."; return 1 )
+  test "$(cat $dest/.git/committer)" = $committer_email || \
+    ( echo "Committer email not found."; return 1 )
 }
 
 run it_can_get_from_url
