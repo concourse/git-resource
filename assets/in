@@ -58,6 +58,8 @@ fi
 
 git clone --single-branch $depthflag $uri $branchflag $destination
 
+git rev-parse --short HEAD > $destination/GIT_REV
+
 cd $destination
 
 git fetch origin refs/notes/*:refs/notes/*
