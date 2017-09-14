@@ -398,7 +398,6 @@ it_can_get_returned_ref() {
   test -e $dest/.git/ref || ( echo ".git/ref does not exist."; return 1 )
   test "$(cat $dest/.git/ref)" = "${ref3}" || \
     ( echo ".git/ref does not match. Expected '${ref3}', got '$(cat $dest/.git/ref)'"; return 1 )
->>>>>>> Populate .git/ref with the reference checked out
 }
 
 run it_can_get_from_url
