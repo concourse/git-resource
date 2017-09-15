@@ -4,6 +4,7 @@ RUN apk --no-cache add \
   bash \
   curl \
   git \
+  git-daemon \
   gnupg \
   gzip \
   jq \
