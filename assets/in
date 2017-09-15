@@ -35,7 +35,7 @@ fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
 commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
-gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://keys.gnupg.net/"' < $payload)
+gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 
 configure_git_global "${git_config_payload}"

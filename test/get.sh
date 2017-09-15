@@ -330,9 +330,9 @@ it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id() {
   exit_code=$?
   set -e
 
-  echo $output
+  echo $output $exit_code
   test "${exit_code}" = 123
-  echo "${output}" | grep "gpg: keyserver receive failed: No data"
+  echo "${output}" | grep "gpg: keyserver receive failed" # removed the "No data" because it would not consistently return that copy (network issues?)
 }
 
 it_can_get_signed_commit_when_using_keyserver() {
