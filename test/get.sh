@@ -153,6 +153,49 @@ it_can_use_submodlues_without_perl_warning() {
   ! echo "${output}" | grep "perl: not found"
 }
 
+
+it_can_retrieve_submodules_requiring_ssh_config() {
+  # Clear existing config
+  rm -rf ~/.ssh
+  mkdir -p ~/.ssh
+
+  # set up root to know target host
+  ssh-keyscan 127.0.0.1 > ~/.ssh/known_hosts
+  # make root's key
+  ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+  # make user accounts to ssh through
+  make_sshable_user proxy ~/.ssh/id_rsa.pub
+  make_sshable_user git ~/.ssh/id_rsa.pub
+  
+  # Build ssh config
+  #cat << EOF > "$TMPDIR/ssh_config"
+  cat << EOF > ~/.ssh/config
+Host githost
+  HostName 127.0.0.1
+  ProxyCommand ssh proxy@127.0.0.1 -W 127.0.0.1:22
+EOF
+
+  local repo_with_submodule_info=$(init_repo_with_remote_submodule "git@githost")
+  local project_folder=$(echo $repo_with_submodule_info | cut -d "," -f1)
+  local submodule_folder=$(echo $repo_with_submodule_info | cut -d "," -f2)
+  local dest=$TMPDIR/destination
+
+  private_key=$(<~/.ssh/id_rsa)
+  ssh_config=$(<~/.ssh/config)
+  known_hosts=$(<~/.ssh/known_hosts)
+
+  get_uri_with_submodules_all_and_ssh_config \
+	  "file://"$project_folder \
+	  1 \
+	  $dest \
+	  "$private_key" \
+	  "$ssh_config" \
+	  "$known_hosts" 2>&1
+
+  # Verify the submodule has been pulled
+  test -f "$dest/$(basename $submodule_folder)/some-file"
+}
+
 it_honors_the_depth_flag() {
   local repo=$(init_repo)
   local firstCommitRef=$(make_commit $repo)
@@ -409,6 +452,7 @@ run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
 run it_can_use_submodlues_without_perl_warning
+run it_can_retrieve_submodules_requiring_ssh_config
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
 run it_can_get_and_set_git_config
