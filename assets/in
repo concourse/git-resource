@@ -23,6 +23,7 @@ payload=$(mktemp $TMPDIR/git-resource-request.XXXXXX)
 cat > $payload <&0
 
 load_pubkey $payload
+load_git_crypt_key $payload
 configure_git_ssl_verification $payload
 configure_credentials $payload
 
@@ -93,6 +94,11 @@ fi
 git log -1 --oneline
 git clean --force --force -d
 git submodule sync
+
+if [ -f $GIT_CRYPT_KEY_PATH ]; then
+  echo "unlocking git repo"
+  git crypt unlock $GIT_CRYPT_KEY_PATH
+fi
 
 if [ "$submodules" == "all" ]; then
   git submodule update --init  $depthflag --recursive

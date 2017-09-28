@@ -1,4 +1,5 @@
 export TMPDIR=${TMPDIR:-/tmp}
+export GIT_CRYPT_KEY_PATH=~/git-crypt.key
 
 load_pubkey() {
   local private_key_path=$TMPDIR/git-resource-private-key
@@ -115,5 +116,15 @@ configure_credentials() {
   rm -f $HOME/.netrc
   if [ "$username" != "" -a "$password" != "" ]; then
     echo "default login $username password $password" > $HOME/.netrc
+  fi
+}
+
+load_git_crypt_key() {
+  local git_crypt_tmp_key_path=$TMPDIR/git-resource-git-crypt-key
+
+  (jq -r '.source.git_crypt_key // empty' < $1) > $git_crypt_tmp_key_path
+
+  if [ -s $git_crypt_tmp_key_path ]; then
+      cat $git_crypt_tmp_key_path | tr ' ' '\n' | base64 -d > $GIT_CRYPT_KEY_PATH
   fi
 }

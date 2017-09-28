@@ -400,6 +400,16 @@ it_can_get_returned_ref() {
     ( echo ".git/ref does not match. Expected '${ref3}', got '$(cat $dest/.git/ref)'"; return 1 )
 }
 
+it_decrypts_git_crypted_files() {
+  local repo=$(git_crypt_fixture_repo_path)
+  local dest=$TMPDIR/destination
+
+  get_uri_with_git_crypt_key $repo $dest
+
+  test $(cat $dest/secrets.txt) = "secret" || \
+    ( echo "encrypted file was not decrypted"; return 1 )
+}
+
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
@@ -422,3 +432,4 @@ run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
 run it_can_get_signed_commit_when_using_keyserver
 run it_can_get_signed_commit_via_tag
 run it_can_get_committer_email
+run it_decrypts_git_crypted_files
