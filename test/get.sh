@@ -432,4 +432,5 @@ run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
 run it_can_get_signed_commit_when_using_keyserver
 run it_can_get_signed_commit_via_tag
 run it_can_get_committer_email
+run it_can_get_returned_ref
 run it_decrypts_git_crypted_files
