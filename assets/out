@@ -23,6 +23,7 @@ payload=$(mktemp $TMPDIR/git-resource-request.XXXXXX)
 cat > $payload <&0
 
 load_pubkey $payload
+configure_https_tunnel $payload
 configure_git_ssl_verification $payload
 configure_credentials $payload
 

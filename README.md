@@ -75,9 +75,16 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `gpg_keyserver`: *Optional.* GPG keyserver to download the public keys from.
   Defaults to `hkp:///keys.gnupg.net/`.
 
+* `https_tunnel`: *Optional.* Information about an HTTPS proxy that will be used to tunnel SSH-based git commands over.
+  Has the following sub-properties:
+    * `proxy_host`: *Required.* The host name or IP of the proxy server
+    * `proxy_port`: *Required.* The proxy server's listening port
+    * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
+    * `proxy_password`: *Optional.* If the proxy requires authenticat, use this password
+
 ### Example
 
-Resource configuration for a private repo:
+Resource configuration for a private repo with an HTTPS proxy:
 
 ``` yaml
 resources:
@@ -96,6 +103,11 @@ resources:
     - name: core.bigFileThreshold
       value: 10m
     disable_ci_skip: true
+    https_tunnel:
+      proxy_host: proxy-server.mycorp.com
+      proxy_port: 3128
+      proxy_user: myuser
+      proxy_password: myverysecurepassword
 ```
 
 Fetching a repo with only 100 commits of history:
@@ -221,6 +233,17 @@ Run the tests with the following command:
 ```sh
 docker build -t git-resource .
 ```
+
+#### Note about the integration tests
+
+If you want to run the integration tests, a bit more work is required. You will require
+an actual git repo to which you can push and pull, configured for SSH access. To do this,
+add two files to `integration-tests/ssh` (note that names **are** important):
+* `test_key`: This is the private key used to authenticate against your repo.
+* `test_repo`: This file contains one line of the form `test_repo_url[#test_branch]`.
+  If the branch is not specified, it defaults to `master`. For example,
+  `git@github.com:concourse-git-tester/git-resource-integration-tests.git` or
+  `git@github.com:concourse-git-tester/git-resource-integration-tests.git#testing`
 
 ### Contributing
 
