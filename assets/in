@@ -24,6 +24,7 @@ cat > $payload <&0
 
 load_pubkey $payload
 load_git_crypt_key $payload
+configure_https_tunnel $payload
 configure_git_ssl_verification $payload
 configure_credentials $payload
 

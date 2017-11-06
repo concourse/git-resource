@@ -23,6 +23,29 @@ EOF
   fi
 }
 
+configure_https_tunnel() {
+  tunnel=$(jq -r '.source.https_tunnel // empty' < $1)
+
+  if [ ! -z "$tunnel" ]; then
+    host=$(echo "$tunnel" | jq -r '.proxy_host')
+    port=$(echo "$tunnel" | jq -r '.proxy_port')
+    user=$(echo "$tunnel" | jq -r '.proxy_user // empty')
+    password=$(echo "$tunnel" | jq -r '.proxy_password // empty')
+
+    pass_file=""
+    if [ ! -z "$user" ]; then
+      cat > ~/.ssh/tunnel_config <<EOF
+proxy_user = $user
+proxy_passwd = $password
+EOF
+      chmod 0600 ~/.ssh/tunnel_config
+      pass_file="-F ~/.ssh/tunnel_config"
+    fi
+
+    echo "ProxyCommand /usr/bin/proxytunnel $pass_file -p $host:$port -d %h:%p" >> ~/.ssh/config
+  fi
+}
+
 configure_git_global() {
   local git_config_payload="$1"
   eval $(echo "$git_config_payload" | \

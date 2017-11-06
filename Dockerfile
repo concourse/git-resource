@@ -1,3 +1,12 @@
+FROM alpine:edge AS tunnelbuilder
+RUN apk --no-cache add git make gcc g++ openssl-dev
+
+WORKDIR /root
+RUN git clone https://github.com/proxytunnel/proxytunnel.git
+
+WORKDIR /root/proxytunnel
+RUN make
+
 FROM alpine:edge AS resource
 
 RUN apk --no-cache add \
@@ -13,6 +22,10 @@ RUN apk --no-cache add \
   tar \
   openssl \
   libstdc++
+
+COPY --from=tunnelbuilder /root/proxytunnel/proxytunnel proxytunnel
+
+RUN /usr/bin/install -c proxytunnel /usr/bin/proxytunnel
 
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
@@ -183,5 +196,11 @@ RUN             rm -rf \
 FROM resource AS tests
 ADD test/ /tests
 RUN /tests/all.sh
+
+FROM resource AS integrationtests
+RUN apk --no-cache add squid
+ADD test/ /tests/test
+ADD integration-tests /tests/integration-tests
+RUN /tests/integration-tests/integration.sh
 
 FROM resource
