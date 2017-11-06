@@ -143,6 +143,14 @@ gpg_fixture_repo_path() {
   echo "${test_dir}/gpg/fixture_repo.git"
 }
 
+git_crypt_fixture_repo_path() {
+  echo "${test_dir}/git-crypt/fixture_repo.git"
+}
+
+git_crypt_fixture_key_path() {
+  echo "${test_dir}/git-crypt/fixture_repo.key"
+}
+
 make_empty_commit() {
   local repo=$1
   local msg=${2-}
@@ -366,6 +374,18 @@ get_uri() {
   jq -n "{
     source: {
       uri: $(echo $1 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
+get_uri_with_git_crypt_key() {
+  local git_crypt_key_path=$(git_crypt_fixture_key_path)
+  local git_crypt_key_base64_encoded=$(cat $git_crypt_key_path | base64)
+
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      git_crypt_key: $(echo $git_crypt_key_base64_encoded | jq -R .)
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }

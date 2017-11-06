@@ -75,6 +75,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `gpg_keyserver`: *Optional.* GPG keyserver to download the public keys from.
   Defaults to `hkp:///keys.gnupg.net/`.
 
+
+* `git_crypt_key`: *Optional.* Base64 encoded
+  [git-crypt](https://github.com/AGWA/git-crypt) key. Setting this will
+  unlock / decrypt the repository with `git-crypt`. To get the key simply
+  execute `git-crypt export-key -- - | base64` in an encrypted repository.
+
 * `https_tunnel`: *Optional.* Information about an HTTPS proxy that will be used to tunnel SSH-based git commands over.
   Has the following sub-properties:
     * `proxy_host`: *Required.* The host name or IP of the proxy server
@@ -103,6 +109,7 @@ resources:
     - name: core.bigFileThreshold
       value: 10m
     disable_ci_skip: true
+    git_crypt_key: AEdJVEN...snip...AAA==
     https_tunnel:
       proxy_host: proxy-server.mycorp.com
       proxy_port: 3128
@@ -140,6 +147,9 @@ allows you to commit to your repository without triggering a new version.
 
 Clones the repository to the destination, and locks it down to a given ref.
 It will return the same given ref as version.
+
+`git-crypt` encrypted repositories will automatically be decrypted, when the
+correct key is provided set in `git_crypt_key`.
 
 Submodules are initialized and updated recursively.
 
