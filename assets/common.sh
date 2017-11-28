@@ -27,8 +27,8 @@ configure_https_tunnel() {
   tunnel=$(jq -r '.source.https_tunnel // empty' < $1)
 
   if [ ! -z "$tunnel" ]; then
-    host=$(echo "$tunnel" | jq -r '.proxy_host')
-    port=$(echo "$tunnel" | jq -r '.proxy_port')
+    host=$(echo "$tunnel" | jq -r '.proxy_host // empty')
+    port=$(echo "$tunnel" | jq -r '.proxy_port // empty')
     user=$(echo "$tunnel" | jq -r '.proxy_user // empty')
     password=$(echo "$tunnel" | jq -r '.proxy_password // empty')
 
@@ -42,7 +42,9 @@ EOF
       pass_file="-F ~/.ssh/tunnel_config"
     fi
 
-    echo "ProxyCommand /usr/bin/proxytunnel $pass_file -p $host:$port -d %h:%p" >> ~/.ssh/config
+    if [[ ! -z $host && ! -z $port ]]; then
+      echo "ProxyCommand /usr/bin/proxytunnel $pass_file -p $host:$port -d %h:%p" >> ~/.ssh/config
+    fi
   fi
 }
 

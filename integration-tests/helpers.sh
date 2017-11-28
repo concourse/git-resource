@@ -23,6 +23,17 @@ init_integration_tests() {
   export INTG_BRANCH=$branch
 }
 
+check_uri_with_private_key_and_incomplete_tunnel_info() {
+  jq -n "{
+    source: {
+      uri: $(echo $INTG_REPO | jq -R .),
+      private_key: $(cat $1 | jq -s -R .),
+      branch: $(echo $INTG_BRANCH | jq -R .),
+      https_tunnel: {}
+    }
+  }" | ${resource_dir}/check "$2" | tee /dev/stderr
+}
+
 check_uri_with_private_key_and_tunnel_info() {
   auth=${3:-""}
   jq -n "{
