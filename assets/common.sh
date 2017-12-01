@@ -62,11 +62,13 @@ configure_git_ssl_verification() {
 }
 
 add_git_metadata_basic() {
+  local uri=$(git config --get remote.origin.url)
   local commit=$(git rev-parse HEAD | jq -R .)
   local author=$(git log -1 --format=format:%an | jq -s -R .)
   local author_date=$(git log -1 --format=format:%ai | jq -R .)
 
   jq ". + [
+    {name: \"uri\", value: \"${uri}\"},
     {name: \"commit\", value: ${commit}},
     {name: \"author\", value: ${author}},
     {name: \"author_date\", value: ${author_date}, type: \"time\"}
