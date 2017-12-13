@@ -23,6 +23,7 @@ configure_credentials $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
+ignore_user=$(jq -r '.source.ignore_user // ""' < $payload)
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
@@ -80,7 +81,11 @@ if [ -n "$tag_filter" ]; then
 else
   {
     set -f
-    git log $ci_skip --format='%H' --first-parent $log_range $paths_search
+    if [ -z "$ignore_user" ]; then
+      git log $ci_skip --format='%H' --first-parent $log_range $paths_search
+    else
+      git log $ci_skip --format='%H %an' --first-parent $paths_search | grep -v "$ignore_user" | cut -f1 -d ' ' | head -1
+    fi
     set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi

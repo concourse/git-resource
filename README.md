@@ -34,6 +34,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions from `check`.
 
+* `ignore_user`: *Optional.* A user to ignore (grep pattern). Useful if you are pushing commits with this resource and want to avoid the
+  potential of duplicate commits.
+
 * `ignore_paths`: *Optional.* The inverse of `paths`; changes to the specified
   files are ignored.
 
