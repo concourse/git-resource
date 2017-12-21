@@ -28,6 +28,7 @@ tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
+enable_tag_multibranch=$(jq -r '.source.enable_tag_multibranch // false' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -43,7 +44,12 @@ else
     branchflag="--branch $branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination
+  singlebranchflag=""
+  if [ "$enable_tag_multibranch" != "true" ]; then
+    singlebranchflag="--single-branch"
+  fi
+
+  git clone $singlebranchflag $uri $branchflag $destination
   cd $destination
 fi
 

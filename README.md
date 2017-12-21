@@ -53,6 +53,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
+* `enable_tag_multibranch`: *Optional.* Allows `tag_filter` to use all branches of git respository for triggering rather than the single branch defined by the `branch` config option. (default value is `false`).
+
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
   it will configure git global options, setting each name with each value.
 
