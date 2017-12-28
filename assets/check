@@ -38,12 +38,17 @@ if [ -d $destination ]; then
   git fetch
   git reset --hard FETCH_HEAD
 else
+  singlebranchflag="--single-branch"
+  if [ -n "$tag_filter" ] && [ -z "$branch" ]; then
+    singlebranchflag=""
+  fi
+
   branchflag=""
   if [ -n "$branch" ]; then
     branchflag="--branch $branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination
+  git clone $singlebranchflag $uri $branchflag $destination
   cd $destination
 fi
 
