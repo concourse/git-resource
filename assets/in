@@ -39,7 +39,6 @@ commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
-enable_tag_multibranch=$(jq -r '.source.enable_tag_multibranch // false' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -47,6 +46,11 @@ if [ -z "$uri" ]; then
   echo "invalid payload (missing uri):" >&2
   cat $payload >&2
   exit 1
+fi
+
+singlebranchflag="--single-branch"
+if [ -n "$tag_filter" ] && [ -z "$branch" ]; then
+  singlebranchflag=""
 fi
 
 branchflag=""
@@ -57,11 +61,6 @@ fi
 depthflag=""
 if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
-fi
-
-singlebranchflag=""
-if [ "$enable_tag_multibranch" != "true" ]; then
-  singlebranchflag="--single-branch"
 fi
 
 git clone $singlebranchflag $depthflag $uri $branchflag $destination
