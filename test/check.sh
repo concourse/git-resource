@@ -456,6 +456,38 @@ it_can_check_with_tag_filter_with_cursor() {
   '
 }
 
+it_can_check_with_tag_filter_for_all_branches() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "2.0-staging" "a tag")
+  local ref5=$(make_commit_to_branch $repo "bogus")
+  local ref6=$(make_annotated_tag $repo "3.0-staging" "a tag")
+  local ref7=$(make_commit_to_branch $repo "bogus")
+  local ref8=$(make_annotated_tag $repo "4.0-staging" "a tag")  
+
+  check_uri_with_tag_filter_no_branch $repo "*-staging" | jq -e '
+    . == [{ref: "4.0-staging"}]
+  '
+}
+
+it_ignores_tag_filter_for_other_branches() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "2.0-staging" "a tag")
+  local ref5=$(make_commit_to_branch $repo "bogus")
+  local ref6=$(make_annotated_tag $repo "3.0-staging" "a tag")
+  local ref7=$(make_commit_to_branch $repo "bogus")
+  local ref8=$(make_annotated_tag $repo "4.0-staging" "a tag")  
+
+  check_uri_with_tag_filter_on_branch $repo "*-staging" "master" | jq -e '
+    . == [{ref: "2.0-staging"}]
+  '
+}
+
 it_can_check_and_set_git_config() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -489,6 +521,8 @@ run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
 run it_can_check_with_tag_filter_with_cursor
+run it_can_check_with_tag_filter_for_all_branches
+run it_ignores_tag_filter_for_other_branches
 run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit

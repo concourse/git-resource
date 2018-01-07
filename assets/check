@@ -38,12 +38,19 @@ if [ -d $destination ]; then
   git fetch
   git reset --hard FETCH_HEAD
 else
+  singlebranchflag="--single-branch"
+  mergedflag="--merged"
+  if [ -n "$tag_filter" ] && [ -z "$branch" ]; then
+    singlebranchflag=""
+    mergedflag=""
+  fi
+
   branchflag=""
   if [ -n "$branch" ]; then
     branchflag="--branch $branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination
+  git clone $singlebranchflag $uri $branchflag $destination
   cd $destination
 fi
 
@@ -71,10 +78,11 @@ fi
 
 if [ -n "$tag_filter" ]; then
   {
+    git_tag_base='git tag --list "$tag_filter" --sort=creatordate $mergedflag'
     if [ -n "$ref" ]; then
-      git tag --list "$tag_filter" --sort=creatordate --contains $ref
+      eval $git_tag_base --contains $ref
     else
-      git tag --list "$tag_filter" --sort=creatordate | tail -1
+      eval $git_tag_base | tail -1
     fi
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 else
@@ -84,3 +92,4 @@ else
     set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
+

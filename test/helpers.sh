@@ -316,6 +316,27 @@ check_uri_from_paths_ignoring() {
 check_uri_with_tag_filter() {
   local uri=$1
   local tag_filter=$2
+  
+  check_uri_with_tag_filter_on_branch $uri $tag_filter "master"
+}  
+
+check_uri_with_tag_filter_on_branch() {
+  local uri=$1
+  local tag_filter=$2
+  local branch=$3
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_filter: $(echo $tag_filter | jq -R .),
+      branch: $(echo $branch | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_tag_filter_no_branch() {
+  local uri=$1
+  local tag_filter=$2
+  
   jq -n "{
     source: {
       uri: $(echo $uri | jq -R .),
