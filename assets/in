@@ -30,6 +30,7 @@ configure_credentials $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
