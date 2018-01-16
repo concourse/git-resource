@@ -21,7 +21,8 @@ RUN apk --no-cache add \
   perl \
   tar \
   openssl \
-  libstdc++
+  libstdc++ \
+  dumb-init
 
 COPY --from=tunnelbuilder /root/proxytunnel/proxytunnel proxytunnel
 
@@ -198,6 +199,8 @@ RUN             for i in /usr/lib/perl*; do \
                     -exec rm -rf {} \;; \
                   cd -; \
                 done
+
+ENTRYPOINT ["/usr/bin/dumb-init"]
 
 FROM resource AS tests
 ADD test/ /tests
