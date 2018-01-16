@@ -24,21 +24,39 @@ uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
+branch_regex=$(jq -r '.source.branch_regex // ""' < $payload)
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
+tag_regex=$(jq -r '.source.tag_regex // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
 
 configure_git_global "${git_config_payload}"
 
+
+# Determine target branch if we have a regex
+if [ -n "$branch_regex" ]; then
+  matched_branch="$(git ls-remote --heads $uri | cut -d '/' -f3 | perl -nl -e "foreach (split(\"\n\")) {print if $branch_regex}" | sort -n | tail -1)"
+  if [ -n "$matched_branch" ]; then
+    branchflag="--branch $matched_branch"
+  else
+    exit 0
+  fi
+fi
+
 destination=$TMPDIR/git-resource-repo-cache
 
 if [ -d $destination ]; then
   cd $destination
-  git fetch
+
+  if [ -n "$branch" ]; then
+    git fetch origin $branch
+  else
+    git fetch
+  fi
+
   git reset --hard FETCH_HEAD
 else
-  branchflag=""
   if [ -n "$branch" ]; then
     branchflag="--branch $branch"
   fi
@@ -75,6 +93,17 @@ if [ -n "$tag_filter" ]; then
       git tag --list "$tag_filter" --sort=creatordate --contains $ref
     else
       git tag --list "$tag_filter" --sort=creatordate | tail -1
+    fi
+  } | jq -R '.' | jq -s "map({ref: .})" >&3
+elif [ -n "$tag_regex" ]; then
+  {
+    if [ -n "$ref" ]; then
+      git tag --list --sort=creatordate --contains $ref | \
+        perl -nl -e "foreach (split(\"\n\")) {print if $tag_regex}"
+    else
+      git tag --list --sort=creatordate | \
+        perl -nl -e "foreach (split(\"\n\")) {print if $tag_regex}" | \
+        tail -1
     fi
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 else

@@ -188,10 +188,16 @@ RUN             rm -rf \
                     perl \
                     perl5
 
+# Clean up Perl but keep the CORE folder.
 WORKDIR         /usr/lib
-RUN             rm -rf \
-                    perl \
-                    perl5
+RUN             for i in /usr/lib/perl*; do \
+                  cd $i/*/; \
+                  find \
+                    -maxdepth 1 -mindepth 1 \
+                    -not -name CORE \
+                    -exec rm -rf {} \;; \
+                  cd -; \
+                done
 
 FROM resource AS tests
 ADD test/ /tests
