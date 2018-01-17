@@ -203,13 +203,23 @@ RUN             for i in /usr/lib/perl*; do \
 ENTRYPOINT ["/usr/bin/dumb-init"]
 
 FROM resource AS tests
+ARG SKIP_TESTS=false
 ADD test/ /tests
-RUN /tests/all.sh
+RUN if [ "${SKIP_TESTS}" == 'false' ]; then \
+      /tests/all.sh; \
+    else \
+      echo "Skip arg specified, skipping tests."; \
+    fi
 
 FROM resource AS integrationtests
+ARG SKIP_TESTS=false
 RUN apk --no-cache add squid
 ADD test/ /tests/test
 ADD integration-tests /tests/integration-tests
-RUN /tests/integration-tests/integration.sh
+RUN if [ "${SKIP_TESTS}" == 'false' ]; then \
+      /tests/integration-tests/integration.sh; \
+    else \
+      echo "Skip arg specified, skipping integration tests."; \
+    fi
 
 FROM resource
