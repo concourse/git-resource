@@ -171,6 +171,20 @@ it_honors_the_depth_flag() {
   test "$(git -C $dest rev-list --all --count)" = 1
 }
 
+it_can_shallow_clone_ref_with_new_commits() {
+  local repo=$(init_repo)
+  local myCommitRef=$(make_commit $repo)
+  local newCommitRef=$(make_commit $repo)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_at_depth_at_ref "file://"$repo 1 $myCommitRef $dest | jq -e "
+    .version == {ref: $(echo $myCommitRef | jq -R .)}
+  "
+
+  test "$(git -C $dest rev-parse HEAD)" = $myCommitRef
+}
+
 it_honors_the_depth_flag_for_submodules() {
   local repo_with_submodule_info=$(init_repo_with_submodule)
   local project_folder=$(echo $repo_with_submodule_info | cut -d "," -f1)
@@ -420,6 +434,7 @@ run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
 run it_can_use_submodlues_without_perl_warning
 run it_honors_the_depth_flag
+run it_can_shallow_clone_ref_with_new_commits
 run it_honors_the_depth_flag_for_submodules
 run it_can_get_and_set_git_config
 run it_returns_same_ref

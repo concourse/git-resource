@@ -63,7 +63,11 @@ git clone --single-branch $depthflag $uri $branchflag $destination
 cd $destination
 
 git fetch origin refs/notes/*:refs/notes/*
-git checkout -q $ref
+until `git checkout -q $ref`; do
+    deepen=$((deepen+$depth))
+    deepenflag="--deepen $deepen"
+    git fetch $deepenflag origin
+done
 
 invalid_key() {
   echo "Invalid GPG key in: ${commit_verification_keys}"
