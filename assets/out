@@ -69,6 +69,11 @@ if [ -n "$tag" ] && [ ! -f "$tag" ]; then
   exit 1
 fi
 
+if [ -n "$annotation_file" ] && [ ! -f $annotation_file ]; then
+  echo "annotation file '$annotation_file' does not exist"
+  exit 1
+fi
+
 forceflag=""
 if [ $force = "true" ]; then
   forceflag="--force"
@@ -81,7 +86,7 @@ fi
 
 annotate=""
 if [ -n "$annotation_file" ]; then
-  annotate=" -a -F $annotation_file"
+  annotate=" -a -F $source/$annotation_file"
 fi
 
 cd $repository
