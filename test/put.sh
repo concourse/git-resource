@@ -114,13 +114,14 @@ it_can_put_to_url_with_tag_and_annotation() {
 
   local ref=$(make_commit $repo2)
 
-  echo 1.0 > $src/some-tag-file
-  echo yay > $src/some-annotation-file
+  mkdir -p $src/tag
+  echo 1.0 > $src/tag/some-tag-file
+  echo yay > $src/tag/some-annotation-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
 
-  put_uri_with_tag_and_annotation $repo1 $src "$src/some-tag-file" "$src/some-annotation-file" repo | jq -e "
+  put_uri_with_tag_and_annotation $repo1 $src "tag/some-tag-file" "tag/some-annotation-file" repo | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
   "
 
