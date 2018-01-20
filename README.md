@@ -50,7 +50,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `tag_filter`: *Optional.* If specified, the resource will only detect commits
   that have a tag matching the expression that have been made against
-  the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
+  the `branch`. If `branch` is set the filter will only match tags on that particular branch otherwise the filter will match tags from all branches. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
@@ -74,7 +74,6 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `gpg_keyserver`: *Optional.* GPG keyserver to download the public keys from.
   Defaults to `hkp:///keys.gnupg.net/`.
-
 
 * `git_crypt_key`: *Optional.* Base64 encoded
   [git-crypt](https://github.com/AGWA/git-crypt) key. Setting this will

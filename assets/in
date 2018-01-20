@@ -30,6 +30,7 @@ configure_credentials $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
@@ -48,6 +49,11 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
+singlebranchflag="--single-branch"
+if [ -n "$tag_filter" ] && [ -z "$branch" ]; then
+  singlebranchflag=""
+fi
+
 branchflag=""
 if [ -n "$branch" ]; then
   branchflag="--branch $branch"
@@ -58,7 +64,7 @@ if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination
+git clone $singlebranchflag $depthflag $uri $branchflag $destination
 
 cd $destination
 
