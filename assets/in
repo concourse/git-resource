@@ -49,16 +49,16 @@ if [ -z "$uri" ]; then
 fi
 
 branchflag=""
+singlebranch=""
 if [ -n "$branch" ]; then
   branchflag="--branch $branch"
+  singlebranch="--single-branch"
 fi
-
 depthflag=""
 if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
 fi
-
-git clone --single-branch $depthflag $uri $branchflag $destination
+git clone $singlebranch $depthflag $uri $branchflag $destination
 
 cd $destination
 

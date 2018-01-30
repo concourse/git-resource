@@ -30,6 +30,7 @@ configure_credentials $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
+branchfile=$(jq -r '.params.branch_file // ""' < $payload)
 repository=$(jq -r '.params.repository // ""' < $payload)
 tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
@@ -41,10 +42,17 @@ annotation_file=$(jq -r '.params.annotate // ""' < $payload)
 notes_file=$(jq -r '.params.notes // ""' < $payload)
 
 configure_git_global "${git_config_payload}"
+cd $source
 
 if [ -z "$uri" ]; then
   echo "invalid payload (missing uri)"
   exit 1
+fi
+
+if [ -f "$branchfile" ]; then
+    echo "Getting branch by reading file '$branchfile'".
+    branch="$(cat $branchfile)"
+    echo "Found branch name: '$branch'"
 fi
 
 if [ -z "$branch" ]; then
@@ -61,8 +69,6 @@ if [ "$merge" = "true" ] && [ "$rebase" = "true" ]; then
   echo "invalid push strategy (either merge or rebase can be set, but not both)"
   exit 1
 fi
-
-cd $source
 
 if [ -n "$tag" ] && [ ! -f "$tag" ]; then
   echo "tag file '$tag' does not exist"
