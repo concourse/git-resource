@@ -48,11 +48,10 @@ destination=$TMPDIR/git-resource-repo-cache
 
 if [ -d $destination ]; then
   cd $destination
-
   if [ -n "$branch" ]; then
-    git fetch origin $branch
+    git fetch origin $branch --tags
   else
-    git fetch
+    git fetch --tags
   fi
 
   git reset --hard FETCH_HEAD
