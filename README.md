@@ -184,7 +184,7 @@ the case.
  * `.git/ref`: Version reference detected and checked out. It will usually contain
    the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
    
- * `.git/commit_message`: For publishing the Git commit message on successful .
+ * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
 
 ### `out`: Push to a repository.
