@@ -23,8 +23,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     ```
     Note: You can also use pipeline templating to hide this private key in source control. (For more information: https://concourse.ci/fly-set-pipeline.html)
 
-* `private_key_base64`: *Optional.* Decide the private key from base64 encoding.
-    This is handy for credential stores that do not support multi-line strings
+* `private_key_base64`: *Optional.* Decode the private key from base64 encoding.
+    This is handy for credential stores that do not support multi-line strings,
     Particularly Vault & SSM Parameter Store when using encryption
 
 * `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
