@@ -52,7 +52,7 @@ it_can_check_with_base64_private_key() {
   base64 $key > $key_base64
 
   check_uri_with_base64_key $repo $key_base64 | jq -e "
-    . == [{number: $(echo 1.2.3 | jq -R .)}]
+    . == [{ref: $(echo $ref | jq -R .)}]
   "
 }
 
