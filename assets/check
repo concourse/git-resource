@@ -56,6 +56,7 @@ if [ -n "$ref" ] && git cat-file -e "$ref"; then
   fi
 else
   log_range="-1"
+  ref=""
 fi
 
 if [ "$paths" = "." ] && [ -z "$ignore_paths" ]; then
