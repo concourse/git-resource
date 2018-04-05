@@ -21,15 +21,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
       -----END RSA PRIVATE KEY-----
     ```
-    Note: You can also use pipeline templating to hide this private key in source control. (For more information: https://concourse-ci.org/fly-set-pipeline.html)
 
 * `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
   This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
   and auth is required.
 
 * `password`: *Optional.* Password for HTTP(S) auth when pulling/pushing.
-
-   Note: You can also use pipeline templating to hide this password in source control. (For more information: https://concourse-ci.org/fly-set-pipeline.html)
 
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions from `check`.
@@ -39,7 +36,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
   Note that if you want to push commits that change these files via a `put`,
   the commit will still be "detected", as [`check` and `put` both introduce
-  versions](https://concourse-ci.org/pipeline-mechanics.html#collecting-versions).
+  versions](https://github.com/concourse/concourse/issues/534).
   To avoid this you should define a second resource that you use for commits
   that change files that you don't want to feed back into your pipeline - think
   of one as read-only (with `ignore_paths`) and one as write-only (which
