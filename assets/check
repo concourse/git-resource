@@ -39,11 +39,13 @@ if [ -d $destination ]; then
   git reset --hard FETCH_HEAD
 else
   branchflag=""
+  singlebranch=""
   if [ -n "$branch" ]; then
     branchflag="--branch $branch"
+    singlebranch="--single-branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination
+  git clone $singlebranch $uri $branchflag $destination
   cd $destination
 fi
 

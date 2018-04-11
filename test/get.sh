@@ -70,7 +70,7 @@ it_can_get_from_url_only_single_branch() {
   local ref=$(make_commit $repo)
   local dest=$TMPDIR/destination
 
-  get_uri $repo $dest | jq -e "
+  get_uri_with_branch $repo $dest "master" | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
   "
 

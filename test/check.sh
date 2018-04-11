@@ -19,7 +19,7 @@ it_can_check_from_head_only_fetching_single_branch() {
 
   local cachedir="$TMPDIR/git-resource-repo-cache"
 
-  check_uri $repo | jq -e "
+  check_uri_with_branch $repo "master" | jq -e "
     . == [{ref: $(echo $ref | jq -R .)}]
   "
 
