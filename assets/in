@@ -137,7 +137,7 @@ echo "${return_ref}" > .git/ref
 # the content of a successfull build.
 # Using https://github.com/cloudfoundry-community/slack-notification-resource
 # for example
-echo $(git_metadata) | jq -r '.[6].value // ""' > .git/commit_message
+git log -1 --format=format:%B > .git/commit_message
 
 jq -n "{
   version: {ref: $(echo $return_ref | jq -R .)},
