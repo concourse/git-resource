@@ -22,6 +22,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       -----END RSA PRIVATE KEY-----
     ```
 
+* `private_key_base64`: *Optional.* Decode the private key from base64 encoding.
+    This is handy for credential stores that do not support multi-line strings, particularly Vault & AWS SSM Parameter Store when using encryption.
+
 * `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
   This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
   and auth is required.

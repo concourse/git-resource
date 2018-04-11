@@ -3,8 +3,13 @@ export GIT_CRYPT_KEY_PATH=~/git-crypt.key
 
 load_pubkey() {
   local private_key_path=$TMPDIR/git-resource-private-key
+  private_key_base64=$(jq -r '.source.private_key_base64 // false' < $1)
 
-  (jq -r '.source.private_key // empty' < $1) > $private_key_path
+  if [ "$private_key_base64" != "true" ]; then
+    (jq -r '.source.private_key // empty' < $1) > $private_key_path
+  else
+    (jq -r '.source.private_key // empty' < $1) | base64 -d > $private_key_path
+  fi
 
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path

@@ -42,6 +42,20 @@ it_fails_if_key_has_password() {
   grep "Private keys with passphrases are not supported." $failed_output
 }
 
+it_can_check_with_base64_private_key() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  local key=$TMPDIR/key-tmp
+  local key_base64=$TMPDIR/key-base64
+  ssh-keygen -f $key -N ""
+  base64 $key > $key_base64
+
+  check_uri_with_base64_key $repo $key_base64 | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+}
+
 it_can_check_with_credentials() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -502,6 +516,7 @@ run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
 run it_does_not_skip_marked_commits_when_disable_skip_configured
 run it_fails_if_key_has_password
+run it_can_check_with_base64_private_key
 run it_can_check_with_credentials
 run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
