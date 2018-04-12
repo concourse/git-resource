@@ -139,7 +139,10 @@ echo "${return_ref}" > .git/ref
 # for example
 git log -1 --format=format:%B > .git/commit_message
 
+metadata=$(git_metadata)
+git tag | xargs git tag -d
+
 jq -n "{
   version: {ref: $(echo $return_ref | jq -R .)},
-  metadata: $(git_metadata)
+  metadata: $metadata
 }" >&3
