@@ -546,6 +546,17 @@ get_uri_when_using_keyserver_and_unknown_key() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_with_clean_tags() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      clean_tags: $(echo $3 | jq -R .),
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
 put_uri() {
   jq -n "{
     source: {

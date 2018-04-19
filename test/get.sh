@@ -425,16 +425,42 @@ it_decrypts_git_crypted_files() {
     ( echo "encrypted file was not decrypted"; return 1 )
 }
 
-it_does_not_retain_tags() {
+it_clears_tags_with_clean_tags_param() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
   git -C $repo tag v1.1-pre
 
   local dest=$TMPDIR/destination
 
-  get_uri $repo $dest
+  get_uri_with_clean_tags $repo $dest "true"
 
   test -z "$(git -C $dest tag)"
+}
+
+it_retains_tags_by_default() {
+  local tag="v1.1-pre"
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  git -C $repo tag $tag
+
+  local dest=$TMPDIR/destination
+
+  get_uri $repo $dest
+
+  test "$(git -C $dest tag)" == $tag
+}
+
+it_retains_tags_with_clean_tags_param() {
+  local tag="v1.1-pre"
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  git -C $repo tag $tag
+
+  local dest=$TMPDIR/destination
+
+  get_uri_with_clean_tags $repo $dest "false"
+
+  test "$(git -C $dest tag)" == $tag
 }
 
 run it_can_get_from_url
@@ -462,4 +488,6 @@ run it_can_get_committer_email
 run it_can_get_returned_ref
 run it_can_get_commit_message
 run it_decrypts_git_crypted_files
-run it_does_not_retain_tags
+run it_clears_tags_with_clean_tags_param
+run it_retains_tags_by_default
+run it_retains_tags_with_clean_tags_param

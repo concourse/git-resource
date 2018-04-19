@@ -163,6 +163,10 @@ Submodules are initialized and updated recursively.
 
 * `disable_git_lfs`: *Optional.* If `true`, will not fetch Git LFS files.
 
+* `clean_tags`: *Optional.* If `true` all incoming tags will be deleted. This
+  is useful if you want to push tags, but have reasonable doubts that the tags
+  cached with the resource are outdated. The default value is `false`.
+
 #### GPG signature verification
 
 If `commit_verification_keys` or `commit_verification_key_ids` is specified in
