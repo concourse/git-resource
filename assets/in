@@ -39,6 +39,7 @@ commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
+clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -140,7 +141,10 @@ echo "${return_ref}" > .git/ref
 git log -1 --format=format:%B > .git/commit_message
 
 metadata=$(git_metadata)
-git tag | xargs git tag -d
+
+if [ "$clean_tags" == "true" ]; then
+  git tag | xargs git tag -d
+fi
 
 jq -n "{
   version: {ref: $(echo $return_ref | jq -R .)},
