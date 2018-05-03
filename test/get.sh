@@ -198,6 +198,60 @@ it_honors_the_depth_flag_for_submodules() {
   test "$(git -C $dest_one/$submodule_name rev-list --all --count)" = 1
 }
 
+it_honors_the_parameter_flags_for_submodules() {
+  local repo_info=$(init_repo_with_submodule_of_nested_submodule)
+  local project_folder=$(echo $repo_info | cut -d "," -f1)
+  local submodule_folder=$(echo $repo_info | cut -d "," -f2)
+  local submodule_name=$(basename $submodule_folder)
+  local subsubmodule_folder=$(echo $repo_info | cut -d "," -f3)
+  local subsubmodule_name=$(basename $subsubmodule_folder)
+  local project_last_commit_id=$(git -C $project_folder rev-parse HEAD)
+
+  echo $project_folder
+  echo $submodule_name
+  echo $subsubmodule_name
+
+  # testing: recursive explicit enabled
+  local dest_recursive_true=$TMPDIR/recursive_true
+  get_uri_with_submodules_and_parameter_recursive \
+  "file://"$project_folder 1 "all" true $dest_recursive_true |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_recursive_true/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_recursive_true/$submodule_name/$subsubmodule_name rev-list --all --count)" = 1
+
+  # recursive explicit disabled
+  local dest_recursive_false=$TMPDIR/recursive_false
+  get_uri_with_submodules_and_parameter_recursive \
+  "file://"$project_folder 1 "all" false $dest_recursive_false |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_recursive_false/$submodule_name rev-list --all --count)" = 1
+  test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l)" = 0
+
+  # remote explicit enabled
+  local dest_remote_true=$TMPDIR/remote_true
+  get_uri_with_submodules_and_parameter_remote \
+  "file://"$project_folder 1 "all" true $dest_remote_true |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_remote_true/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_remote_true/$submodule_name/$subsubmodule_name rev-list --all --count)" = 1
+
+  # remote explicit disabled
+  local dest_remote_false=$TMPDIR/remote_false
+  get_uri_with_submodules_and_parameter_remote \
+  "file://"$project_folder 1 "all" false $dest_remote_false |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_remote_false/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_remote_false/$submodule_name/$subsubmodule_name rev-list --all --count)" = 1
+}
+
 it_can_get_and_set_git_config() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -448,6 +502,7 @@ run it_returns_list_of_tags_in_metadata
 run it_can_use_submodlues_without_perl_warning
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
+run it_honors_the_parameter_flags_for_submodules
 run it_can_get_and_set_git_config
 run it_returns_same_ref
 run it_cant_get_commit_with_invalid_key

@@ -65,6 +65,19 @@ init_repo_with_submodule() {
   echo $project,$submodule
 }
 
+init_repo_with_submodule_of_nested_submodule() {
+  local submodule_and_nested_submodule=$(init_repo_with_submodule)
+  local nested_submodule=$(echo $submodule_and_nested_submodule | cut -d "," -f2)
+  local submodule=$(echo $submodule_and_nested_submodule | cut -d "," -f1)
+  make_commit $submodule >/dev/null
+  make_commit $submodule >/dev/null
+
+  local project=$(init_repo)
+  git -C $project submodule add "file://$submodule" >/dev/null
+  git -C $project commit -m "Adding Submodule" >/dev/null
+  echo $project,$submodule,$nested_submodule
+}
+
 fetch_head_ref() {
   local repo=$1
 
@@ -423,6 +436,32 @@ get_uri_with_submodules_all() {
       submodules: \"all\",
     }
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
+get_uri_with_submodules_and_parameter_remote() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      depth: $(echo $2 | jq -R .),
+      submodules: $(echo $3 | jq -R .),
+      submodule_remote: $(echo $4 | jq -R .),
+    }
+  }" | ${resource_dir}/in "$5" | tee /dev/stderr
+}
+
+get_uri_with_submodules_and_parameter_recursive() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      depth: $(echo $2 | jq -R .),
+      submodules: $(echo $3 | jq -R .),
+      submodule_recursive: $(echo $4 | jq -R .),
+    }
+  }" | ${resource_dir}/in "$5" | tee /dev/stderr
 }
 
 get_uri_at_ref() {
