@@ -35,7 +35,8 @@ ref=$(jq -r '.version.ref // "HEAD"' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
-submodule_parameters=$(jq -r '(.params.submodule_parameters // "--recursive")' < $payload)
+submodule_recursive=$(jq -r '(.params.submodule_recursive // true)' < $payload)
+submodule_remote=$(jq -r '(.params.submodule_remote // false)' < $payload)
 commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
@@ -100,6 +101,15 @@ git submodule sync
 if [ -f $GIT_CRYPT_KEY_PATH ]; then
   echo "unlocking git repo"
   git crypt unlock $GIT_CRYPT_KEY_PATH
+fi
+
+
+submodule_parameters=""
+if [ "$submodule_remote" != "false" ]; then
+    submodule_parameters+=" --remote "
+fi
+if [ "$submodule_recursive" != "false" ]; then
+    submodule_parameters+=" --recursive "
 fi
 
 if [ "$submodules" == "all" ]; then
