@@ -148,8 +148,6 @@ It will return the same given ref as version.
 `git-crypt` encrypted repositories will automatically be decrypted, when the
 correct key is provided set in `git_crypt_key`.
 
-Submodules are initialized and updated recursively.
-
 #### Parameters
 
 * `depth`: *Optional.* If a positive integer is given, *shallow* clone the
@@ -160,6 +158,10 @@ Submodules are initialized and updated recursively.
   fetched. If specified as a list of paths, only the given paths will be
   fetched. If not specified, or if `all` is explicitly specified, all
   submodules are fetched.
+
+* `submodule_recursive`: *Optional.* If `false`, a flat submodules checkout is performed. If not specified, or if `true` is explicitly specified, a recursive checkout is performed.
+
+* `submodule_remote`: *Optional.* If `true`, the submodules are checked out for the specified remote branch specified in the `.gitmodules` file of the repository. If not specified, or if `false` is explicitly specified, the tracked sub-module revision of the repository is used to check out the submodules.
 
 * `disable_git_lfs`: *Optional.* If `true`, will not fetch Git LFS files.
 
