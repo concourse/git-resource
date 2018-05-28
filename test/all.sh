@@ -2,6 +2,7 @@
 
 set -e
 
+export http_proxy https_proxy HTTP_PROXY HTTPS_PROXY no_proxy NO_PROXY
 $(dirname $0)/image.sh
 $(dirname $0)/check.sh
 $(dirname $0)/get.sh

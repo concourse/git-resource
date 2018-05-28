@@ -11,9 +11,25 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
    only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
    
 
+* `branch_regex`: If specified, the resource will select a branch matching a
+   Perl regular expression. This parameter is ignored if `branch` is specified.
+   If multiple branches match, it will select the highest numbered branch.
+   This parameter takes anything that is syntactically valid as a regex in Perl.
+
+   See [perlrequick](http://perldoc.perl.org/perlrequick.html) or [perlre](http://perldoc.perl.org/perlre.html) for syntax information.
+
+   Example:
+   ```yaml
+   branch_regex: /^release-v\d+\.\d+\.\d+$/
+   # -- alternative delimiters also work --
+   branch_regex: m[my-repo/release/\d+]
+   # -- can also specify flags --
+   branch_regex: /^RC/i
+   ```
+
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
-    ```
+    ```yaml
     private_key: |
       -----BEGIN RSA PRIVATE KEY-----
       MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
@@ -49,6 +65,22 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   that have a tag matching the expression that have been made against
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
+
+* `tag_regex`: If specified, the resource will select a tag matching a
+   Perl regular expression. This parameter is ignored if `tag` or `tag_filter`
+   are specified. If multiple tags match, it will select the newest tag.
+   This parameter takes anything that is syntactically valid as a regex in Perl.
+
+   See [perlrequick](http://perldoc.perl.org/perlrequick.html) or [perlre](http://perldoc.perl.org/perlre.html) for syntax information.
+
+   Example:
+   ```yaml
+   tag_regex: /^release-v\d+\.\d+\.\d+$/
+   # -- alternative delimiters also work --
+   tag_regex: m[my-repo/release-tags:\d+]
+   # -- can also specify flags --
+   tag_regex: /^RC[-_]/i
+   ```
 
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
   it will configure git global options, setting each name with each value.

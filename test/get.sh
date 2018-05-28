@@ -145,7 +145,7 @@ it_returns_list_of_tags_in_metadata() {
   "
 }
 
-it_can_use_submodlues_without_perl_warning() {
+it_can_use_submodules_without_perl_warning() {
   local repo=$(init_repo_with_submodule | cut -d "," -f1)
   local dest=$TMPDIR/destination
 
@@ -525,7 +525,7 @@ run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
-run it_can_use_submodlues_without_perl_warning
+run it_can_use_submodules_without_perl_warning
 run it_honors_the_depth_flag
 run it_honors_the_depth_flag_for_submodules
 run it_honors_the_parameter_flags_for_submodules
