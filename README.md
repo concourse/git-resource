@@ -50,6 +50,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
+* `tag_filters`: *Optional.* Advanced `tag_filter`, you can use more than one example globe. It is possible to use only `tag_filter` or `tag_filters`.
+
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
   it will configure git global options, setting each name with each value.
 
@@ -86,6 +88,27 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     * `proxy_password`: *Optional.* If the proxy requires authenticat, use this password
 
 ### Example
+
+Resource configuration tag filters:
+
+``` yaml
+resources:
+- name: source-code
+  type: git
+  source:
+    uri: git@github.com:concourse/git-resource.git
+    tag_filters:
+    - "v*.*.[0-9]"
+    - "v*.*.[0-9][0-9]"
+
+- name: source-code-dev
+  type: git
+  source:
+    uri: git@github.com:concourse/git-resource.git
+    tag_filters:
+    - "v*-rc[0-9]"
+    - "v*-rc[0-9][0-9]"
+```
 
 Resource configuration for a private repo with an HTTPS proxy:
 
