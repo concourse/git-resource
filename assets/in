@@ -101,7 +101,7 @@ git submodule sync
 
 if [ -f $GIT_CRYPT_KEY_PATH ]; then
   echo "unlocking git repo"
-  git crypt unlock $GIT_CRYPT_KEY_PATH
+  git-crypt unlock $GIT_CRYPT_KEY_PATH
 fi
 
 
