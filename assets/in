@@ -132,8 +132,10 @@ for branch in $fetch; do
 done
 
 if [ "$ref" == "HEAD" ]; then
+  touch .git/tag
   return_ref=$(git rev-parse HEAD)
 else
+  echo "${ref}" > .git/tag
   return_ref=$ref
 fi
 
