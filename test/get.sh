@@ -445,6 +445,10 @@ it_can_get_returned_ref() {
   test "$(cat $dest/.git/ref)" = "${ref2}" || \
     ( echo ".git/ref does not match. Expected '${ref2}', got '$(cat $dest/.git/ref)'"; return 1 )
 
+  test -e $dest/.git/tag || ( echo ".git/tag does not exist."; return 1 )
+  test "$(cat $dest/.git/tag)" = "${ref2}" || \
+    ( echo ".git/tag does not match. Expected '${ref2}', got '$(cat $dest/.git/tag)'"; return 1 )
+
   rm -rf $TMPDIR/destination
   get_uri_at_ref $repo $ref3 $TMPDIR/destination | jq -e "
     .version == {ref: $(echo $ref3 | jq -R .)}

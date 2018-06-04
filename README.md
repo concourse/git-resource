@@ -184,9 +184,11 @@ the case.
    resource like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource)
    to notify the committer in an on_failure step.
 
- * `.git/ref`: Version reference detected and checked out. It will usually contain
-   the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
-   
+ * `.git/ref`: Version reference detected and checked out. It will contain
+   the commit SHA-1 ref, or the detected tag name when using `tag_filter`.
+
+ * `.git/tag`: The detected tag name when using `tag_filter`, otherwise empty.
+
  * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
 
