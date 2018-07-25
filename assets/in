@@ -42,6 +42,7 @@ commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < 
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
+short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -144,6 +145,10 @@ git --no-pager log -1 --pretty=format:"%ae" > .git/committer
 # Store git-resource returned version ref .git/ref. Useful to know concourse
 # pulled ref in following tasks and resources.
 echo "${return_ref}" > .git/ref
+
+# Store short ref with templating. Useful to build Docker images with
+# a custom tag
+echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }" > .git/short_ref
 
 # Store commit message in .git/commit_message. Can be used to inform about
 # the content of a successfull build.
