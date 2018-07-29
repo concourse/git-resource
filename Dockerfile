@@ -1,5 +1,5 @@
 FROM alpine:edge AS tunnelbuilder
-RUN apk --no-cache add git make gcc g++ openssl-dev
+RUN apk --no-cache add git make gcc g++ libressl-dev
 
 WORKDIR /root
 RUN git clone https://github.com/proxytunnel/proxytunnel.git
@@ -17,10 +17,13 @@ RUN apk --no-cache add \
   gnupg \
   gzip \
   jq \
+  libressl \
+  libressl-dev \
+  make \
+  g++ \
   openssh \
   perl \
   tar \
-  openssl \
   libstdc++
 
 COPY --from=tunnelbuilder /root/proxytunnel/proxytunnel proxytunnel
