@@ -14,6 +14,7 @@ RUN apk --no-cache add \
   curl \
   git \
   git-daemon \
+  git-lfs \
   gnupg \
   gzip \
   jq \
@@ -35,9 +36,6 @@ RUN git config --global user.name "git"
 
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
-
-ADD scripts/install_git_lfs.sh install_git_lfs.sh
-RUN ./install_git_lfs.sh && rm ./install_git_lfs.sh
 
 ADD scripts/install_git_crypt.sh install_git_crypt.sh
 RUN ./install_git_crypt.sh && rm ./install_git_crypt.sh
@@ -102,6 +100,7 @@ RUN             rm -f \
                     git-index-pack \
                     git-init \
                     git-init-db \
+                    git-lfs \
                     git-log \
                     git-ls-files \
                     git-ls-remote \
