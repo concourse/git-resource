@@ -7,10 +7,11 @@ _main() {
   tmpdir="$(mktemp -d git_crypt_install.XXXXXX)"
 
   cd "$tmpdir"
-  apk --no-cache add ca-certificates
-  wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-git-crypt/master/sgerrand.rsa.pub
-  wget https://github.com/sgerrand/alpine-pkg-git-crypt/releases/download/0.6.0-r0/git-crypt-0.6.0-r0.apk
-  apk add git-crypt-0.6.0-r0.apk
+  curl -Lo git-crypt-0.6.0.tar.gz https://www.agwa.name/projects/git-crypt/downloads/git-crypt-0.6.0.tar.gz
+  tar -zxf git-crypt-0.6.0.tar.gz
+  cd git-crypt-0.6.0
+  make
+  make install
   cd ..
   rm -rf "$tmpdir"
 }
