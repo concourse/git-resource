@@ -414,6 +414,21 @@ get_uri_at_depth() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+get_uri_at_depth_at_ref() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      depth: $(echo $2 | jq -R .)
+    },
+    version: {
+      ref: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$4" | tee /dev/stderr
+}
+
+
 get_uri_with_submodules_at_depth() {
   jq -n "{
     source: {
