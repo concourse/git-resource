@@ -171,6 +171,79 @@ it_honors_the_depth_flag() {
   test "$(git -C $dest rev-list --all --count)" = 1
 }
 
+it_can_get_from_url_at_depth_at_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_at_depth_at_ref "file://$repo" 1 $ref1 $dest | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref1
+
+  rm -rf $dest
+
+  get_uri_at_depth_at_ref "file://$repo" 1 $ref2 $dest | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref2
+}
+
+it_falls_back_to_deep_clone_if_ref_not_found() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+
+  # 128 is the threshold when it starts doing a deep clone
+  for (( i = 0; i < 128; i++ )); do
+    make_commit $repo >/dev/null
+  done
+
+  local dest=$TMPDIR/destination
+
+  ( get_uri_at_depth_at_ref "file://$repo" 1 $ref1 $dest 3>&2- 2>&1- 1>&3- 3>&- | tee $TMPDIR/stderr ) 3>&1- 1>&2- 2>&3- 3>&- | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref1
+
+  echo "testing for msg 1" >&2
+  for d in 1 2 4 8 16 32 64 128; do
+    grep "Could not find ref ${ref1} in a shallow clone of depth ${d}" <$TMPDIR/stderr
+  done
+  echo "test for msg 1 done" >&2
+
+  for d in 2 4 8 16 32 64 128; do
+    grep "Deepening the shallow clone to depth ${d}..." <$TMPDIR/stderr
+  done
+
+  grep "Reached depth threshold 128, falling back to deep clone..." <$TMPDIR/stderr
+}
+
+it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=0123456789abcdef0123456789abcdef01234567
+
+  local dest=$TMPDIR/destination
+
+  set +e
+  output=$(get_uri_at_depth_at_ref "file://$repo" 1 $ref2 $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  echo $output $exit_code
+  test "${exit_code}" = 128
+  echo "${output}" | grep "Reached max depth of the origin repo while deepening the shallow clone, it's a deep clone now"
+  echo "${output}" | grep "fatal: reference is not a tree: $ref2"
+}
+
 it_honors_the_depth_flag_for_submodules() {
   local repo_with_submodule_info=$(init_repo_with_submodule)
   local project_folder=$(echo $repo_with_submodule_info | cut -d "," -f1)
@@ -527,6 +600,9 @@ run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
 run it_can_use_submodlues_without_perl_warning
 run it_honors_the_depth_flag
+run it_can_get_from_url_at_depth_at_ref
+run it_falls_back_to_deep_clone_if_ref_not_found
+run it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set
 run it_honors_the_depth_flag_for_submodules
 run it_honors_the_parameter_flags_for_submodules
 run it_can_get_and_set_git_config
