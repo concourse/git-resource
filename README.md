@@ -9,7 +9,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `branch`: The branch to track. This is *optional* if the resource is
    only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
-   
+
 
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
@@ -169,6 +169,8 @@ correct key is provided set in `git_crypt_key`.
   is useful if you want to push tags, but have reasonable doubts that the tags
   cached with the resource are outdated. The default value is `false`.
 
+* `short_ref_format`: *Optional.* When populating `.git/short_ref` use this `printf` format. Defaults to `%s`.
+
 #### GPG signature verification
 
 If `commit_verification_keys` or `commit_verification_key_ids` is specified in
@@ -186,9 +188,10 @@ the case.
 
  * `.git/ref`: Version reference detected and checked out. It will usually contain
    the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
-   
- * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
+ *  `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
+
+ * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
 ### `out`: Push to a repository.
 

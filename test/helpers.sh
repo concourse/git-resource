@@ -386,7 +386,10 @@ check_uri_disable_ci_skip() {
 get_uri() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo $1 | jq -R .),
+    },
+    params: {
+      short_ref_format: \"test-%s\"
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
@@ -485,6 +488,9 @@ get_uri_at_ref() {
     },
     version: {
       ref: $(echo $2 | jq -R .)
+    },
+    params: {
+      short_ref_format: \"test-%s\"
     }
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
