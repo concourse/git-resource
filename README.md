@@ -151,8 +151,10 @@ correct key is provided set in `git_crypt_key`.
 #### Parameters
 
 * `depth`: *Optional.* If a positive integer is given, *shallow* clone the
-  repository using the `--depth` option. Using this flag voids your warranty.
-  Some things will stop working unless we have the entire history.
+  repository using the `--depth` option. To prevent newer commits that do
+  not pass a `paths` filter test from skewing the cloned history away from
+  `version.ref`, this resource will automatically deepen the clone until
+  `version.ref` is found again.
 
 * `submodules`: *Optional.* If `none`, submodules will not be
   fetched. If specified as a list of paths, only the given paths will be
