@@ -85,7 +85,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
     * `proxy_password`: *Optional.* If the proxy requires authenticat, use this password
 
-* `submodule_recursive`: *Optional.* If `false`, a flat submodules checkout is performed. If not specified, or if `true` is explicitly specified, a recursive checkout is performed. This is overridden by `submodule_recursive` specified in the `get` params.
+* `submodule_recursive`: *Optional.* If `"false"`, a flat submodules checkout is performed. If not specified, or if `"true"` is explicitly specified, a recursive checkout is performed. This is overridden by `submodule_recursive` specified in the `get` params. Note: this must be specified as a string not a boolean.
 
 ### Example
 
@@ -163,7 +163,7 @@ correct key is provided set in `git_crypt_key`.
   fetched. If not specified, or if `all` is explicitly specified, all
   submodules are fetched.
 
-* `submodule_recursive`: *Optional.* If `false`, a flat submodules checkout is performed. If not specified, or if `true` is explicitly specified, a recursive checkout is performed. This takes precedence over the same setting in the source configuration.
+* `submodule_recursive`: *Optional.* If `"false"`, a flat submodules checkout is performed. If not specified, or if `"true"` is explicitly specified, a recursive checkout is performed. This takes precedence over the same setting in the source configuration. Note: this must be specified as a string not a boolean.
 
 * `submodule_remote`: *Optional.* If `true`, the submodules are checked out for the specified remote branch specified in the `.gitmodules` file of the repository. If not specified, or if `false` is explicitly specified, the tracked sub-module revision of the repository is used to check out the submodules.
 
