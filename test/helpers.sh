@@ -468,6 +468,19 @@ get_uri_with_submodules_and_parameter_remote() {
   }" | ${resource_dir}/in "$5" | tee /dev/stderr
 }
 
+get_uri_with_submodules_and_source_recursive() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      submodule_recursive: $(echo $4 | jq -R .),
+    },
+    params: {
+      depth: $(echo $2 | jq -R .),
+      submodules: $(echo $3 | jq -R .),
+    }
+  }" | ${resource_dir}/in "$5" | tee /dev/stderr
+}
+
 get_uri_with_submodules_and_parameter_recursive() {
   jq -n "{
     source: {
@@ -479,6 +492,20 @@ get_uri_with_submodules_and_parameter_recursive() {
       submodule_recursive: $(echo $4 | jq -R .),
     }
   }" | ${resource_dir}/in "$5" | tee /dev/stderr
+}
+
+get_uri_with_submodules_and_source_and_parameter_recursive() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      submodule_recursive: $(echo $4 | jq -R .),
+    },
+    params: {
+      depth: $(echo $2 | jq -R .),
+      submodules: $(echo $3 | jq -R .),
+      submodule_recursive: $(echo $5 | jq -R .),
+    }
+  }" | ${resource_dir}/in "$6" | tee /dev/stderr
 }
 
 get_uri_at_ref() {
