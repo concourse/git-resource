@@ -410,9 +410,9 @@ it_honors_the_parameter_flags_for_submodules() {
   "file://"$project_folder 1 "all" true $dest_recursive_true |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_recursive_true/$submodule_name rev-list --all --count)" = 1
-  test "$(git -C $dest_recursive_true/$submodule_name/$subsubmodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_recursive_true rev-parse HEAD)" = $project_last_commit_id
+  test "$(ls $dest_recursive_true/$submodule_name | wc -l)" = 2
+  test "$(ls $dest_recursive_true/$submodule_name/$subsubmodule_name | wc -l)" = 1
 
   # recursive explicit disabled
   local dest_recursive_false=$TMPDIR/recursive_false
@@ -420,8 +420,8 @@ it_honors_the_parameter_flags_for_submodules() {
   "file://"$project_folder 1 "all" false $dest_recursive_false |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_recursive_false/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_recursive_false rev-parse HEAD)" = $project_last_commit_id
+  test "$(ls $dest_recursive_false/$submodule_name | wc -l)" = 2
   test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l)" = 0
 
   # remote explicit enabled
@@ -430,7 +430,7 @@ it_honors_the_parameter_flags_for_submodules() {
   "file://"$project_folder 1 "all" true $dest_remote_true |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_remote_true rev-parse HEAD)" = $project_last_commit_id
   test "$(git -C $dest_remote_true/$submodule_name rev-list --all --count)" = 1
   test "$(git -C $dest_remote_true/$submodule_name/$subsubmodule_name rev-list --all --count)" = 1
 
@@ -440,7 +440,7 @@ it_honors_the_parameter_flags_for_submodules() {
   "file://"$project_folder 1 "all" false $dest_remote_false |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_remote_false rev-parse HEAD)" = $project_last_commit_id
   test "$(git -C $dest_remote_false/$submodule_name rev-list --all --count)" = 1
   test "$(git -C $dest_remote_false/$submodule_name/$subsubmodule_name rev-list --all --count)" = 1
 }
