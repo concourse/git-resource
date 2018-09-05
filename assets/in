@@ -123,12 +123,36 @@ if [ "$submodule_recursive" != "false" ]; then
     submodule_parameters+=" --recursive "
 fi
 
-if [ "$submodules" == "all" ]; then
-  git submodule update --init  $depthflag $submodule_parameters
-elif [ "$submodules" != "none" ]; then
-  submodules=$(echo $submodules | jq -r '(.[])')
+if [ "$submodules" != "none" ]; then
+  if [ "$submodules" == "all" ]; then
+    git submodule init
+
+    submodules="$(git config --list --name-only | sed -ne 's/^submodule\.\(.*\)\.url$/\1/p' | sort -u)"
+  else
+    submodules=$(echo $submodules | jq -r '(.[])')
+
+    git submodule init $submodules
+  fi
+
   for submodule in $submodules; do
-    git submodule update --init $depthflag $submodule_parameters $submodule
+    # remember submodule update config
+    update_conf_was_set=1
+    if update_conf="$(git config --get "submodule.${submodule}.update")"; then
+	    update_conf_was_set=0
+    fi
+
+    # temporarily set to our shallow clone deepening shell script
+    git config "submodule.${submodule}.update" "!$bin_dir"/deepen_shallow_clone_until_ref_is_found
+
+    concourse_git_resource__depth="$depth" \
+      git submodule update --no-fetch $depthflag $submodule_parameters $submodule
+
+    # restore submodule update config
+    if [ "$update_conf_was_set" != 0 ]; then
+      git config "submodule.${submodule}.update" "$update_conf"
+    else
+      git config --unset "submodule.${submodule}.update"
+    fi
   done
 fi
 
