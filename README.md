@@ -5,6 +5,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 ## Source Configuration
 
+* `concourse_url` *Required.* The host URL of the concourse server
+
+* `bitbucket_key` *Required.* access key id for bitbucket
+
+* `bitbucket_secret` *Required.* access secret for bitbucket
+
 * `uri`: *Required.* The location of the repository.
 
 * `branch`: The branch to track. This is *optional* if the resource is
@@ -197,41 +203,12 @@ the case.
 
 ### `out`: Push to a repository.
 
-Push the checked-out reference to the source's URI and branch. All tags are
-also pushed to the source. If a fast-forward for the branch is not possible
-and the `rebase` parameter is not provided, the push will fail.
+Update the status of a commit.
 
 #### Parameters
 
-* `repository`: *Required.* The path of the repository to push to the source.
-
-* `rebase`: *Optional.* If pushing fails with non-fast-forward, continuously
-  attempt rebasing and pushing.
-
-* `merge`: *Optional.* If pushing fails with non-fast-forward, continuously
-  attempt to merge remote to local before pushing. Only one of `merge` or
-  `rebase` can be provided, but not both.
-
-* `tag`: *Optional.* If this is set then HEAD will be tagged. The value should be
-  a path to a file containing the name of the tag.
-
-* `only_tag`: *Optional.* When set to 'true' push only the tags of a repo.
-
-* `tag_prefix`: *Optional.* If specified, the tag read from the file will be
-prepended with this string. This is useful for adding `v` in front of
-version numbers.
-
-* `force`: *Optional.* When set to 'true' this will force the branch to be
-pushed regardless of the upstream state.
-
-* `annotate`: *Optional.* If specified the tag will be an
-  [annotated](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags)
-  tag rather than a
-  [lightweight](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags)
-  tag. The value should be a path to a file containing the annotation message.
-
-* `notes`: *Optional.* If this is set then notes will be added to HEAD to the
-  `refs/notes/commits` ref. The value should be a path to a file containing the notes.
+ * `commit` *Required.* File containing commit SHA to be updated.
+ * `state` *Required.* The state of the status. Must be one of `success`, `failed` or `inprogress`. By using `inprogress` we can use this resource purely as an `put` in order to update status of a bitbucket commit. Make sure to, if you put `inprogress` for a task, then also do `success` with the same task. Otherwise, bitbucket will consider them two different builds (so the `inprogress` one will never succeed).
 
 ## Development
 
