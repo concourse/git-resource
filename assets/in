@@ -28,6 +28,9 @@ configure_https_tunnel $payload
 configure_git_ssl_verification $payload
 configure_credentials $payload
 
+concourse_url=$(jq -r '.source.concourse_url // ""' < $payload)
+bitbucket_key=$(jq -r '.source.bitbucket_key // ""' < $payload)
+bitbucket_secret=$(jq -r '.source.bitbucket_secret // ""' < $payload)
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
@@ -119,6 +122,23 @@ commit_not_signed() {
   echo "The commit ${commit_id} is not signed"
   exit 1
 }
+
+#Update Bitbucket
+
+#Get access token
+
+ACCES_TOKEN=curl -X POST -u "${bitbucket_key}:${bitbucket_secret}" https://bitbucket.org/site/oauth2/access_token \
+-d grant_type=client_credentials | jq '.access_token'
+
+#Post status to bitbucket including state, build key and url of the building pipeline
+
+BUILD_URL="${concourse_url}/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+BUILD_STATUS='{"state":"INPROGRESS","key":"concourse-${BUILD_JOB_NAME}", "url":"${BUILD_URL}"}'
+
+curl -X POST https://bitbucket.org/2.0/repositories/persgroep/test-pipeline/commit/$(ref)/statuses/build \
+--header "Content-Type: application/json" \
+--header "Authorization: Bearer ${ACCESS_TOKEN}"
+--data $(BUILD_STATUS)
 
 if [ ! -z "${commit_verification_keys}" ] || [ ! -z "${commit_verification_key_ids}" ] ; then
   if [ ! -z "${commit_verification_keys}" ]; then

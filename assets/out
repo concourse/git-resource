@@ -30,171 +30,43 @@ configure_credentials $payload
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
-repository=$(jq -r '.params.repository // ""' < $payload)
-tag=$(jq -r '.params.tag // ""' < $payload)
-tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
-rebase=$(jq -r '.params.rebase // false' < $payload)
-merge=$(jq -r '.params.merge // false' < $payload)
-force=$(jq -r '.params.force // false' < $payload)
-only_tag=$(jq -r '.params.only_tag // false' < $payload)
-annotation_file=$(jq -r '.params.annotate // ""' < $payload)
-notes_file=$(jq -r '.params.notes // ""' < $payload)
+build_state=$(jq -r '.params.state // ""' < $payload)
+build_commit=$(jq -r '.params.commit // ""' < $payload)
+bitbucket_key=$(jq -r '.source.bitbucket_key // ""' < $payload)
+bitbucket_secret=$(jq -r '.source.bitbucket_secret // ""' < $payload)
 
-configure_git_global "${git_config_payload}"
+#Update Bitbucket
 
-if [ -z "$uri" ]; then
-  echo "invalid payload (missing uri)"
-  exit 1
-fi
+#Get access token
 
-if [ -z "$branch" ]; then
-  echo "invalid payload (missing branch)"
-  exit 1
-fi
+ACCES_TOKEN=curl -X POST -u "${bitbucket_key}:${bitbucket_secret}" https://bitbucket.org/site/oauth2/access_token \
+-d grant_type=client_credentials | jq '.access_token'
 
-if [ -z "$repository" ]; then
-  echo "invalid payload (missing repository)"
-  exit 1
-fi
+#Post status to bitbucket including state, build key and url of the building pipeline
 
-if [ "$merge" = "true" ] && [ "$rebase" = "true" ]; then
-  echo "invalid push strategy (either merge or rebase can be set, but not both)"
-  exit 1
-fi
+BUILD_URL="${concourse_url}/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
 
-cd $source
+update_state=""
 
-if [ -n "$tag" ] && [ ! -f "$tag" ]; then
-  echo "tag file '$tag' does not exist"
-  exit 1
-fi
-
-if [ -n "$annotation_file" ] && [ ! -f $annotation_file ]; then
-  echo "annotation file '$annotation_file' does not exist"
-  exit 1
-fi
-
-forceflag=""
-if [ $force = "true" ]; then
-  forceflag="--force"
-fi
-
-tag_name=""
-if [ -n "$tag" ]; then
-  tag_name="$(cat $tag)"
-fi
-
-annotate=""
-if [ -n "$annotation_file" ]; then
-  annotate=" -a -F $source/$annotation_file"
-fi
-
-cd $repository
-
-tag() {
-  if [ -n "$tag_name" ]; then
-    git tag -f "${tag_prefix}${tag_name}" $annotate
-  fi
-}
-
-push_src_and_tags() {
-  git push --tags push-target HEAD:refs/heads/$branch $forceflag
-}
-
-push_tags() {
-  git push --tags push-target $forceflag
-}
-
-add_and_push_notes() {
-  if [ -n "$notes_file" ]; then
-    git notes add -F "../${notes_file}"
-    git push push-target refs/notes/*
-  fi
-}
-
-push_with_result_check() {
-  # oh god this is really the only way to do this
-  result_file=$(mktemp $TMPDIR/git-result.XXXXXX)
-
-  echo 0 > $result_file
-
-  {
-    tag 2>&1 && push_src_and_tags 2>&1 && add_and_push_notes 2>&1 || {
-      echo $? > $result_file
-    }
-  } | tee $TMPDIR/push-failure
-
-  # despite what you may think, the embedded cat does not include the
-  # trailing linebreak
-  #
-  # $() appears to trim it
-  #
-  # someone rewrite this please
-  #
-  # pull requests welcome
-  if [ "$(cat $result_file)" = "0" ]; then
-    echo "pushed"
-    eval "$1=0"
-    return
-  fi
-
-  # failed for reason other than non-fast-forward / fetch-first
-  if ! grep -q '\[rejected\]\|\[remote rejected\].*cannot lock ref' $TMPDIR/push-failure; then
-    echo "failed with non-rebase error"
-    eval "$1=1"
-    return
-  fi
-
-  eval "$1=2"
-}
-
-git remote add push-target $uri
-commit_to_push=$(git rev-parse HEAD)
-
-if [ "$only_tag" = "true" ]; then
-  tag
-  push_tags
-elif [ "$merge" = "true" ]; then
-  while true; do
-    echo "merging..."
-
-    git reset --hard $commit_to_push
-
-    git fetch push-target "refs/notes/*:refs/notes/*"
-    git pull --no-edit push-target $branch
-
-    result="0"
-    push_with_result_check result
-    if [ "$result" = "0" ]; then
-      break
-    elif [ "$result" = "1" ]; then
-      exit 1
-    fi
-
-    echo "merging and trying again..."
-  done
-elif [ "$rebase" = "true" ]; then
-  while true; do
-    echo "rebasing..."
-
-    git fetch push-target "refs/notes/*:refs/notes/*"
-    git pull --rebase=preserve push-target $branch
-
-    result="0"
-    push_with_result_check result
-    if [ "$result" = "0" ]; then
-      break
-    elif [ "$result" = "1" ]; then
-      exit 1
-    fi
-
-    echo "rebasing and trying again..."
-  done
+if $build_state == "success"; then
+    update_state="SUCCESSFUL"
+elif $build_state == "failed"; then
+    update_state="FAILED"
+elif $build_state == "inprogress"; then
+    update_state="INPROGRESS"
 else
-  tag
-  push_src_and_tags
-  add_and_push_notes
+  echo "No status set" >&2
+  cat $payload >&2
+  exit 1
 fi
+
+BUILD_STATUS='{"state":"${update_state}","key":"concourse-${BUILD_JOB_NAME}", "url":"${BUILD_URL}"}'
+
+curl -X POST https://bitbucket.org/2.0/repositories/persgroep/test-pipeline/commit/$(ref)/statuses/build \
+--header "Content-Type: application/json" \
+--header "Authorization: Bearer ${ACCESS_TOKEN}"
+--data $(BUILD_STATUS)
+
 
 jq -n "{
   version: {ref: $(git rev-parse HEAD | jq -R .)},
