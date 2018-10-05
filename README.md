@@ -155,6 +155,11 @@ correct key is provided set in `git_crypt_key`.
   not pass a `paths` filter test from skewing the cloned history away from
   `version.ref`, this resource will automatically deepen the clone until
   `version.ref` is found again.
+  
+* `fetch`: *Optional.* An array of additional branches to fetch. By default
+   the repository will be cloned using `git clone --single-branch`, so use
+   this option to specify additional branches that you need available in the 
+   clone.
 
 * `submodules`: *Optional.* If `none`, submodules will not be
   fetched. If specified as a list of paths, only the given paths will be
