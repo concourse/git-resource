@@ -10,7 +10,7 @@ load_pubkey() {
     chmod 0600 $private_key_path
 
     eval $(ssh-agent) >/dev/null 2>&1
-    trap "kill $SSH_AGENT_PID" 0
+    trap "kill $SSH_AGENT_PID" EXIT
 
     SSH_ASKPASS=$(dirname $0)/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
 
