@@ -33,17 +33,22 @@ configure_git_global "${git_config_payload}"
 
 destination=$TMPDIR/git-resource-repo-cache
 
+tagflag=""
+if [ -d $tag_filter ]; then
+  tagflag="--tags"
+fi
+
 if [ -d $destination ]; then
   cd $destination
-  git fetch
+  git fetch $tagflag
   git reset --hard FETCH_HEAD
 else
   branchflag=""
   if [ -n "$branch" ]; then
-    branchflag="--branch $branch"
+    branchflag="--single-branch --branch $branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination
+  git clone $uri $branchflag $destination
   cd $destination
 fi
 
@@ -72,8 +77,11 @@ fi
 
 if [ -n "$tag_filter" ]; then
   {
-    if [ -n "$ref" ]; then
+    if [ -n "$ref" ] && [ -n "$branch" ]; then
       git tag --list "$tag_filter" --sort=creatordate --contains $ref
+    elif [ -n "$ref" ]; then
+      ref_for_search=$(sed 's#/#\\/#g' <<< $ref)
+      git tag --list "$tag_filter" --list --sort=creatordate | sed -ne "/$ref_for_search/,$ p"
     else
       git tag --list "$tag_filter" --sort=creatordate | tail -1
     fi
