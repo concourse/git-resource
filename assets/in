@@ -39,6 +39,7 @@ submodule_recursive=$(jq -r '(.params.submodule_recursive // true)' < $payload)
 submodule_remote=$(jq -r '(.params.submodule_remote // false)' < $payload)
 commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
+tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
@@ -62,12 +63,16 @@ if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
 fi
 
-git clone $depthflag $uri $branchflag $destination
+tagflag=""
+if [ -d $tag_filter ]; then
+  tagflag="--tags"
+fi
+
+git clone $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
 
 git fetch origin refs/notes/*:refs/notes/*
-git fetch --tags
 
 # A shallow clone may not contain the Git commit $ref:
 # 1. The depth of the shallow clone is measured backwards from the latest
@@ -98,13 +103,13 @@ if [ "$depth" -gt 0 ]; then
 
     if [ "$d" -gt $max_depth ]; then
       echo "Reached depth threshold ${max_depth}, falling back to deep clone..."
-      git fetch --unshallow origin
+      git fetch --unshallow origin $tagflag
 
       break
     fi
 
     echo "Deepening the shallow clone to depth ${d}..."
-    git fetch --depth $d origin
+    git fetch --depth $d origin $tagflag
   done
 fi
 

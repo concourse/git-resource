@@ -45,10 +45,10 @@ if [ -d $destination ]; then
 else
   branchflag=""
   if [ -n "$branch" ]; then
-    branchflag="--single-branch --branch $branch"
+    branchflag="--branch $branch"
   fi
 
-  git clone $uri $branchflag $destination
+  git clone --single-branch $uri $branchflag $destination $tagflag
   cd $destination
 fi
 
