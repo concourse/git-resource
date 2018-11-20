@@ -75,13 +75,21 @@ if [ "$skip_ci_disabled" != "true" ]; then
   ci_skip="--grep \\[ci\\sskip\\] --grep \\[skip\\sci\\] --invert-grep"
 fi
 
+replace_escape_chars() {
+  sed -e 's/[]\/$*.^[]/\\&/g' <<< $1
+}
+
+lines_including_and_after() {
+  local escaped_string=$(replace_escape_chars $1)
+  sed -ne "/$escaped_string/,$ p"
+}
+
 if [ -n "$tag_filter" ]; then
   {
     if [ -n "$ref" ] && [ -n "$branch" ]; then
       git tag --list "$tag_filter" --sort=creatordate --contains $ref
     elif [ -n "$ref" ]; then
-      ref_for_search=$(sed 's#/#\\/#g' <<< $ref)
-      git tag --list "$tag_filter" --list --sort=creatordate | sed -ne "/$ref_for_search/,$ p"
+      git tag --list "$tag_filter" --list --sort=creatordate | lines_including_and_after $ref
     else
       git tag --list "$tag_filter" --sort=creatordate | tail -1
     fi
