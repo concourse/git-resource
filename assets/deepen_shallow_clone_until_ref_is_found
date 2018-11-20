@@ -6,6 +6,7 @@ set -e
 readonly max_depth=128
 
 readonly ref="$1"
+readonly tagflag="$2"
 
 # the concourse_git_resource__depth variable is exported by the 'in' script
 
@@ -39,12 +40,12 @@ if [ "$concourse_git_resource__depth" -gt 0 ]; then
 
     if [ "$depth" -gt "$max_depth" ]; then
       echo "Reached depth threshold ${max_depth}, falling back to deep clone..."
-      git fetch --unshallow origin
+      git fetch --unshallow origin $tagflag
 
       break
     fi
 
     echo "Deepening the shallow clone to depth ${depth}..."
-    git fetch --depth "$depth" origin
+    git fetch --depth "$depth" origin $tagflag
   done
 fi

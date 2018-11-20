@@ -80,7 +80,7 @@ cd $destination
 git fetch origin refs/notes/*:refs/notes/* $tagflag
 
 concourse_git_resource__depth="$depth" \
-  "$bin_dir"/deepen_shallow_clone_until_ref_is_found "$ref"
+  "$bin_dir"/deepen_shallow_clone_until_ref_is_found "$ref" "$tagflag"
 
 git checkout -q $ref
 
