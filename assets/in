@@ -72,7 +72,7 @@ git clone $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
 
-git fetch origin refs/notes/*:refs/notes/*
+git fetch origin refs/notes/*:refs/notes/* $tagflag
 
 # A shallow clone may not contain the Git commit $ref:
 # 1. The depth of the shallow clone is measured backwards from the latest
@@ -103,13 +103,13 @@ if [ "$depth" -gt 0 ]; then
 
     if [ "$d" -gt $max_depth ]; then
       echo "Reached depth threshold ${max_depth}, falling back to deep clone..."
-      git fetch --unshallow origin $tagflag
+      git fetch --unshallow origin
 
       break
     fi
 
     echo "Deepening the shallow clone to depth ${d}..."
-    git fetch --depth $d origin $tagflag
+    git fetch --depth $d origin
   done
 fi
 
