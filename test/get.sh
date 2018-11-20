@@ -271,6 +271,76 @@ it_honors_the_depth_flag_for_submodules() {
   test "$(git -C $dest_one/$submodule_name rev-list --all --count)" = 1
 }
 
+it_falls_back_to_deep_clone_of_submodule_if_ref_not_found() {
+  local repo_with_submodule_info=$(init_repo_with_submodule)
+  local main_repo=${repo_with_submodule_info%,*}
+  local submodule_repo=${repo_with_submodule_info#*,}
+  local submodule_name=${submodule_repo##*/}
+  local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
+  local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
+
+  # 128 is the threshold when it starts doing a deep clone
+  for (( i = 0; i < 128; i++ )); do
+    make_commit $submodule_repo >/dev/null
+  done
+
+  local dest=$TMPDIR/destination
+
+  ( \
+    get_uri_with_submodules_all \
+      "file://$main_repo" 1 $dest 3>&2- 2>&1- 1>&3- 3>&- \
+        | tee $TMPDIR/stderr \
+  ) 3>&1- 1>&2- 2>&3- 3>&- | jq -e "
+    .version == {ref: $(echo $main_repo_last_commit_id | jq -R .)}
+  "
+
+  test "$(git -C $main_repo rev-parse HEAD)" = $main_repo_last_commit_id
+
+  echo "testing for msg 1" >&2
+  for d in 1 2 4 8 16 32 64 128; do
+    grep "Could not find ref ${submodule_repo_last_commit_id} in a shallow clone of depth ${d}" <$TMPDIR/stderr
+  done
+  echo "test for msg 1 done" >&2
+
+  for d in 2 4 8 16 32 64 128; do
+    grep "Deepening the shallow clone to depth ${d}..." <$TMPDIR/stderr
+  done
+
+  grep "Reached depth threshold 128, falling back to deep clone..." <$TMPDIR/stderr
+}
+
+# the submodule incremental deepening depends on overwriting the update method
+# of the submodule, so we should test if it's properly restored
+it_preserves_the_submodule_update_method() {
+  local repo_with_submodule_info=$(init_repo_with_submodule)
+  local main_repo=${repo_with_submodule_info%,*}
+  local submodule_repo=${repo_with_submodule_info#*,}
+  local submodule_name=${submodule_repo##*/}
+  local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
+  local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_with_submodules_all "file://$main_repo" 1 $dest | jq -e "
+    .version == {ref: $(echo $main_repo_last_commit_id | jq -R .)}
+  "
+
+  # "git config ..." returns false if the key is not found (unset)
+  ! git -C "$dest" config "submodule.${submodule_name}.update"
+
+
+  rm -rf "$dest"
+
+
+  get_uri_with_submodules_and_git_config \
+    "file://$main_repo" $dest "submodule.${submodule_name}.update" "merge" \
+    | jq -e "
+    .version == {ref: $(echo $main_repo_last_commit_id | jq -R .)}
+  "
+
+  test "$(git -C "$dest" config "submodule.${submodule_name}.update")" == "merge"
+}
+
 it_honors_the_parameter_flags_for_submodules() {
   local repo_info=$(init_repo_with_submodule_of_nested_submodule)
   local project_folder=$(echo $repo_info | cut -d "," -f1)
@@ -609,6 +679,8 @@ run it_can_get_from_url_at_depth_at_ref
 run it_falls_back_to_deep_clone_if_ref_not_found
 run it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set
 run it_honors_the_depth_flag_for_submodules
+run it_falls_back_to_deep_clone_of_submodule_if_ref_not_found
+run it_preserves_the_submodule_update_method
 run it_honors_the_parameter_flags_for_submodules
 run it_can_get_and_set_git_config
 run it_returns_same_ref
