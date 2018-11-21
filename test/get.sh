@@ -251,24 +251,25 @@ it_honors_the_depth_flag_for_submodules() {
   local submodule_name=$(basename $submodule_folder)
   local project_last_commit_id=$(git -C $project_folder rev-parse HEAD)
 
-  local dest_all=$TMPDIR/destination_all
-  local dest_one=$TMPDIR/destination_one
+  local dest_all_depth1=$TMPDIR/destination_all_depth1
 
   get_uri_with_submodules_all \
-  "file://"$project_folder 1 $dest_all |  jq -e "
+  "file://"$project_folder 1 $dest_all_depth1 |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
 
-  test "$(git -C $dest_all rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_all/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_all_depth1 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth1/$submodule_name rev-list --all --count)" = 1
+
+  local dest_one_depth1=$TMPDIR/destination_one_depth1
 
   get_uri_with_submodules_at_depth \
-  "file://"$project_folder 1 $submodule_name $dest_one |  jq -e "
+  "file://"$project_folder 1 $submodule_name $dest_one_depth1 |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
 
-  test "$(git -C $dest_one rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_one/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_one_depth1 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_one_depth1/$submodule_name rev-list --all --count)" = 1
 }
 
 it_falls_back_to_deep_clone_of_submodule_if_ref_not_found() {
