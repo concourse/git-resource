@@ -251,6 +251,26 @@ it_honors_the_depth_flag_for_submodules() {
   local submodule_name=$(basename $submodule_folder)
   local project_last_commit_id=$(git -C $project_folder rev-parse HEAD)
 
+  local dest_all_depth0=$TMPDIR/destination_all_depth0
+
+  get_uri_with_submodules_all \
+  "file://"$project_folder 0 $dest_all_depth0 |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+
+  test "$(git -C $dest_all_depth0 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth0/$submodule_name rev-list --all --count)" = 2
+
+  local dest_one_depth0=$TMPDIR/destination_one_depth0
+
+  get_uri_with_submodules_at_depth \
+  "file://"$project_folder 0 $submodule_name $dest_one_depth0 |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+
+  test "$(git -C $dest_one_depth0 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_one_depth0/$submodule_name rev-list --all --count)" = 2
+
   local dest_all_depth1=$TMPDIR/destination_all_depth1
 
   get_uri_with_submodules_all \
