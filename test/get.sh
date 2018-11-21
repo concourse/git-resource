@@ -317,7 +317,6 @@ it_preserves_the_submodule_update_method() {
   local submodule_repo=${repo_with_submodule_info#*,}
   local submodule_name=${submodule_repo##*/}
   local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
-  local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
 
   local dest=$TMPDIR/destination
 
@@ -332,9 +331,14 @@ it_preserves_the_submodule_update_method() {
   rm -rf "$dest"
 
 
-  get_uri_with_submodules_and_git_config \
-    "file://$main_repo" $dest "submodule.${submodule_name}.update" "merge" \
-    | jq -e "
+  git -C "$main_repo" config --file .gitmodules --replace-all "submodule.${submodule_name}.update" merge
+  git -C "$main_repo" add .gitmodules
+  git -C "$main_repo" commit -m 'Add .gitmodules' >/dev/null
+
+  local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
+  local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
+
+  get_uri_with_submodules_all "file://$main_repo" 1 $dest | jq -e "
     .version == {ref: $(echo $main_repo_last_commit_id | jq -R .)}
   "
 

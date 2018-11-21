@@ -455,23 +455,6 @@ get_uri_with_submodules_all() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
-get_uri_with_submodules_and_git_config() {
-  jq -n "{
-    source: {
-      uri: $(echo $1 | jq -R .),
-      git_config: [
-        {
-          name: $(echo $3 | jq -R .),
-          value: $(echo $4 | jq -R .)
-        }
-      ]
-    },
-    params: {
-      submodules: \"all\",
-    }
-  }" | ${resource_dir}/in "$2" | tee /dev/stderr
-}
-
 get_uri_with_submodules_and_parameter_remote() {
   jq -n "{
     source: {
