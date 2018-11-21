@@ -134,26 +134,28 @@ if [ "$submodules" != "none" ]; then
     git submodule init $submodules
   fi
 
-  for submodule in $submodules; do
-    # remember submodule update config
-    update_conf_was_set=0
-    if update_conf="$(git config --get "submodule.${submodule}.update")"; then
-      update_conf_was_set=1
-    fi
+  if [ "$depth" -gt 0 ]; then
+    for submodule in $submodules; do
+      # remember submodule update config
+      update_conf_was_set=0
+      if update_conf="$(git config --get "submodule.${submodule}.update")"; then
+        update_conf_was_set=1
+      fi
 
-    # temporarily set to our shallow clone deepening shell script
-    git config "submodule.${submodule}.update" "!$bin_dir"/deepen_shallow_clone_until_ref_is_found
+      # temporarily set to our shallow clone deepening shell script
+      git config "submodule.${submodule}.update" "!$bin_dir"/deepen_shallow_clone_until_ref_is_found
 
-    concourse_git_resource__depth="$depth" \
-      git submodule update --no-fetch $depthflag $submodule_parameters $submodule
+      concourse_git_resource__depth="$depth" \
+        git submodule update --no-fetch $depthflag $submodule_parameters $submodule
 
-    # restore submodule update config
-    if [ "$update_conf_was_set" != 0 ]; then
-      git config "submodule.${submodule}.update" "$update_conf"
-    else
-      git config --unset "submodule.${submodule}.update"
-    fi
-  done
+      # restore submodule update config
+      if [ "$update_conf_was_set" != 0 ]; then
+        git config "submodule.${submodule}.update" "$update_conf"
+      else
+        git config --unset "submodule.${submodule}.update"
+      fi
+    done
+  fi
 fi
 
 if [ "$disable_git_lfs" != "true" ]; then
