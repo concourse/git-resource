@@ -259,7 +259,7 @@ it_honors_the_depth_flag_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
 
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all rev-parse HEAD)" = $project_last_commit_id
   test "$(git -C $dest_all/$submodule_name rev-list --all --count)" = 1
 
   get_uri_with_submodules_at_depth \
@@ -267,7 +267,7 @@ it_honors_the_depth_flag_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
 
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_one rev-parse HEAD)" = $project_last_commit_id
   test "$(git -C $dest_one/$submodule_name rev-list --all --count)" = 1
 }
 
