@@ -20,31 +20,30 @@ readonly ref="$1"
 # In either case we try to deepen the shallow clone until we find $ref, reach
 # the max depth of the repo, or give up after a given depth and resort to deep
 # clone.
-if [ "$concourse_git_resource__depth" -gt 0 ]; then
-  depth="$concourse_git_resource__depth"
-  git_dir="$(git rev-parse --git-dir)"
-  readonly git_dir
 
-  while ! git checkout -q "$ref" &>/dev/null; do
-    # once the depth of a shallow clone reaches the max depth of the origin
-    # repo, Git silenty turns it into a deep clone
-    if [ ! -e "$git_dir"/shallow ]; then
-      echo "Reached max depth of the origin repo while deepening the shallow clone, it's a deep clone now"
-      break
-    fi
+depth="$concourse_git_resource__depth"
+git_dir="$(git rev-parse --git-dir)"
+readonly git_dir
 
-    echo "Could not find ref ${ref} in a shallow clone of depth ${depth}"
+while ! git checkout -q "$ref" &>/dev/null; do
+  # once the depth of a shallow clone reaches the max depth of the origin
+  # repo, Git silenty turns it into a deep clone
+  if [ ! -e "$git_dir"/shallow ]; then
+    echo "Reached max depth of the origin repo while deepening the shallow clone, it's a deep clone now"
+    break
+  fi
 
-    (( depth *= 2 ))
+  echo "Could not find ref ${ref} in a shallow clone of depth ${depth}"
 
-    if [ "$depth" -gt "$max_depth" ]; then
-      echo "Reached depth threshold ${max_depth}, falling back to deep clone..."
-      git fetch --unshallow origin
+  (( depth *= 2 ))
 
-      break
-    fi
+  if [ "$depth" -gt "$max_depth" ]; then
+    echo "Reached depth threshold ${max_depth}, falling back to deep clone..."
+    git fetch --unshallow origin
 
-    echo "Deepening the shallow clone to depth ${depth}..."
-    git fetch --depth "$depth" origin
-  done
-fi
+    break
+  fi
+
+  echo "Deepening the shallow clone to depth ${depth}..."
+  git fetch --depth "$depth" origin
+done

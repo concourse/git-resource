@@ -73,8 +73,10 @@ cd $destination
 
 git fetch origin refs/notes/*:refs/notes/*
 
-concourse_git_resource__depth="$depth" \
-  "$bin_dir"/deepen_shallow_clone_until_ref_is_found "$ref"
+if [ "$depth" -gt 0 ]; then
+  concourse_git_resource__depth="$depth" \
+    "$bin_dir"/deepen_shallow_clone_until_ref_is_found "$ref"
+fi
 
 git checkout -q $ref
 
