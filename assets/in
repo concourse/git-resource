@@ -136,9 +136,9 @@ if [ "$submodules" != "none" ]; then
 
   for submodule in $submodules; do
     # remember submodule update config
-    update_conf_was_set=1
+    update_conf_was_set=0
     if update_conf="$(git config --get "submodule.${submodule}.update")"; then
-	    update_conf_was_set=0
+      update_conf_was_set=1
     fi
 
     # temporarily set to our shallow clone deepening shell script
