@@ -182,7 +182,7 @@ make_annotated_tag() {
   local tag=$2
   local msg=$3
 
-  git -C $repo tag -a "$tag" -m "$msg"
+  git -C $repo tag -f -a "$tag" -m "$msg"
 
   git -C $repo describe --tags --abbrev=0
 }
