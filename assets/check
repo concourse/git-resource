@@ -33,9 +33,14 @@ configure_git_global "${git_config_payload}"
 
 destination=$TMPDIR/git-resource-repo-cache
 
+tagflag=""
+if [ -d $tag_filter ]; then
+  tagflag="--tags"
+fi
+
 if [ -d $destination ]; then
   cd $destination
-  git fetch
+  git fetch $tagflag
   git reset --hard FETCH_HEAD
 else
   branchflag=""
@@ -43,7 +48,7 @@ else
     branchflag="--branch $branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination
+  git clone --single-branch $uri $branchflag $destination $tagflag
   cd $destination
 fi
 
@@ -70,10 +75,21 @@ if [ "$skip_ci_disabled" != "true" ]; then
   ci_skip="--grep \\[ci\\sskip\\] --grep \\[skip\\sci\\] --invert-grep"
 fi
 
+replace_escape_chars() {
+  sed -e 's/[]\/$*.^[]/\\&/g' <<< $1
+}
+
+lines_including_and_after() {
+  local escaped_string=$(replace_escape_chars $1)
+  sed -ne "/$escaped_string/,$ p"
+}
+
 if [ -n "$tag_filter" ]; then
   {
-    if [ -n "$ref" ]; then
+    if [ -n "$ref" ] && [ -n "$branch" ]; then
       git tag --list "$tag_filter" --sort=creatordate --contains $ref
+    elif [ -n "$ref" ]; then
+      git tag --list "$tag_filter" --list --sort=creatordate | lines_including_and_after $ref
     else
       git tag --list "$tag_filter" --sort=creatordate | tail -1
     fi
