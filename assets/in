@@ -69,7 +69,7 @@ if test "$depth" -gt 0 2> /dev/null; then
 fi
 
 tagflag=""
-if [ -d $tag_filter ]; then
+if [ -n "$tag_filter" ]; then
   tagflag="--tags"
 fi
 

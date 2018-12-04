@@ -34,7 +34,7 @@ configure_git_global "${git_config_payload}"
 destination=$TMPDIR/git-resource-repo-cache
 
 tagflag=""
-if [ -d $tag_filter ]; then
+if [ -n "$tag_filter" ]; then
   tagflag="--tags"
 fi
 
