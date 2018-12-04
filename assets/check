@@ -84,16 +84,26 @@ lines_including_and_after() {
   sed -ne "/$escaped_string/,$ p"
 }
 
+get_commit(){
+  for TAG in $*; do
+    COMMIT=$(git rev-list -n 1 $TAG)
+    echo "{ \"ref\": \"$TAG\", \"commit\": \"$COMMIT\" }"
+  done
+}
+
 if [ -n "$tag_filter" ]; then
   {
     if [ -n "$ref" ] && [ -n "$branch" ]; then
-      git tag --list "$tag_filter" --sort=creatordate --contains $ref
+      TAGS=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref)
+      get_commit $TAGS
     elif [ -n "$ref" ]; then
-      git tag --list "$tag_filter" --list --sort=creatordate | lines_including_and_after $ref
+      TAGS=$(git tag --list "$tag_filter" --list --sort=creatordate | lines_including_and_after $ref)
+      get_commit $TAGS
     else
-      git tag --list "$tag_filter" --sort=creatordate | tail -1
+      TAG=$(git tag --list "$tag_filter" --sort=creatordate | tail -1)
+      get_commit $TAG
     fi
-  } | jq -R '.' | jq -s "map({ref: .})" >&3
+  } | jq -s "map(.)" >&3
 else
   {
     set -f
