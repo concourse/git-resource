@@ -97,7 +97,7 @@ if [ -n "$tag_filter" ]; then
       TAGS=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref)
       get_commit $TAGS
     elif [ -n "$ref" ]; then
-      TAGS=$(git tag --list "$tag_filter" --list --sort=creatordate | lines_including_and_after $ref)
+      TAGS=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
       get_commit $TAGS
     else
       TAG=$(git tag --list "$tag_filter" --sort=creatordate | tail -1)
