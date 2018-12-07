@@ -75,10 +75,10 @@ git fetch origin refs/notes/*:refs/notes/*
 
 if [ "$depth" -gt 0 ]; then
   concourse_git_resource__depth="$depth" \
-    "$bin_dir"/deepen_shallow_clone_until_ref_is_found "$ref"
+    "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$ref"
+else
+  git checkout -q "$ref"
 fi
-
-git checkout -q $ref
 
 invalid_key() {
   echo "Invalid GPG key in: ${commit_verification_keys}"
@@ -136,8 +136,8 @@ if [ "$submodules" != "none" ]; then
     git submodule init $submodules
   fi
 
-  if [ "$depth" -gt 0 ]; then
-    for submodule in $submodules; do
+  for submodule in $submodules; do
+    if [ "$depth" -gt 0 ]; then
       # remember submodule update config
       update_conf_was_set=0
       if update_conf="$(git config --get "submodule.${submodule}.update")"; then
@@ -145,19 +145,21 @@ if [ "$submodules" != "none" ]; then
       fi
 
       # temporarily set to our shallow clone deepening shell script
-      git config "submodule.${submodule}.update" "!$bin_dir"/deepen_shallow_clone_until_ref_is_found
+      git config "submodule.${submodule}.update" "!$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out
+    fi
 
-      concourse_git_resource__depth="$depth" \
-        git submodule update --no-fetch $depthflag $submodule_parameters $submodule
+    concourse_git_resource__depth="$depth" \
+      git submodule update --no-fetch $depthflag $submodule_parameters $submodule
 
+    if [ "$depth" -gt 0 ]; then
       # restore submodule update config
       if [ "$update_conf_was_set" != 0 ]; then
         git config "submodule.${submodule}.update" "$update_conf"
       else
         git config --unset "submodule.${submodule}.update"
       fi
-    done
-  fi
+    fi
+  done
 fi
 
 if [ "$disable_git_lfs" != "true" ]; then

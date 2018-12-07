@@ -47,3 +47,5 @@ while ! git checkout -q "$ref" &>/dev/null; do
   echo "Deepening the shallow clone to depth ${depth}..."
   git fetch --depth "$depth" origin
 done
+
+git checkout -q "$ref"
