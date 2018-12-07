@@ -74,8 +74,7 @@ cd $destination
 git fetch origin refs/notes/*:refs/notes/*
 
 if [ "$depth" -gt 0 ]; then
-  concourse_git_resource__depth="$depth" \
-    "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$ref"
+  "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref"
 else
   git checkout -q "$ref"
 fi
@@ -145,11 +144,10 @@ if [ "$submodules" != "none" ]; then
       fi
 
       # temporarily set to our shallow clone deepening shell script
-      git config "submodule.${submodule}.update" "!$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out
+      git config "submodule.${submodule}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
     fi
 
-    concourse_git_resource__depth="$depth" \
-      git submodule update --no-fetch $depthflag $submodule_parameters $submodule
+    git submodule update --no-fetch $depthflag $submodule_parameters $submodule
 
     if [ "$depth" -gt 0 ]; then
       # restore submodule update config

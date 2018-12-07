@@ -5,9 +5,8 @@ set -e
 
 readonly max_depth=128
 
-readonly ref="$1"
-
-# the concourse_git_resource__depth variable is exported by the 'in' script
+declare depth="$1"
+readonly ref="$2"
 
 # A shallow clone may not contain the Git commit $ref:
 # 1. The depth of the shallow clone is measured backwards from the latest
@@ -21,7 +20,6 @@ readonly ref="$1"
 # the max depth of the repo, or give up after a given depth and resort to deep
 # clone.
 
-depth="$concourse_git_resource__depth"
 git_dir="$(git rev-parse --git-dir)"
 readonly git_dir
 
