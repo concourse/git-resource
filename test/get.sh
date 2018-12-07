@@ -335,6 +335,26 @@ it_falls_back_to_deep_clone_of_submodule_if_ref_not_found() {
   grep "Reached depth threshold 128, falling back to deep clone..." <$TMPDIR/stderr
 }
 
+it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule() {
+  local repo_with_submodule_info=$(init_repo_with_submodule)
+  local main_repo=${repo_with_submodule_info%,*}
+  local submodule_repo=${repo_with_submodule_info#*,}
+  local submodule_name=${submodule_repo##*/}
+  local submodule_last_commit_id=$(git -C "$submodule_repo" rev-parse HEAD)
+
+  git -C "$submodule_repo" reset --hard HEAD^ >/dev/null
+
+  local dest=$TMPDIR/destination
+
+  output=$(get_uri_with_submodules_all "file://$main_repo" 1 $dest 2>&1) \
+    && exit_code=$? || exit_code=$?
+
+  echo $output $exit_code
+  test "${exit_code}" \!= 0
+  echo "${output}" | grep "Reached max depth of the origin repo while deepening the shallow clone, it's a deep clone now"
+  echo "${output}" | grep "fatal: reference is not a tree: $submodule_last_commit_id"
+}
+
 # the submodule incremental deepening depends on overwriting the update method
 # of the submodule, so we should test if it's properly restored
 it_preserves_the_submodule_update_method() {
@@ -710,6 +730,7 @@ run it_falls_back_to_deep_clone_if_ref_not_found
 run it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set
 run it_honors_the_depth_flag_for_submodules
 run it_falls_back_to_deep_clone_of_submodule_if_ref_not_found
+run it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule
 run it_preserves_the_submodule_update_method
 run it_honors_the_parameter_flags_for_submodules
 run it_can_get_and_set_git_config
