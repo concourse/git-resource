@@ -250,6 +250,7 @@ it_honors_the_depth_flag_for_submodules() {
   local submodule_folder=$(echo $repo_with_submodule_info | cut -d "," -f2)
   local submodule_name=$(basename $submodule_folder)
   local project_last_commit_id=$(git -C $project_folder rev-parse HEAD)
+  local submodule_last_commit_id=$(git -C $project_folder/$submodule_name rev-parse HEAD)
 
   local dest_all_depth0=$TMPDIR/destination_all_depth0
 
@@ -259,7 +260,8 @@ it_honors_the_depth_flag_for_submodules() {
   "
 
   test "$(git -C $dest_all_depth0 rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_all_depth0/$submodule_name rev-list --all --count)" = 2
+  test "$(git -C $dest_all_depth0/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
+  test "$(git -C $dest_all_depth0/$submodule_name rev-list --all --count)" \> 1
 
   local dest_one_depth0=$TMPDIR/destination_one_depth0
 
@@ -269,7 +271,8 @@ it_honors_the_depth_flag_for_submodules() {
   "
 
   test "$(git -C $dest_one_depth0 rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_one_depth0/$submodule_name rev-list --all --count)" = 2
+  test "$(git -C $dest_all_depth0/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
+  test "$(git -C $dest_one_depth0/$submodule_name rev-list --all --count)" \> 1
 
   local dest_all_depth1=$TMPDIR/destination_all_depth1
 
@@ -279,6 +282,7 @@ it_honors_the_depth_flag_for_submodules() {
   "
 
   test "$(git -C $dest_all_depth1 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth1/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
   test "$(git -C $dest_all_depth1/$submodule_name rev-list --all --count)" = 1
 
   local dest_one_depth1=$TMPDIR/destination_one_depth1
@@ -289,6 +293,7 @@ it_honors_the_depth_flag_for_submodules() {
   "
 
   test "$(git -C $dest_one_depth1 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth1/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
   test "$(git -C $dest_one_depth1/$submodule_name rev-list --all --count)" = 1
 }
 
