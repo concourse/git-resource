@@ -44,6 +44,7 @@ submodule_recursive=$(jq -r '(.params.submodule_recursive // true)' < $payload)
 submodule_remote=$(jq -r '(.params.submodule_remote // false)' < $payload)
 commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
+tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
@@ -59,7 +60,7 @@ fi
 
 branchflag=""
 if [ -n "$branch" ]; then
-  branchflag="--branch $branch"
+  branchflag="--single-branch --branch $branch"
 fi
 
 depthflag=""
@@ -67,14 +68,19 @@ if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination
+tagflag=""
+if [ -n "$tag_filter" ]; then
+  tagflag="--tags"
+fi
+
+git clone $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
 
-git fetch origin refs/notes/*:refs/notes/*
+git fetch origin refs/notes/*:refs/notes/* $tagflag
 
 if [ "$depth" -gt 0 ]; then
-  "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref"
+  "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref" "$tagflag"
 else
   git checkout -q "$ref"
 fi

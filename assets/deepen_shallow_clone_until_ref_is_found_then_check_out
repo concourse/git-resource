@@ -7,6 +7,7 @@ readonly max_depth=128
 
 declare depth="$1"
 readonly ref="$2"
+readonly tagflag="$3"
 
 # A shallow clone may not contain the Git commit $ref:
 # 1. The depth of the shallow clone is measured backwards from the latest
@@ -37,13 +38,13 @@ while ! git checkout -q "$ref" &>/dev/null; do
 
   if [ "$depth" -gt "$max_depth" ]; then
     echo "Reached depth threshold ${max_depth}, falling back to deep clone..."
-    git fetch --unshallow origin
+    git fetch --unshallow origin $tagflag
 
     break
   fi
 
   echo "Deepening the shallow clone to depth ${depth}..."
-  git fetch --depth "$depth" origin
+  git fetch --depth "$depth" origin $tagflag
 done
 
 git checkout -q "$ref"
