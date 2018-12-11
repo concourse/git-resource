@@ -85,23 +85,23 @@ lines_including_and_after() {
 }
 
 get_commit(){
-  for TAG in $*; do
-    COMMIT=$(git rev-list -n 1 $TAG)
-    echo "{ \"ref\": \"$TAG\", \"commit\": \"$COMMIT\" }"
+  for tag in $*; do
+    commit=$(git rev-list -n 1 $tag)
+    jq -n '{ref: $tag, commit: $commit}' --arg tag $tag --arg commit $commit
   done
 }
 
 if [ -n "$tag_filter" ]; then
   {
     if [ -n "$ref" ] && [ -n "$branch" ]; then
-      TAGS=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref)
-      get_commit $TAGS
+      tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref)
+      get_commit $tags
     elif [ -n "$ref" ]; then
-      TAGS=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
-      get_commit $TAGS
+      tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
+      get_commit $tags
     else
-      TAG=$(git tag --list "$tag_filter" --sort=creatordate | tail -1)
-      get_commit $TAG
+      tag=$(git tag --list "$tag_filter" --sort=creatordate | tail -1)
+      get_commit $tag
     fi
   } | jq -s "map(.)" >&3
 else
