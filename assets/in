@@ -60,7 +60,7 @@ fi
 
 branchflag=""
 if [ -n "$branch" ]; then
-  branchflag="--single-branch --branch $branch"
+  branchflag="--branch $branch"
 fi
 
 depthflag=""
@@ -73,7 +73,7 @@ if [ -n "$tag_filter" ]; then
   tagflag="--tags"
 fi
 
-git clone $depthflag $uri $branchflag $destination $tagflag
+git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
 
