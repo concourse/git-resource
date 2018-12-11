@@ -145,7 +145,7 @@ it_returns_list_of_tags_in_metadata() {
   "
 }
 
-it_can_use_submodlues_without_perl_warning() {
+it_can_use_submodules_without_perl_warning() {
   local repo=$(init_repo_with_submodule | cut -d "," -f1)
   local dest=$TMPDIR/destination
 
@@ -250,25 +250,51 @@ it_honors_the_depth_flag_for_submodules() {
   local submodule_folder=$(echo $repo_with_submodule_info | cut -d "," -f2)
   local submodule_name=$(basename $submodule_folder)
   local project_last_commit_id=$(git -C $project_folder rev-parse HEAD)
+  local submodule_last_commit_id=$(git -C $project_folder/$submodule_name rev-parse HEAD)
 
-  local dest_all=$TMPDIR/destination_all
-  local dest_one=$TMPDIR/destination_one
+  local dest_all_depth0=$TMPDIR/destination_all_depth0
 
   get_uri_with_submodules_all \
-  "file://"$project_folder 1 $dest_all |  jq -e "
+  "file://"$project_folder 0 $dest_all_depth0 |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
 
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_all/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_all_depth0 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth0/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
+  test "$(git -C $dest_all_depth0/$submodule_name rev-list --all --count)" \> 1
+
+  local dest_one_depth0=$TMPDIR/destination_one_depth0
 
   get_uri_with_submodules_at_depth \
-  "file://"$project_folder 1 $submodule_name $dest_one |  jq -e "
+  "file://"$project_folder 0 $submodule_name $dest_one_depth0 |  jq -e "
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
 
-  test "$(git -C $project_folder rev-parse HEAD)" = $project_last_commit_id
-  test "$(git -C $dest_one/$submodule_name rev-list --all --count)" = 1
+  test "$(git -C $dest_one_depth0 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth0/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
+  test "$(git -C $dest_one_depth0/$submodule_name rev-list --all --count)" \> 1
+
+  local dest_all_depth1=$TMPDIR/destination_all_depth1
+
+  get_uri_with_submodules_all \
+  "file://"$project_folder 1 $dest_all_depth1 |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+
+  test "$(git -C $dest_all_depth1 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth1/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
+  test "$(git -C $dest_all_depth1/$submodule_name rev-list --all --count)" = 1
+
+  local dest_one_depth1=$TMPDIR/destination_one_depth1
+
+  get_uri_with_submodules_at_depth \
+  "file://"$project_folder 1 $submodule_name $dest_one_depth1 |  jq -e "
+    .version == {ref: $(echo $project_last_commit_id | jq -R .)}
+  "
+
+  test "$(git -C $dest_one_depth1 rev-parse HEAD)" = $project_last_commit_id
+  test "$(git -C $dest_all_depth1/$submodule_name rev-parse HEAD)" = $submodule_last_commit_id
+  test "$(git -C $dest_one_depth1/$submodule_name rev-list --all --count)" = 1
 }
 
 it_falls_back_to_deep_clone_of_submodule_if_ref_not_found() {
@@ -309,6 +335,26 @@ it_falls_back_to_deep_clone_of_submodule_if_ref_not_found() {
   grep "Reached depth threshold 128, falling back to deep clone..." <$TMPDIR/stderr
 }
 
+it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule() {
+  local repo_with_submodule_info=$(init_repo_with_submodule)
+  local main_repo=${repo_with_submodule_info%,*}
+  local submodule_repo=${repo_with_submodule_info#*,}
+  local submodule_name=${submodule_repo##*/}
+  local submodule_last_commit_id=$(git -C "$submodule_repo" rev-parse HEAD)
+
+  git -C "$submodule_repo" reset --hard HEAD^ >/dev/null
+
+  local dest=$TMPDIR/destination
+
+  output=$(get_uri_with_submodules_all "file://$main_repo" 1 $dest 2>&1) \
+    && exit_code=$? || exit_code=$?
+
+  echo $output $exit_code
+  test "${exit_code}" \!= 0
+  echo "${output}" | grep "Reached max depth of the origin repo while deepening the shallow clone, it's a deep clone now"
+  echo "${output}" | grep "fatal: reference is not a tree: $submodule_last_commit_id"
+}
+
 # the submodule incremental deepening depends on overwriting the update method
 # of the submodule, so we should test if it's properly restored
 it_preserves_the_submodule_update_method() {
@@ -317,7 +363,6 @@ it_preserves_the_submodule_update_method() {
   local submodule_repo=${repo_with_submodule_info#*,}
   local submodule_name=${submodule_repo##*/}
   local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
-  local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
 
   local dest=$TMPDIR/destination
 
@@ -332,9 +377,14 @@ it_preserves_the_submodule_update_method() {
   rm -rf "$dest"
 
 
-  get_uri_with_submodules_and_git_config \
-    "file://$main_repo" $dest "submodule.${submodule_name}.update" "merge" \
-    | jq -e "
+  git -C "$main_repo" config --file .gitmodules --replace-all "submodule.${submodule_name}.update" merge
+  git -C "$main_repo" add .gitmodules
+  git -C "$main_repo" commit -m 'Add .gitmodules' >/dev/null
+
+  local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
+  local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
+
+  get_uri_with_submodules_all "file://$main_repo" 1 $dest | jq -e "
     .version == {ref: $(echo $main_repo_last_commit_id | jq -R .)}
   "
 
@@ -673,13 +723,14 @@ run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
-run it_can_use_submodlues_without_perl_warning
+run it_can_use_submodules_without_perl_warning
 run it_honors_the_depth_flag
 run it_can_get_from_url_at_depth_at_ref
 run it_falls_back_to_deep_clone_if_ref_not_found
 run it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set
 run it_honors_the_depth_flag_for_submodules
 run it_falls_back_to_deep_clone_of_submodule_if_ref_not_found
+run it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule
 run it_preserves_the_submodule_update_method
 run it_honors_the_parameter_flags_for_submodules
 run it_can_get_and_set_git_config

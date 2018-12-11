@@ -79,10 +79,11 @@ cd $destination
 
 git fetch origin refs/notes/*:refs/notes/* $tagflag
 
-concourse_git_resource__depth="$depth" \
-  "$bin_dir"/deepen_shallow_clone_until_ref_is_found "$ref" "$tagflag"
-
-git checkout -q $ref
+if [ "$depth" -gt 0 ]; then
+  "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref" "$tagflag"
+else
+  git checkout -q "$ref"
+fi
 
 invalid_key() {
   echo "Invalid GPG key in: ${commit_verification_keys}"
@@ -141,23 +142,26 @@ if [ "$submodules" != "none" ]; then
   fi
 
   for submodule in $submodules; do
-    # remember submodule update config
-    update_conf_was_set=1
-    if update_conf="$(git config --get "submodule.${submodule}.update")"; then
-	    update_conf_was_set=0
+    if [ "$depth" -gt 0 ]; then
+      # remember submodule update config
+      update_conf_was_set=0
+      if update_conf="$(git config --get "submodule.${submodule}.update")"; then
+        update_conf_was_set=1
+      fi
+
+      # temporarily set to our shallow clone deepening shell script
+      git config "submodule.${submodule}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
     fi
 
-    # temporarily set to our shallow clone deepening shell script
-    git config "submodule.${submodule}.update" "!$bin_dir"/deepen_shallow_clone_until_ref_is_found
+    git submodule update --no-fetch $depthflag $submodule_parameters $submodule
 
-    concourse_git_resource__depth="$depth" \
-      git submodule update --no-fetch $depthflag $submodule_parameters $submodule
-
-    # restore submodule update config
-    if [ "$update_conf_was_set" != 0 ]; then
-      git config "submodule.${submodule}.update" "$update_conf"
-    else
-      git config --unset "submodule.${submodule}.update"
+    if [ "$depth" -gt 0 ]; then
+      # restore submodule update config
+      if [ "$update_conf_was_set" != 0 ]; then
+        git config "submodule.${submodule}.update" "$update_conf"
+      else
+        git config --unset "submodule.${submodule}.update"
+      fi
     fi
   done
 fi
