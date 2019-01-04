@@ -40,7 +40,7 @@ fi
 
 if [ -d $destination ]; then
   cd $destination
-  git fetch $tagflag
+  git fetch $tagflag -f
   git reset --hard FETCH_HEAD
 else
   branchflag=""
