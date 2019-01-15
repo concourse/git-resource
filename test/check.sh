@@ -518,6 +518,24 @@ it_can_check_with_tag_filter_with_bogus_ref() {
   "
 }
 
+it_can_check_with_tag_filter_with_replaced_tags() {
+
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "staging" "tag branch-a")
+  # see that the tag is initially ref1
+  check_uri_with_tag_filter $repo "staging" | jq -e "
+    . == [{ref: \"staging\", commit: \"$ref1\"}]
+  "
+
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_annotated_tag $repo "staging" "tag branch-a")
+
+  check_uri_with_tag_filter $repo "staging" | jq -e "
+    . == [{ref: \"staging\", commit: \"$ref3\"}]
+  "
+}
+
 it_can_check_and_set_git_config() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -554,6 +572,7 @@ run it_can_check_with_tag_filter_with_cursor
 run it_can_check_with_tag_filter_over_all_branches
 run it_can_check_with_tag_filter_over_all_branches_with_cursor
 run it_can_check_with_tag_filter_with_bogus_ref
+run it_can_check_with_tag_filter_with_replaced_tags
 run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
