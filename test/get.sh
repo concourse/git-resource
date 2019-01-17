@@ -646,6 +646,10 @@ it_can_get_returned_ref() {
   test "$(cat $dest/.git/ref)" = "${ref3}" || \
     ( echo ".git/ref does not match. Expected '${ref3}', got '$(cat $dest/.git/ref)'"; return 1 )
 
+  test -e $dest/.git/tag_ref || ( echo ".git/tag_ref does not exist."; return 1 )
+  test "$(cat $dest/.git/tag_ref)" = "${ref3}" || \
+    ( echo ".git/tag_ref does not match. Expected '${ref3}', got '$(cat $dest/.git/tag_ref)'"; return 1 )
+
   test -e $dest/.git/short_ref || ( echo ".git/short_ref does not exist."; return 1 )
   local expected_short_ref="test-$(echo ${ref3} | cut -c1-7)"
   test "$(cat $dest/.git/short_ref)" = $expected_short_ref || \

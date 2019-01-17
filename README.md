@@ -193,6 +193,10 @@ the case.
 
  *  `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
 
+ * `.git/tag_ref`: Version reference detected and checked out. It will usually contain the latest git tag with
+   the commit SHA-1 ref appended. See [`git describe --tags --always`](https://git-scm.com/docs/git-describe).
+   If the repo was never tagged before, this falls back to a short commit SHA-1 ref.
+
  * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
 ### `out`: Push to a repository.

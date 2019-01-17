@@ -193,6 +193,15 @@ echo "${return_ref}" > .git/ref
 # a custom tag
 echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }" > .git/short_ref
 
+# Store tag_ref when available
+# - if there never was a tag on this repo, this will fallback to a short commit SHA-1
+# - if current HEAD has no tag, the latest tag will be used in addition to the
+#   current commit SHA-1 to create a unique tag_ref description
+# - if current HEAD has a tag, the version will be the tag
+# - if current HEAD has multiple tags, the version will be the first tag in
+#   alphabetical order ([foo, bar] → bar, [0.1, 0.2] → 0.1)
+echo "$(git describe --tags --always)" > .git/tag_ref
+
 # Store commit message in .git/commit_message. Can be used to inform about
 # the content of a successfull build.
 # Using https://github.com/cloudfoundry-community/slack-notification-resource
