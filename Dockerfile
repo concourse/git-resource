@@ -22,6 +22,7 @@ RUN apk --no-cache add \
   libressl-dev \
   make \
   g++ \
+  netcat-openbsd \
   openssh \
   perl \
   tar \
