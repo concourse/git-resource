@@ -7,12 +7,12 @@ _main() {
   tmpdir="$(mktemp -d git_crypt_install.XXXXXX)"
 
   cd "$tmpdir"
-  curl -Lo git-crypt-0.6.0.tar.gz https://www.agwa.name/projects/git-crypt/downloads/git-crypt-0.6.0.tar.gz
-  tar -zxf git-crypt-0.6.0.tar.gz
-  cd git-crypt-0.6.0
+  git clone https://github.com/AGWA/git-crypt.git
+  cd git-crypt
+  git checkout tags/0.6.0
   make
   make install
-  cd ..
+  cd ../..
   rm -rf "$tmpdir"
 }
 
