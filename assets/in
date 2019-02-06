@@ -77,7 +77,7 @@ git clone --single-branch $depthflag $uri $branchflag $destination
 
 cd $destination
 
-git fetch origin refs/notes/*:refs/notes/* --tags
+git fetch origin refs/notes/*:refs/notes/* $( [ "$depth" -gt 0 ] && echo "$tagflag" || echo "--tags" )
 
 if [ "$depth" -gt 0 ]; then
   "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref" "$tagflag"
