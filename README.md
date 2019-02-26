@@ -252,7 +252,7 @@ will stop the build.
 Run the tests with the following command:
 
 ```sh
-docker build -t git-resource .
+docker build -t git-resource -f ./dockerfiles/ubuntu/Dockerfile .
 ```
 
 #### Note about the integration tests

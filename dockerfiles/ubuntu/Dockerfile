@@ -19,12 +19,12 @@ RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.d
 RUN apt-get install -y git-lfs
 
 WORKDIR /root
-RUN git clone https://github.com/proxytunnel/proxytunnel.git; \
-    cd proxytunnel; \
-    make; \
-    install -c proxytunnel /usr/bin/proxytunnel; \
-    cd ..; \
-    rm -rf proxytunnel;
+RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
+    cd proxytunnel && \
+    make -j4 && \
+    install -c proxytunnel /usr/bin/proxytunnel && \
+    cd .. && \
+    rm -rf proxytunnel
 
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
