@@ -18,6 +18,7 @@ load_pubkey() {
     cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
+ForwardAgent yes
 EOF
     chmod 0600 ~/.ssh/config
   fi
