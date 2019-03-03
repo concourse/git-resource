@@ -153,7 +153,7 @@ if [ "$submodules" != "none" ]; then
       git config "submodule.${submodule}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
     fi
 
-    git submodule update --no-fetch $depthflag $submodule_parameters $submodule
+    git submodule update --init --no-fetch $depthflag $submodule_parameters $submodule
 
     if [ "$depth" -gt 0 ]; then
       # restore submodule update config
