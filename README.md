@@ -22,6 +22,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       -----END RSA PRIVATE KEY-----
     ```
 
+* `forward_agent`: *Optional* Enables ForwardAgent SSH option when set to "yes". Useful when using proxy/jump hosts. Defaults to "no".
+
 * `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
   This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
   and auth is required.

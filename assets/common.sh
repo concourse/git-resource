@@ -3,6 +3,7 @@ export GIT_CRYPT_KEY_PATH=~/git-crypt.key
 
 load_pubkey() {
   local private_key_path=$TMPDIR/git-resource-private-key
+  local forward_agent=$(jq -r '.source.forward_agent // "no"' < $1)
 
   (jq -r '.source.private_key // empty' < $1) > $private_key_path
 
@@ -18,7 +19,7 @@ load_pubkey() {
     cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
-ForwardAgent yes
+ForwardAgent $forward_agent
 EOF
     chmod 0600 ~/.ssh/config
   fi
