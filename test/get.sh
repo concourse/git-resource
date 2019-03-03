@@ -411,8 +411,8 @@ it_honors_the_parameter_flags_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
   test "$(git -C $dest_recursive_true rev-parse HEAD)" = $project_last_commit_id
-  test "$(ls $dest_recursive_true/$submodule_name | wc -l)" = 2
-  test "$(ls $dest_recursive_true/$submodule_name/$subsubmodule_name | wc -l)" = 1
+  test "$(ls $dest_recursive_true/$submodule_name | wc -l | xargs)" = 2
+  test "$(ls $dest_recursive_true/$submodule_name/$subsubmodule_name | wc -l | xargs)" = 1
 
   # recursive explicit disabled
   local dest_recursive_false=$TMPDIR/recursive_false
@@ -421,8 +421,9 @@ it_honors_the_parameter_flags_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
   test "$(git -C $dest_recursive_false rev-parse HEAD)" = $project_last_commit_id
-  test "$(ls $dest_recursive_false/$submodule_name | wc -l)" = 2
-  test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l)" = 0
+  test "$(ls $dest_recursive_false/$submodule_name | wc -l | xargs)" = 2
+  test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l | xargs)" = 0
+
 
   # remote explicit enabled
   local dest_remote_true=$TMPDIR/remote_true
@@ -465,8 +466,8 @@ it_honors_the_source_flags_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
   test "$(git -C $dest_recursive_true rev-parse HEAD)" = $project_last_commit_id
-  test "$(ls $dest_recursive_true/$submodule_name | wc -l)" = 2
-  test "$(ls $dest_recursive_true/$submodule_name/$subsubmodule_name | wc -l)" = 1
+  test "$(ls $dest_recursive_true/$submodule_name | wc -l | xargs)" = 2
+  test "$(ls $dest_recursive_true/$submodule_name/$subsubmodule_name | wc -l | xargs)" = 1
 
   # recursive explicit disabled
   local dest_recursive_false=$TMPDIR/recursive_false
@@ -475,8 +476,8 @@ it_honors_the_source_flags_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
   test "$(git -C $dest_recursive_false rev-parse HEAD)" = $project_last_commit_id
-  test "$(ls $dest_recursive_false/$submodule_name | wc -l)" = 2
-  test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l)" = 0
+  test "$(ls $dest_recursive_false/$submodule_name | wc -l | xargs)" = 2
+  test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l | xargs)" = 0
 }
 
 it_overrides_the_source_flags_with_parameter_flags_for_submodules() {
@@ -499,8 +500,8 @@ it_overrides_the_source_flags_with_parameter_flags_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
   test "$(git -C $dest_recursive_true rev-parse HEAD)" = $project_last_commit_id
-  test "$(ls $dest_recursive_true/$submodule_name | wc -l)" = 2
-  test "$(ls $dest_recursive_true/$submodule_name/$subsubmodule_name | wc -l)" = 1
+  test "$(ls $dest_recursive_true/$submodule_name | wc -l | xargs)" = 2
+  test "$(ls $dest_recursive_true/$submodule_name/$subsubmodule_name | wc -l | xargs)" = 1
 
   # recursive explicit enabled in source and disabled in params
   local dest_recursive_false=$TMPDIR/recursive_false
@@ -509,8 +510,8 @@ it_overrides_the_source_flags_with_parameter_flags_for_submodules() {
     .version == {ref: $(echo $project_last_commit_id | jq -R .)}
   "
   test "$(git -C $dest_recursive_false rev-parse HEAD)" = $project_last_commit_id
-  test "$(ls $dest_recursive_false/$submodule_name | wc -l)" = 2
-  test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l)" = 0
+  test "$(ls $dest_recursive_false/$submodule_name | wc -l | xargs)" = 2
+  test "$(ls $dest_recursive_false/$submodule_name/$subsubmodule_name | wc -l | xargs)" = 0
 }
 
 it_can_get_and_set_git_config() {
