@@ -42,6 +42,16 @@ it_fails_if_key_has_password() {
   grep "Private keys with passphrases are not supported." $failed_output
 }
 
+it_fails_if_ssh_agent_failed() {
+  local repo=$(init_repo)
+  local key=$TMPDIR/key-no-passphrase
+
+  ssh-keygen -f $key
+  check_uri_with_key_and_ssh_agent $repo $key
+
+  [ ! -z "$(grep "ForwardAgent yes" $HOME/.ssh/config)" ]
+}
+
 it_can_check_with_credentials() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -564,6 +574,7 @@ run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
 run it_does_not_skip_marked_commits_when_disable_skip_configured
 run it_fails_if_key_has_password
+run it_fails_if_ssh_agent_failed
 run it_can_check_with_credentials
 run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
