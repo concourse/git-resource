@@ -244,6 +244,25 @@ it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set()
   echo "${output}" | grep "fatal: reference is not a tree: $ref2"
 }
 
+it_can_use_submodules_with_names_that_arent_paths() {
+  local repo_and_submodule=$(init_repo_with_named_submodule some-name some-path)
+
+  local repo=$(echo $repo_and_submodule | cut -d, -f1)
+  local ref=$(make_commit $repo)
+
+  local submodule=$(echo $repo_and_submodule | cut -d, -f2)
+  local submodule_ref=$(git -C $submodule rev-parse HEAD)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_with_submodules_all "file://"$repo 1 $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  test "$(git -C $dest rev-parse HEAD)" = $ref
+  test "$(git -C $dest/some-path rev-parse HEAD)" = $submodule_ref
+}
+
 it_honors_the_depth_flag_for_submodules() {
   local repo_with_submodule_info=$(init_repo_with_submodule)
   local project_folder=$(echo $repo_with_submodule_info | cut -d "," -f1)
@@ -715,6 +734,13 @@ it_retains_tags_with_clean_tags_param() {
   test "$(git -C $dest tag)" == $tag
 }
 
+run it_can_use_submodules_with_names_that_arent_paths
+run it_can_use_submodules_without_perl_warning
+run it_honors_the_depth_flag_for_submodules
+run it_falls_back_to_deep_clone_of_submodule_if_ref_not_found
+run it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule
+run it_preserves_the_submodule_update_method
+run it_honors_the_parameter_flags_for_submodules
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
@@ -723,16 +749,10 @@ run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
-run it_can_use_submodules_without_perl_warning
 run it_honors_the_depth_flag
 run it_can_get_from_url_at_depth_at_ref
 run it_falls_back_to_deep_clone_if_ref_not_found
 run it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set
-run it_honors_the_depth_flag_for_submodules
-run it_falls_back_to_deep_clone_of_submodule_if_ref_not_found
-run it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule
-run it_preserves_the_submodule_update_method
-run it_honors_the_parameter_flags_for_submodules
 run it_can_get_and_set_git_config
 run it_returns_same_ref
 run it_cant_get_commit_with_invalid_key

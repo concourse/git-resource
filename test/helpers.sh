@@ -65,6 +65,20 @@ init_repo_with_submodule() {
   echo $project,$submodule
 }
 
+init_repo_with_named_submodule() {
+  local name=$1
+  local path=$2
+
+  local submodule=$(init_repo)
+  make_commit $submodule >/dev/null
+  make_commit $submodule >/dev/null
+
+  local project=$(init_repo)
+  git -C $project submodule add --name $1 "file://$submodule" $2 >/dev/null
+  git -C $project commit -m "Adding Submodule" >/dev/null
+  echo $project,$submodule
+}
+
 init_repo_with_submodule_of_nested_submodule() {
   local submodule_and_nested_submodule=$(init_repo_with_submodule)
   local nested_submodule=$(echo $submodule_and_nested_submodule | cut -d "," -f2)
