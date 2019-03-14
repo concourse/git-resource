@@ -408,12 +408,13 @@ check_uri_disable_ci_skip() {
 check_uri_with_key_and_ssh_agent() {
   local uri=$1
   local key=$2
+  local agent=$3
 
   jq -n "{
     source: {
       uri: $(echo $uri | jq -R .),
       private_key: $(cat $2 | jq -s -R .),
-      forward_agent: true
+      forward_agent: $3
     }
   }" | ${resource_dir}/check | tee /dev/stderr
 }
