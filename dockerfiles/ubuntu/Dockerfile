@@ -1,18 +1,18 @@
 FROM ubuntu:bionic AS resource
 
-
-RUN apt-get update && apt-get install -y \
-  curl \
-  git \
-  gnupg \
-  gzip \
-  jq \
-  openssl \
-  libssl-dev \
-  make \
-  g++ \
-  openssh-client \
-  libstdc++6 \
+RUN apt-get update \
+  && apt-get install -y \
+    curl \
+    git \
+    gnupg \
+    gzip \
+    jq \
+    openssl \
+    libssl-dev \
+    make \
+    g++ \
+    openssh-client \
+    libstdc++6 \
   && rm -rf /var/lib/apt/lists/*
 
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
