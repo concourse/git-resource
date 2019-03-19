@@ -1,12 +1,3 @@
-FROM alpine:edge AS tunnelbuilder
-RUN apk --no-cache add git make gcc g++ libressl-dev
-
-WORKDIR /root
-RUN git clone https://github.com/proxytunnel/proxytunnel.git
-
-WORKDIR /root/proxytunnel
-RUN make
-
 FROM alpine:edge AS resource
 
 RUN apk --no-cache add \
@@ -27,9 +18,13 @@ RUN apk --no-cache add \
   tar \
   libstdc++
 
-COPY --from=tunnelbuilder /root/proxytunnel/proxytunnel proxytunnel
-
-RUN /usr/bin/install -c proxytunnel /usr/bin/proxytunnel
+WORKDIR /root
+RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
+    cd proxytunnel && \
+    make -j4 && \
+    install -c proxytunnel /usr/bin/proxytunnel && \
+    cd .. && \
+    rm -rf proxytunnel
 
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
