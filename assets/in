@@ -73,6 +73,11 @@ if [ -n "$tag_filter" ]; then
   tagflag="--tags"
 fi
 
+if [ "$disable_git_lfs" == "true" ]; then
+  # skip the fetching of LFS objects for all following git commands
+  export GIT_LFS_SKIP_SMUDGE=1
+fi
+
 git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
@@ -105,11 +110,6 @@ if [ ! -z "${commit_verification_keys}" ] || [ ! -z "${commit_verification_key_i
       xargs --no-run-if-empty -n1 gpg --batch --keyserver $gpg_keyserver --recv-keys
   fi
   git verify-commit $(git rev-list -n 1 $ref) || commit_not_signed
-fi
-
-if [ "$disable_git_lfs" != "true" ]; then
-  git lfs fetch
-  git lfs checkout
 fi
 
 git log -1 --oneline
@@ -164,10 +164,6 @@ if [ "$submodules" != "none" ]; then
       fi
     fi
   done
-fi
-
-if [ "$disable_git_lfs" != "true" ]; then
-  git submodule foreach "git lfs fetch && git lfs checkout"
 fi
 
 for branch in $fetch; do
