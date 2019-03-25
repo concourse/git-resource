@@ -28,6 +28,8 @@ tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
+filterWhitelist=$(jq -r '.source.filter.include // []' < $payload)
+filterBlacklist=$(jq -r '.source.filter.exclude // []' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -70,12 +72,31 @@ fi
 if [ "$paths" = "." ] && [ -z "$ignore_paths" ]; then
   paths_search=""
 else
-  paths_search="-- $paths $ignore_paths"
+  paths_search=`echo "-- $paths $ignore_paths" | tr "\n\r" " "`
 fi
 
-ci_skip=""
+filter="git rev-list --all --first-parent"
+if [ `echo $filterWhitelist | jq -r '. | length'` -gt 0 ]
+then
+    whitelistItems=$(echo $filterWhitelist | jq -r -c '.[]')
+    for wli in "$whitelistItems"
+    do
+        filter="$filter | git rev-list --stdin --grep=\"$wli\" --first-parent"
+    done
+fi
+
+if [ `echo $filterBlacklist | jq -r '. | length'` -gt 0 ]
+then
+    blacklistItems=$(echo $filterBlacklist | jq -r -c '.[]')
+    for bli in "$blacklistItems"
+    do
+        filter="$filter | git rev-list --stdin --grep=\"$wli\" --invert-grep --first-parent"
+    done
+fi
+
+
 if [ "$skip_ci_disabled" != "true" ]; then
-  ci_skip="--grep \\[ci\\sskip\\] --grep \\[skip\\sci\\] --invert-grep"
+  filter="$filter | git rev-list --stdin --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent"
 fi
 
 replace_escape_chars() {
@@ -93,6 +114,8 @@ get_commit(){
     jq -n '{ref: $tag, commit: $commit}' --arg tag $tag --arg commit $commit
   done
 }
+
+echo "$filter $log_range $paths_search"
 
 if [ -n "$tag_filter" ]; then
   {
@@ -114,7 +137,7 @@ if [ -n "$tag_filter" ]; then
 else
   {
     set -f
-    git log $ci_skip --format='%H' --first-parent $log_range $paths_search
+    eval "$filter $log_range $paths_search"
     set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
