@@ -38,6 +38,9 @@ if [ -n "$tag_filter" ]; then
   tagflag="--tags"
 fi
 
+# We're just checking for commits; we don't ever need to fetch LFS files here!
+export GIT_LFS_SKIP_SMUDGE=1
+
 if [ -d $destination ]; then
   cd $destination
   git fetch $tagflag -f

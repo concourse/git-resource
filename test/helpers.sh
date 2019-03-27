@@ -430,6 +430,18 @@ get_uri() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_disable_lfs() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+    },
+    params: {
+      short_ref_format: \"test-%s\",
+      disable_git_lfs: \"true\"
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
 get_uri_with_branch() {
   jq -n "{
     source: {
