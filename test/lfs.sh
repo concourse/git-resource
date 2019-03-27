@@ -2,8 +2,7 @@ set -e
 
 source $(dirname $0)/helpers.sh
 
-# TODO:  This should move to an identical repo under concourse's control.
-lfsrepo="https://github.com/vectorstorm/lfstest"
+lfsrepo="https://github.com/concourse/lfs-test-repo"
 
 # These tests work by cloning the $lfsrepo specified above.  The repo contains
 # just a file "test", which is served via LFS.  If we get the LFS file, the
