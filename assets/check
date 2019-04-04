@@ -30,6 +30,7 @@ ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
 filterWhitelist=$(jq -r '.source.filter.include // []' < $payload)
 filterBlacklist=$(jq -r '.source.filter.exclude // []' < $payload)
+reverse=false
 
 configure_git_global "${git_config_payload}"
 
@@ -60,12 +61,14 @@ fi
 if [ -n "$ref" ] && git cat-file -e "$ref"; then
   init_commit=$(git rev-list --max-parents=0 HEAD)
   if [ "${ref}" = "${init_commit}" ]; then
-    log_range="--reverse HEAD"
+    reverse=true
+    log_range="HEAD"
   else
-    log_range="--reverse ${ref}~1..HEAD"
+    reverse=true
+    log_range="${ref}~1..HEAD"
   fi
 else
-  log_range="-1"
+  log_range=""
   ref=""
 fi
 
@@ -75,13 +78,13 @@ else
   paths_search=`echo "-- $paths $ignore_paths" | tr "\n\r" " "`
 fi
 
-filter="git rev-list --all --first-parent"
+listCommand="git rev-list --all --first-parent $log_range $paths_search"
 if [ `echo $filterWhitelist | jq -r '. | length'` -gt 0 ]
 then
     whitelistItems=$(echo $filterWhitelist | jq -r -c '.[]')
     for wli in "$whitelistItems"
     do
-        filter="$filter | git rev-list --stdin --grep=\"$wli\" --first-parent"
+        listCommand+=" | git rev-list --stdin --grep=\"$wli\" --first-parent --no-walk"
     done
 fi
 
@@ -90,13 +93,13 @@ then
     blacklistItems=$(echo $filterBlacklist | jq -r -c '.[]')
     for bli in "$blacklistItems"
     do
-        filter="$filter | git rev-list --stdin --grep=\"$wli\" --invert-grep --first-parent"
+        listCommand+=" | git rev-list --stdin --grep=\"$bli\" --invert-grep --first-parent --no-walk"
     done
 fi
 
 
 if [ "$skip_ci_disabled" != "true" ]; then
-  filter="$filter | git rev-list --stdin --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent"
+  listCommand+=" | git rev-list --stdin --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent --no-walk"
 fi
 
 replace_escape_chars() {
@@ -115,7 +118,16 @@ get_commit(){
   done
 }
 
-echo "$filter $log_range $paths_search"
+if [ "$reverse" == "true" ]
+then
+    listCommand+=" --reverse"
+fi
+
+#if no range is selected just grab the last commit that fits the filter
+if [ -z "$log_range" ]
+then
+    listCommand+=" -1"
+fi
 
 if [ -n "$tag_filter" ]; then
   {
@@ -137,7 +149,7 @@ if [ -n "$tag_filter" ]; then
 else
   {
     set -f
-    eval "$filter $log_range $paths_search"
+    eval "$listCommand"
     set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi

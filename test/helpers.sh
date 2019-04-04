@@ -5,7 +5,7 @@ set -e -u
 set -o pipefail
 
 export TMPDIR_ROOT=$(mktemp -d /tmp/git-tests.XXXXXX)
-trap "rm -rf $TMPDIR_ROOT" EXIT
+#trap "rm -rf $TMPDIR_ROOT" EXIT
 
 if [ -d /opt/resource ]; then
   resource_dir=/opt/resource
@@ -451,6 +451,51 @@ check_uri_with_key_and_ssh_agent() {
       uri: $(echo $uri | jq -R .),
       private_key: $(cat $2 | jq -s -R .),
       forward_agent: $3
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_filter() {
+  local uri=$1
+  local ref=$2
+  local type=$3
+  local value=$4
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri| jq -R .),
+      filter: {
+        $(echo $type | jq -R .): [
+            $(echo $value | jq -R .)
+        ]
+      }
+    },
+    version: {
+      ref: $(echo $ref | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_filters() {
+  local uri=$1
+  local ref=$2
+  local included=$3
+  local excluded=$4
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri| jq -R .),
+      filter: {
+        include: [
+            $(echo $included | jq -R .)
+        ],
+        exclude: [
+            $(echo $excluded | jq -R .)
+        ]
+      }
+    },
+    version: {
+      ref: $(echo $ref | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
 }
