@@ -5,7 +5,7 @@ set -e -u
 set -o pipefail
 
 export TMPDIR_ROOT=$(mktemp -d /tmp/git-tests.XXXXXX)
-#trap "rm -rf $TMPDIR_ROOT" EXIT
+trap "rm -rf $TMPDIR_ROOT" EXIT
 
 if [ -d /opt/resource ]; then
   resource_dir=/opt/resource
