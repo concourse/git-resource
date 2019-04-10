@@ -136,12 +136,19 @@ if [ "$submodules" != "none" ]; then
 
     submodules="$(git config --list --name-only | sed -ne 's/^submodule\.\(.*\)\.url$/\1/p' | sort -u)"
   else
-    submodules=$(echo $submodules | jq -r '(.[])')
+    submodules=$(
+      echo $submodules | jq -r '.[]' | while read path; do
+        git config --file .gitmodules --name-only --get-regexp '\.path$' $path |
+          sed -e 's/^submodule\.\(.\+\)\.path$/\1/'
+      done
+    )
 
     git submodule init $submodules
   fi
 
   for submodule in $submodules; do
+    submodule_path=$(git config --file .gitmodules --get "submodule.${submodule}.path")
+
     if [ "$depth" -gt 0 ]; then
       # remember submodule update config
       update_conf_was_set=0
@@ -153,7 +160,7 @@ if [ "$submodules" != "none" ]; then
       git config "submodule.${submodule}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
     fi
 
-    git submodule update --no-fetch $depthflag $submodule_parameters $submodule
+    git submodule update --no-fetch $depthflag $submodule_parameters $submodule_path
 
     if [ "$depth" -gt 0 ]; then
       # restore submodule update config
