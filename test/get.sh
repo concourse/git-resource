@@ -374,42 +374,6 @@ it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule() {
   echo "${output}" | grep "fatal: reference is not a tree: $submodule_last_commit_id"
 }
 
-# the submodule incremental deepening depends on overwriting the update method
-# of the submodule, so we should test if it's properly restored
-it_preserves_the_submodule_update_method() {
-  local repo_with_submodule_info=$(init_repo_with_submodule)
-  local main_repo=${repo_with_submodule_info%,*}
-  local submodule_repo=${repo_with_submodule_info#*,}
-  local submodule_name=${submodule_repo##*/}
-  local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
-
-  local dest=$TMPDIR/destination
-
-  get_uri_with_submodules_all "file://$main_repo" 1 $dest | jq -e "
-    .version == {ref: $(echo $main_repo_last_commit_id | jq -R .)}
-  "
-
-  # "git config ..." returns false if the key is not found (unset)
-  ! git -C "$dest" config "submodule.${submodule_name}.update"
-
-
-  rm -rf "$dest"
-
-
-  git -C "$main_repo" config --file .gitmodules --replace-all "submodule.${submodule_name}.update" merge
-  git -C "$main_repo" add .gitmodules
-  git -C "$main_repo" commit -m 'Add .gitmodules' >/dev/null
-
-  local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
-  local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
-
-  get_uri_with_submodules_all "file://$main_repo" 1 $dest | jq -e "
-    .version == {ref: $(echo $main_repo_last_commit_id | jq -R .)}
-  "
-
-  test "$(git -C "$dest" config "submodule.${submodule_name}.update")" == "merge"
-}
-
 it_honors_the_parameter_flags_for_submodules() {
   local repo_info=$(init_repo_with_submodule_of_nested_submodule)
   local project_folder=$(echo $repo_info | cut -d "," -f1)
@@ -739,7 +703,6 @@ run it_can_use_submodules_without_perl_warning
 run it_honors_the_depth_flag_for_submodules
 run it_falls_back_to_deep_clone_of_submodule_if_ref_not_found
 run it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule
-run it_preserves_the_submodule_update_method
 run it_honors_the_parameter_flags_for_submodules
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
