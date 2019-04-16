@@ -124,51 +124,30 @@ fi
 
 submodule_parameters=""
 if [ "$submodule_remote" != "false" ]; then
-    submodule_parameters+=" --remote "
+  submodule_parameters+=" --remote "
 fi
 if [ "$submodule_recursive" != "false" ]; then
-    submodule_parameters+=" --recursive "
+  submodule_parameters+=" --recursive "
 fi
 
 if [ "$submodules" != "none" ]; then
-  if [ "$submodules" == "all" ]; then
-    git submodule init
-
-    submodules="$(git config --list --name-only | sed -ne 's/^submodule\.\(.*\)\.url$/\1/p' | sort -u)"
-  else
-    submodules=$(
-      echo $submodules | jq -r '.[]' | while read path; do
-        git config --file .gitmodules --name-only --get-regexp '\.path$' $path |
-          sed -e 's/^submodule\.\(.\+\)\.path$/\1/'
-      done
-    )
-
-    git submodule init $submodules
+  value_regexp="."
+  if [ "$submodules" != "all" ]; then
+    value_regexp="$(echo $submodules | jq -r 'map(. + "$") | join("|")')"
   fi
 
-  for submodule in $submodules; do
-    submodule_path=$(git config --file .gitmodules --get "submodule.${submodule}.path")
+  git config --file .gitmodules --name-only --get-regexp '\.path$' "$value_regexp" |
+    sed -e 's/^submodule\.\(.\+\)\.path$/\1/' | while read submodule_name; do
+    submodule_path=$(git config --file .gitmodules --get "submodule.${submodule_name}.path")
 
     if [ "$depth" -gt 0 ]; then
-      # remember submodule update config
-      update_conf_was_set=0
-      if update_conf="$(git config --get "submodule.${submodule}.update")"; then
-        update_conf_was_set=1
-      fi
-
-      # temporarily set to our shallow clone deepening shell script
-      git config "submodule.${submodule}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
+      git config "submodule.${submodule_name}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
     fi
 
-    git submodule update --no-fetch $depthflag $submodule_parameters $submodule_path
+    git submodule update --init --no-fetch $depthflag $submodule_parameters $submodule_path
 
     if [ "$depth" -gt 0 ]; then
-      # restore submodule update config
-      if [ "$update_conf_was_set" != 0 ]; then
-        git config "submodule.${submodule}.update" "$update_conf"
-      else
-        git config --unset "submodule.${submodule}.update"
-      fi
+      git config --unset "submodule.${submodule_name}.update"
     fi
   done
 fi
