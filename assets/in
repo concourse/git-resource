@@ -47,6 +47,7 @@ commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < 
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
+no_detach_head=$(jq -r '(.params.no_detach_head // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
 
@@ -89,7 +90,9 @@ git fetch origin refs/notes/*:refs/notes/* $tagflag
 if [ "$depth" -gt 0 ]; then
   "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref" "$tagflag"
 else
-  git checkout -q "$ref"
+  if [ "$no_detach_head" == "false" ]; then
+    git checkout -q "$ref"
+  fi
 fi
 
 invalid_key() {

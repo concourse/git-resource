@@ -169,6 +169,8 @@ correct key is provided set in `git_crypt_key`.
 
 * `disable_git_lfs`: *Optional.* If `true`, will not fetch Git LFS files.
 
+* `no_detach_head`: *Optional.* If `true`, will not produce a repo in *detached HEAD* state, leaving HEAD as symbolic ref to branch, instead of a direct reference to a commit.
+
 * `clean_tags`: *Optional.* If `true` all incoming tags will be deleted. This
   is useful if you want to push tags, but have reasonable doubts that the tags
   cached with the resource are outdated. The default value is `false`.
