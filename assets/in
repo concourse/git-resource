@@ -82,6 +82,8 @@ git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
 
+orig_branch=$(git symbolic-ref HEAD | sed 's@^refs/heads/@@')
+
 git fetch origin refs/notes/*:refs/notes/* $tagflag
 
 if [ "$depth" -gt 0 ]; then
@@ -170,6 +172,9 @@ git --no-pager log -1 --pretty=format:"%ae" > .git/committer
 # Store git-resource returned version ref .git/ref. Useful to know concourse
 # pulled ref in following tasks and resources.
 echo "${return_ref}" > .git/ref
+
+# Store the original branch in .git/branch
+echo ${orig_branch} > .git/branch
 
 # Store short ref with templating. Useful to build Docker images with
 # a custom tag
