@@ -97,7 +97,7 @@ get_commit(){
 if [ -n "$tag_filter" ]; then
   {
     if [ -n "$ref" ] && [ -n "$branch" ]; then
-      tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref)
+      tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref --merged $branch)
       get_commit $tags
     elif [ -n "$ref" ]; then
       tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
