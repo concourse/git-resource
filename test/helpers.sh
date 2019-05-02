@@ -79,6 +79,28 @@ init_repo_with_named_submodule() {
   echo $project,$submodule
 }
 
+init_repo_with_submodule_missing_path() {
+  local name=$1
+  local path=$2
+
+  local submodule=$(init_repo)
+  local project=$(init_repo)
+
+  {
+    make_commit $submodule
+    make_commit $submodule
+
+    git -C $project submodule add --name $name "file://$submodule" $path
+    git -C $project commit -m "Adding Submodule"
+    git -C $project rm $path
+    git -C $project reset .gitmodules
+    git -C $project checkout .gitmodules
+    git -C $project commit -m "Breaking Submodule"
+  } >&2
+
+  echo $project,$submodule
+}
+
 init_repo_with_submodule_of_nested_submodule() {
   local submodule_and_nested_submodule=$(init_repo_with_submodule)
   local nested_submodule=$(echo $submodule_and_nested_submodule | cut -d "," -f2)

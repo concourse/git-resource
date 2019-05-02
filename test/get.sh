@@ -263,6 +263,25 @@ it_can_use_submodules_with_names_that_arent_paths() {
   test "$(git -C $dest/some-path rev-parse HEAD)" = $submodule_ref
 }
 
+it_can_use_submodules_with_missing_paths() {
+  local repo_and_submodule=$(init_repo_with_submodule_missing_path some-name some-path)
+
+  local repo=$(echo $repo_and_submodule | cut -d, -f1)
+  local ref=$(make_commit $repo)
+
+  local submodule=$(echo $repo_and_submodule | cut -d, -f2)
+  local submodule_ref=$(git -C $submodule rev-parse HEAD)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_with_submodules_all "file://"$repo 1 $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  test "$(git -C $dest rev-parse HEAD)" = $ref
+  test ! -e $dest/some-path
+}
+
 it_honors_the_depth_flag_for_submodules() {
   local repo_with_submodule_info=$(init_repo_with_submodule)
   local project_folder=$(echo $repo_with_submodule_info | cut -d "," -f1)
@@ -698,6 +717,7 @@ it_retains_tags_with_clean_tags_param() {
   test "$(git -C $dest tag)" == $tag
 }
 
+run it_can_use_submodules_with_missing_paths
 run it_can_use_submodules_with_names_that_arent_paths
 run it_can_use_submodules_without_perl_warning
 run it_honors_the_depth_flag_for_submodules

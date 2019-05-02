@@ -136,15 +136,22 @@ if [ "$submodules" != "none" ]; then
     value_regexp="$(echo $submodules | jq -r 'map(. + "$") | join("|")')"
   fi
 
-  git config --file .gitmodules --name-only --get-regexp '\.path$' "$value_regexp" |
-    sed -e 's/^submodule\.\(.\+\)\.path$/\1/' | while read submodule_name; do
-    submodule_path=$(git config --file .gitmodules --get "submodule.${submodule_name}.path")
+  {
+    git config --file .gitmodules --name-only --get-regexp '\.path$' "$value_regexp" |
+      sed -e 's/^submodule\.\(.\+\)\.path$/\1/'
+  } | while read submodule_name; do
+    submodule_path="$(git config --file .gitmodules --get "submodule.${submodule_name}.path")"
 
     if [ "$depth" -gt 0 ]; then
       git config "submodule.${submodule_name}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
     fi
 
-    git submodule update --init --no-fetch $depthflag $submodule_parameters $submodule_path
+    if ! [ -e "$submodule_path" ]; then
+      echo $'\e[31m'"warning: skipping missing submodule: $submodule_path"$'\e[0m'
+      continue
+    fi
+
+    git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
 
     if [ "$depth" -gt 0 ]; then
       git config --unset "submodule.${submodule_name}.update"
