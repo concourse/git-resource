@@ -790,6 +790,20 @@ put_uri_with_merge() {
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
 
+put_uri_with_merge_returning_unmerged() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      merge: true,
+      returning: \"unmerged\"
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
 put_uri_with_merge_and_rebase() {
   jq -n "{
     source: {

@@ -35,6 +35,7 @@ tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
 merge=$(jq -r '.params.merge // false' < $payload)
+returning=$(jq -r '.params.returning // "merged"' < $payload)
 force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
@@ -196,7 +197,13 @@ else
   add_and_push_notes
 fi
 
+if [ "$merge" = "true" ] && [ "$returning" = "unmerged" ]; then
+  version_ref="$(echo "$commit_to_push" | jq -R .)"
+else
+  version_ref="$(git rev-parse HEAD | jq -R .)"
+fi
+
 jq -n "{
-  version: {ref: $(git rev-parse HEAD | jq -R .)},
+  version: {ref: $version_ref},
   metadata: $(git_metadata)
 }" >&3
