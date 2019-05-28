@@ -103,7 +103,11 @@ if [ -n "$tag_filter" ]; then
       tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
       get_commit $tags
     else
-      tag=$(git tag --list "$tag_filter" --sort=creatordate | tail -1)
+      branch_flag=
+      if [ -n "$branch" ]; then
+        branch_flag="--merged $branch"
+      fi
+      tag=$(git tag --list "$tag_filter" --sort=creatordate $branch_flag | tail -1)
       get_commit $tag
     fi
   } | jq -s "map(.)" >&3

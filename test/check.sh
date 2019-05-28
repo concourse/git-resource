@@ -556,6 +556,24 @@ it_can_check_with_tag_filter_with_replaced_tags() {
   "
 }
 
+it_can_check_with_tag_filter_given_branch_first_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "test.tag.1" "tag branch-a")
+  # see that the tag on non-master branch doesn't get picked up
+  check_uri_with_tag_filter_given_branch $repo "test.tag.*" "master" | jq -e "
+    . == []
+  "
+
+  # make a new tag on master, ensure it gets picked up
+  local ref3=$(make_commit_to_branch $repo master)
+  local ref4=$(make_annotated_tag $repo "test.tag.2" "tag branch-a")
+
+  check_uri_with_tag_filter_given_branch $repo "test.tag.*" "master" | jq -e "
+    . == [{ref: \"test.tag.2\", commit: \"$ref3\"}]
+  "
+}
+
 it_can_check_and_set_git_config() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -599,3 +617,4 @@ run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
 run it_can_check_from_a_ref_with_paths_merged_in
+run it_can_check_with_tag_filter_given_branch_first_ref
