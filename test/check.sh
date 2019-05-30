@@ -435,7 +435,7 @@ it_skips_excluded_commits_conventional() {
   local ref4=$(make_commit $repo "fix: a bug")
   local ref5=$(make_commit $repo)
 
-  check_uri_with_filter $repo $ref1 "exclude" "chore(release): auto-publish" | jq -e "
+  check_uri_with_filter $repo $ref1 "exclude" "chore(release):" | jq -e "
     . == [
       {ref: $(echo $ref1 | jq -R .)},
       {ref: $(echo $ref2 | jq -R .)},
