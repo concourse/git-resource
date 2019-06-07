@@ -85,13 +85,15 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     * `proxy_host`: *Required.* The host name or IP of the proxy server
     * `proxy_port`: *Required.* The proxy server's listening port
     * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
-    * `proxy_password`: *Optional.* If the proxy requires authenticat, use this password
+  *   `proxy_password`: *Optional.* If the proxy requires authenticate,
+      use this password
     
-* `filter`: *Optional.* Object containing commit message filters
-  * `filter.exclude`: *Optional.* Array containing strings that should
+* `commit_filter`: *Optional.* Object containing commit message filters
+  * `commit_filter.exclude`: *Optional.* Array containing strings that should
     cause a commit to be skipped
-  * `filter.include`: *Optional.* Array contining strings that *MUST* be
-    included in commit messages for the commit to not be skipped
+  * `commit_filter.include`: *Optional.* Array continuing strings that
+    *MUST* be included in commit messages for the commit to not be
+    skipped
 
 ### Example
 

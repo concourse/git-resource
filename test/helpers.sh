@@ -464,7 +464,7 @@ check_uri_with_filter() {
   jq -n "{
     source: {
       uri: $(echo $uri| jq -R .),
-      filter: {
+      commit_filter: {
         $(echo $type | jq -R .): [
             $(echo $value | jq -R .)
         ]
@@ -485,7 +485,7 @@ check_uri_with_filters() {
   jq -n "{
     source: {
       uri: $(echo $uri| jq -R .),
-      filter: {
+      commit_filter: {
         include: [
             $(echo $included | jq -R .)
         ],

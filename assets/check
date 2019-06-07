@@ -28,8 +28,8 @@ tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
-filterWhitelist=$(jq -r '.source.filter.include // []' < $payload)
-filterBlacklist=$(jq -r '.source.filter.exclude // []' < $payload)
+filter_whitelist=$(jq -r '.source.commit_filter.include // []' < $payload)
+filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' < $payload)
 reverse=false
 
 configure_git_global "${git_config_payload}"
@@ -78,28 +78,28 @@ else
   paths_search=`echo "-- $paths $ignore_paths" | tr "\n\r" " "`
 fi
 
-listCommand="git rev-list --all --first-parent $log_range $paths_search"
-if [ `echo $filterWhitelist | jq -r '. | length'` -gt 0 ]
+list_command="git rev-list --all --first-parent $log_range $paths_search"
+if [ `echo $filter_whitelist | jq -r '. | length'` -gt 0 ]
 then
-    whitelistItems=$(echo $filterWhitelist | jq -r -c '.[]')
-    for wli in "$whitelistItems"
+    whitelist_items=$(echo $filter_whitelist | jq -r -c '.[]')
+    for wli in "$whitelist_items"
     do
-        listCommand+=" | git rev-list --stdin --grep=\"$wli\" --first-parent --no-walk"
+        list_command+=" | git rev-list --stdin --grep=\"$wli\" --first-parent --no-walk"
     done
 fi
 
-if [ `echo $filterBlacklist | jq -r '. | length'` -gt 0 ]
+if [ `echo $filter_blacklist | jq -r '. | length'` -gt 0 ]
 then
-    blacklistItems=$(echo $filterBlacklist | jq -r -c '.[]')
-    for bli in "$blacklistItems"
+    blacklist_items=$(echo $filter_blacklist | jq -r -c '.[]')
+    for bli in "$blacklist_items"
     do
-        listCommand+=" | git rev-list --stdin --grep=\"$bli\" --invert-grep --first-parent --no-walk"
+        list_command+=" | git rev-list --stdin --grep=\"$bli\" --invert-grep --first-parent --no-walk"
     done
 fi
 
 
 if [ "$skip_ci_disabled" != "true" ]; then
-  listCommand+=" | git rev-list --stdin --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent --no-walk"
+  list_command+=" | git rev-list --stdin --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent --no-walk"
 fi
 
 replace_escape_chars() {
@@ -120,13 +120,13 @@ get_commit(){
 
 if [ "$reverse" == "true" ]
 then
-    listCommand+=" --reverse"
+    list_command+=" --reverse"
 fi
 
 #if no range is selected just grab the last commit that fits the filter
 if [ -z "$log_range" ]
 then
-    listCommand+=" -1"
+    list_command+=" -1"
 fi
 
 if [ -n "$tag_filter" ]; then
@@ -149,7 +149,7 @@ if [ -n "$tag_filter" ]; then
 else
   {
     set -f
-    eval "$listCommand"
+    eval "$list_command"
     set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
