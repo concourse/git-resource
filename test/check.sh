@@ -397,6 +397,68 @@ it_skips_marked_commits_with_no_version() {
   "
 }
 
+it_skips_excluded_commits() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo "not skipped")
+  local ref3=$(make_commit $repo "should skip this commit")
+  local ref4=$(make_commit $repo)
+
+  check_uri_with_filter $repo $ref1 "exclude" "should skip" | jq -e "
+    . == [
+      {ref: $(echo $ref1 | jq -R .)},
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref4 | jq -R .)}
+    ]
+  "
+}
+
+it_skips_non_included_commits() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo "not skipped commit")
+  local ref3=$(make_commit $repo "should skip this commit")
+  local ref4=$(make_commit $repo)
+
+  check_uri_with_filter $repo $ref1 "include" "not skipped" | jq -e "
+    . == [
+      {ref: $(echo $ref2 | jq -R .)}
+    ]
+  "
+}
+
+it_skips_excluded_commits_conventional() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo "chore: update a thing")
+  local ref3=$(make_commit $repo "chore(release): auto-publish")
+  local ref4=$(make_commit $repo "fix: a bug")
+  local ref5=$(make_commit $repo)
+
+  check_uri_with_filter $repo $ref1 "exclude" "chore(release):" | jq -e "
+    . == [
+      {ref: $(echo $ref1 | jq -R .)},
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref4 | jq -R .)},
+      {ref: $(echo $ref5 | jq -R .)}
+    ]
+  "
+}
+
+it_skips_non_included_and_excluded_commits() {
+local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo "not skipped commit")
+  local ref3=$(make_commit $repo "not skipped sometimes")
+  local ref4=$(make_commit $repo)
+
+  check_uri_with_filters $repo $ref1 "not skipped" "sometimes" | jq -e "
+    . == [
+      {ref: $(echo $ref2 | jq -R .)}
+    ]
+  "
+}
+
 it_does_not_skip_marked_commits_when_disable_skip_configured() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -600,6 +662,10 @@ run it_checks_given_ignored_paths
 run it_can_check_when_not_ff
 run it_skips_marked_commits
 run it_skips_marked_commits_with_no_version
+run it_skips_excluded_commits
+run it_skips_excluded_commits_conventional
+run it_skips_non_included_commits
+run it_skips_non_included_and_excluded_commits
 run it_does_not_skip_marked_commits_when_disable_skip_configured
 run it_fails_if_key_has_password
 run it_configures_forward_agent

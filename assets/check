@@ -28,6 +28,9 @@ tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
+filter_whitelist=$(jq -r '.source.commit_filter.include // []' < $payload)
+filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' < $payload)
+reverse=false
 
 configure_git_global "${git_config_payload}"
 
@@ -58,24 +61,45 @@ fi
 if [ -n "$ref" ] && git cat-file -e "$ref"; then
   init_commit=$(git rev-list --max-parents=0 HEAD)
   if [ "${ref}" = "${init_commit}" ]; then
-    log_range="--reverse HEAD"
+    reverse=true
+    log_range="HEAD"
   else
-    log_range="--reverse ${ref}~1..HEAD"
+    reverse=true
+    log_range="${ref}~1..HEAD"
   fi
 else
-  log_range="-1"
+  log_range=""
   ref=""
 fi
 
 if [ "$paths" = "." ] && [ -z "$ignore_paths" ]; then
   paths_search=""
 else
-  paths_search="-- $paths $ignore_paths"
+  paths_search=`echo "-- $paths $ignore_paths" | tr "\n\r" " "`
 fi
 
-ci_skip=""
+list_command="git rev-list --all --first-parent $log_range $paths_search"
+if [ `echo $filter_whitelist | jq -r '. | length'` -gt 0 ]
+then
+    whitelist_items=$(echo $filter_whitelist | jq -r -c '.[]')
+    for wli in "$whitelist_items"
+    do
+        list_command+=" | git rev-list --stdin --grep=\"$wli\" --first-parent --no-walk"
+    done
+fi
+
+if [ `echo $filter_blacklist | jq -r '. | length'` -gt 0 ]
+then
+    blacklist_items=$(echo $filter_blacklist | jq -r -c '.[]')
+    for bli in "$blacklist_items"
+    do
+        list_command+=" | git rev-list --stdin --grep=\"$bli\" --invert-grep --first-parent --no-walk"
+    done
+fi
+
+
 if [ "$skip_ci_disabled" != "true" ]; then
-  ci_skip="--grep \\[ci\\sskip\\] --grep \\[skip\\sci\\] --invert-grep"
+  list_command+=" | git rev-list --stdin --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent --no-walk"
 fi
 
 replace_escape_chars() {
@@ -93,6 +117,17 @@ get_commit(){
     jq -n '{ref: $tag, commit: $commit}' --arg tag $tag --arg commit $commit
   done
 }
+
+if [ "$reverse" == "true" ]
+then
+    list_command+=" --reverse"
+fi
+
+#if no range is selected just grab the last commit that fits the filter
+if [ -z "$log_range" ]
+then
+    list_command+=" -1"
+fi
 
 if [ -n "$tag_filter" ]; then
   {
@@ -114,7 +149,7 @@ if [ -n "$tag_filter" ]; then
 else
   {
     set -f
-    git log $ci_skip --format='%H' --first-parent $log_range $paths_search
+    eval "$list_command"
     set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
