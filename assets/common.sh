@@ -131,13 +131,43 @@ add_git_metadata_message() {
   ]"
 }
 
+add_git_url_to_commit() {
+  local commit=$(git rev-parse HEAD)
+  local origin=$(git remote get-url --all origin) 2> /dev/null
+
+  if echo $origin | grep git@github.com > /dev/null; then
+    # Some people, when confronted with a problem, think "I know, I'll use regular expressions." Now they have two problems.
+    # git@github.com:org/repo.git -> git github com org repo git
+    local parts=$(echo $origin | tr ':,/,.' ' ')
+    local org=$(echo $parts | cut -d ' ' -f 3)
+    local repo=$(echo $parts | cut -d ' ' -f 4)
+
+    local url=$(echo "https://github.com/$org/$repo/commit/$commit" | jq -R . )
+    jq ". + [
+        {name: \"url\", value: ${url}}
+    ]"
+  elif echo $origin | grep https://github.com > /dev/null; then
+    local parts=$(echo $origin | tr ':,/,.' ' ')
+    local org=$(echo $parts | cut -d ' ' -f 4)
+    local repo=$(echo $parts | cut -d ' ' -f 5)
+
+    local url=$(echo "https://github.com/$org/$repo/commit/$commit" | jq -R . )
+    jq ". + [
+        {name: \"url\", value: ${url}}
+    ]"
+  else
+    jq ". + []"
+  fi
+}
+
 git_metadata() {
   jq -n "[]" | \
     add_git_metadata_basic | \
     add_git_metadata_committer | \
     add_git_metadata_branch | \
     add_git_metadata_tags | \
-    add_git_metadata_message
+    add_git_metadata_message | \
+    add_git_url_to_commit
 }
 
 configure_credentials() {
