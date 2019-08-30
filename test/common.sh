@@ -10,46 +10,46 @@ it_has_no_url_in_metadata_when_remote_is_not_configured() {
     local ref=$(make_commit $repo "")
     cd $repo
 
-    local metadata=$(git_metadata)
-    test $(echo $metadata | jq '. | map(select(.name == "url")) | length') = "0"
+    test $(git_metadata | jq -r '. | map(select(.name == "url")) | length') = 0
 }
 
 it_has_no_url_in_metadata_when_remote_is_not_github() {
     local repo=$(init_repo)
     local ref=$(make_commit $repo "")
-    cd $repo
 
     # set a bitbucket origin
+    cd $repo
     git remote add origin git@bitbucket.com:someOrg/someRepo.git
 
-    local metadata=$(git_metadata)
-    test $(echo $metadata | jq '. | map(select(.name == "url")) | length') = "0"
+    test $(git_metadata | jq -r '. | map(select(.name == "url")) | length') = 0
 }
 
 it_has_url_in_metadata_when_remote_is_private_github() {
     local repo=$(init_repo)
     local ref=$(make_commit $repo "")
-    cd $repo
+    local expectedUrl="https://github.com/concourse/git-resource/commit/$ref"
 
     # set a github origin
+    cd $repo
     git remote add origin git@github.com:concourse/git-resource.git
 
-    local metadata=$(git_metadata)
-    test $(echo $metadata | jq '. | map(select(.name == "url")) | length') = "1"
+    test $(git_metadata | jq -r '. | map(select(.name == "url")) | length') = 1
+    test $(git_metadata | jq -r '.[] | select(.name == "url") | .value') = $expectedUrl
+
 }
 
 it_has_url_in_metadata_when_remote_is_public_github() {
     local repo=$(init_repo)
     local ref=$(make_commit $repo "")
-    cd $repo
+    local expectedUrl="https://github.com/concourse/git-resource/commit/$ref"
 
     # set a github origin
+    cd $repo
     git remote add origin https://github.com/concourse/git-resource.git
 
-    local metadata=$(git_metadata)
-    test $(echo $metadata | jq '. | map(select(.name == "url")) | length') = "1"
+    test $(git_metadata | jq -r '. | map(select(.name == "url")) | length') = 1
+    test $(git_metadata | jq -r '.[] | select(.name == "url") | .value') = $expectedUrl
 }
-
 
 run it_has_no_url_in_metadata_when_remote_is_not_configured
 run it_has_no_url_in_metadata_when_remote_is_not_github
