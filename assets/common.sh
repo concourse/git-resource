@@ -131,13 +131,33 @@ add_git_metadata_message() {
   ]"
 }
 
+add_git_metadata_url() {
+  local commit=$(git rev-parse HEAD)
+  local origin=$(git remote get-url --all origin) 2> /dev/null
+
+  if echo $origin | grep github.com > /dev/null; then
+
+    # git@github.com:concourse/git-resource.git     -> concourse/git-resource
+    # https://github.com/concourse/git-resource.git -> concourse/git-resource
+    local ownerRepo=$(echo $origin | sed -e' s/.*github.com[:\/]//; s/\.git$//')
+    local url=$(echo "https://github.com/$ownerRepo/commit/$commit" | jq -R . )
+
+    jq ". + [
+        {name: \"url\", value: ${url}}
+    ]"
+  else
+    jq ". + []"
+  fi
+}
+
 git_metadata() {
   jq -n "[]" | \
     add_git_metadata_basic | \
     add_git_metadata_committer | \
     add_git_metadata_branch | \
     add_git_metadata_tags | \
-    add_git_metadata_message
+    add_git_metadata_message | \
+    add_git_metadata_url
 }
 
 configure_credentials() {
