@@ -126,7 +126,7 @@ fi
 #if no range is selected just grab the last commit that fits the filter
 if [ -z "$log_range" ]
 then
-    list_command+=" -1"
+    list_command+="| git rev-list --stdin -1"
 fi
 
 if [ -n "$tag_filter" ]; then
