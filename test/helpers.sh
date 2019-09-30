@@ -391,7 +391,8 @@ check_uri_from_paths_with_branch() {
     source: {
       uri: $(echo $uri | jq -R .),
       paths: $(echo "$@" | jq -R '. | split(" ")'),
-      branch: $(echo $branch | jq -R .)
+      branch: $(echo $branch | jq -R .),
+      disable_ci_skip: true
     },
   }" | ${resource_dir}/check | tee /dev/stderr
 }
