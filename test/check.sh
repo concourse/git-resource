@@ -235,6 +235,7 @@ it_skips_ignored_paths() {
 
 it_checks_given_paths() {
   local repo=$(init_repo)
+  local masterref1=$(make_commit $repo)
   local ref1=$(make_commit_to_file $repo file-a)
   local ref2=$(make_commit_to_file $repo file-b)
   local ref3=$(make_commit_to_file $repo file-c)
