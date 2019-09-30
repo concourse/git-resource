@@ -235,10 +235,10 @@ it_skips_ignored_paths() {
 
 it_checks_given_paths() {
   local repo=$(init_repo)
-  local masterref1=$(make_commit $repo)
-  local ref1=$(make_commit_to_file $repo file-a)
-  local ref2=$(make_commit_to_file $repo file-b)
-  local ref3=$(make_commit_to_file $repo file-c)
+  local masterref1=$(make_commit $repo file-1)
+  local ref1=$(make_commit_to_file_on_branch $repo file-a testbranch)
+  local ref2=$(make_commit_to_file_on_branch $repo file-b testbranch)
+  local ref3=$(make_commit_to_file_on_branch $repo file-c testbranch)
 
   check_uri_paths $repo "file-c" | jq -e "
     . == [{ref: $(echo $ref3 | jq -R .)}]
