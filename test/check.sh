@@ -241,10 +241,10 @@ it_checks_given_paths_on_branch() {
   echo $ref2
   local ref3=$(make_commit_to_file_on_branch_with_path $repo dummy file-b newbranch)
   echo $ref3
-  local result=$(check_uri_from_paths_with_branch $repo newbranch "/dummy/*")
+  local result=$(check_uri_from_paths_with_branch $repo newbranch "dummy/*")
   echo result
 
-  check_uri_from_paths_with_branch $repo newbranch "/dummy/*"| jq -e "
+  check_uri_from_paths_with_branch $repo newbranch "dummy/*"| jq -e "
     . == [{ref: $(echo $ref3 | jq -R .)}]
   "
 
