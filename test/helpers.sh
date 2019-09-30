@@ -132,7 +132,7 @@ make_commit_to_file_on_branch() {
   fi
 
   # switch to branch
-  git -C $repo checkout -q $branch
+  git -C $repo checkout $branch
 
   # modify file and commit
   echo x >> $repo/$file
@@ -145,6 +145,35 @@ make_commit_to_file_on_branch() {
   # output resulting sha
   git -C $repo rev-parse HEAD
 }
+
+make_commit_to_file_on_branch_with_path() {
+  local repo=$1
+  local path=$2
+  local file=$3
+  local branch=$4
+  local msg=${5-}
+
+  # ensure branch exists
+  if ! git -C $repo rev-parse --verify $branch >/dev/null; then
+    git -C $repo branch $branch master
+  fi
+
+  # switch to branch
+  git -C $repo checkout $branch
+
+  # modify file and commit
+  mkdir -p $repo/$path
+  echo x >> $repo/$path/$file
+  git -C $repo add $path/$file
+  git -C $repo \
+    -c user.name='test' \
+    -c user.email='test@example.com' \
+    commit -q -m "commit $(wc -l $repo/$path/$file) $msg"
+
+  # output resulting sha
+  git -C $repo rev-parse HEAD
+}
+
 
 make_commit_to_file() {
   make_commit_to_file_on_branch $1 $2 master "${3-}"
