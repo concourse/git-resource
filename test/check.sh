@@ -235,11 +235,11 @@ it_skips_ignored_paths() {
 
 it_checks_given_paths_on_branch() {
   local repo=$(init_repo)
-  local ref1=$(make_commit_to_file_on_branch $repo /path/file-b master)
+  local ref1=$(make_commit_to_file_on_branch $repo path/file-b master)
   echo $ref1
-  local ref2=$(make_commit_to_file_on_branch $repo /path/file-b master)
+  local ref2=$(make_commit_to_file_on_branch $repo path/file-b master)
   echo $ref2
-  local ref3=$(make_commit_to_file_on_branch $repo /path/file-b newbranch)
+  local ref3=$(make_commit_to_file_on_branch $repo path/file-b newbranch)
   echo $ref3
   local result=$(check_uri_from_paths_with_branch $repo newbranch "/path/*")
   echo result
