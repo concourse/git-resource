@@ -132,7 +132,7 @@ make_commit_to_file_on_branch() {
   fi
 
   # switch to branch
-  git -C $repo checkout $branch
+  git -C $repo checkout -q $branch
 
   # modify file and commit
   echo x >> $repo/$file
@@ -159,7 +159,7 @@ make_commit_to_file_on_branch_with_path() {
   fi
 
   # switch to branch
-  git -C $repo checkout $branch
+  git -C $repo checkout -q $branch
 
   # modify file and commit
   mkdir -p $repo/$path
@@ -173,7 +173,6 @@ make_commit_to_file_on_branch_with_path() {
   # output resulting sha
   git -C $repo rev-parse HEAD
 }
-
 
 make_commit_to_file() {
   make_commit_to_file_on_branch $1 $2 master "${3-}"
