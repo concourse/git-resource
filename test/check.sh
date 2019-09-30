@@ -263,6 +263,22 @@ it_checks_given_paths() {
   "
 }
 
+it_checks_given_paths_on_branch() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_file_on_branch_with_path $repo dummy file-b master)
+  echo $ref1
+  local ref2=$(make_commit_to_file_on_branch_with_path $repo dummy file-b master)
+  echo $ref2
+  local ref3=$(make_commit_to_file_on_branch_with_path $repo dummy file-b newbranch)
+  echo $ref3
+  local result=$(check_uri_from_paths_with_branch $repo newbranch "dummy/*")
+  echo result
+
+  check_uri_from_paths_with_branch $repo newbranch "dummy/*"| jq -e "
+    . == [{ref: $(echo $ref3 | jq -R .)}]
+  "
+}
+
 it_checks_given_glob_paths() { # issue gh-120
   local repo=$(init_repo)
   mkdir -p $repo/a/b
@@ -657,6 +673,7 @@ run it_can_check_from_a_first_commit_in_repo
 run it_can_check_from_a_bogus_sha
 run it_skips_ignored_paths
 run it_checks_given_paths
+run it_checks_given_paths_on_branch
 run it_checks_given_glob_paths
 run it_checks_given_ignored_paths
 run it_can_check_when_not_ff
