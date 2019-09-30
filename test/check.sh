@@ -236,14 +236,16 @@ it_skips_ignored_paths() {
 it_checks_given_paths_on_branch() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_file_on_branch $repo file-b master)
-  local ref3=$(make_commit_to_file_on_branch $repo file-b master)
-  local ref4=$(make_commit_to_file_on_branch $repo file-b master)
-  local ref5=$(make_commit_to_file_on_branch $repo file-b master)
+  echo $ref1
+  local ref2=$(make_commit_to_file_on_branch $repo file-b master)
+  echo $ref2
+  local ref3=$(make_commit_to_file_on_branch $repo file-b newbranch)
+    echo $ref3
+  local result=$(check_uri_from_paths_with_branch $repo newbranch "file-b")
+  echo result
 
-  local ref2=$(make_commit_to_file_on_branch $repo file-b bogus)
-
-  check_uri_from_paths_with_branch $repo bogus "file-b"| jq -e "
-    . == [{ref: $(echo $ref2 | jq -R .)}]
+  check_uri_from_paths_with_branch $repo newbranch "file-b"| jq -e "
+    . == [{ref: $(echo $ref3 | jq -R .)}]
   "
 
 }
