@@ -118,15 +118,15 @@ get_commit(){
   done
 }
 
-if [ "$reverse" == "true" ]
-then
-    list_command+=" --reverse"
-fi
-
 #if no range is selected just grab the last commit that fits the filter
 if [ -z "$log_range" ]
 then
     list_command+="| git rev-list --stdin -1"
+fi
+
+if [ "$reverse" == "true" ]
+then
+    list_command+="| git rev-list --stdin --first-parent --no-walk --reverse"
 fi
 
 if [ -n "$tag_filter" ]; then
