@@ -269,33 +269,13 @@ it_checks_given_paths_ci_skip_disabled() {
   local ref2=$(make_commit_to_file $repo file-a)
   local ref3=$(make_commit_to_file $repo file-a)
 
-  check_uri_paths $repo "file-c" | jq -e "
-    . == [{ref: $(echo $ref3 | jq -R .)}]
-  "
-
   check_uri_from_paths_disable_ci_skip $repo $ref1 "file-a" | jq -e "
   . == [
     {ref: $(echo $ref1 | jq -R .)},
     {ref: $(echo $ref2 | jq -R .)},
     {ref: $(echo $ref3 | jq -R .)}
-
   ]
 "
-
-  local ref4=$(make_commit_to_file $repo file-b)
-
-  check_uri_paths $repo "file-c" | jq -e "
-    . == [{ref: $(echo $ref3 | jq -R .)}]
-  "
-
-  local ref5=$(make_commit_to_file $repo file-c)
-
-  check_uri_from_paths $repo $ref1 "file-c" | jq -e "
-    . == [
-      {ref: $(echo $ref3 | jq -R .)},
-      {ref: $(echo $ref5 | jq -R .)}
-    ]
-  "
 }
 
 it_checks_given_paths_on_branch() {
