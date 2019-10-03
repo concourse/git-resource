@@ -128,7 +128,7 @@ if [ -z "$log_range" ]
 then
     list_command+="| git rev-list --stdin -1"
 fi
-
+echo $list_command
 if [ -n "$tag_filter" ]; then
   {
     if [ -n "$ref" ] && [ -n "$branch" ]; then
