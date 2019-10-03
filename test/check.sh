@@ -105,7 +105,6 @@ it_can_check_from_a_ref() {
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit $repo)
   local ref3=$(make_commit $repo)
-  check_uri_from $repo $ref1
   check_uri_from $repo $ref1 | jq -e "
     . == [
       {ref: $(echo $ref1 | jq -R .)},
@@ -268,7 +267,7 @@ it_checks_given_paths_ci_skip_disabled() {
   local ref1=$(make_commit_to_file $repo file-a)
   local ref2=$(make_commit_to_file $repo file-a)
   local ref3=$(make_commit_to_file $repo file-a)
-
+  echo $ref1
   check_uri_from_paths_disable_ci_skip $repo $ref1 "file-a" | jq -e "
   . == [
     {ref: $(echo $ref1 | jq -R .)},
