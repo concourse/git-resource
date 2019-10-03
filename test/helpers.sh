@@ -380,6 +380,25 @@ check_uri_from_paths() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_from_paths_disable_ci_skip() {
+  local uri=$1
+  local ref=$2
+
+  shift 2
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      paths: $(echo "$@" | jq -R '. | split(" ")'),
+      disable_ci_skip: true
+
+    },
+    version: {
+      ref: $(echo $ref | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_from_paths_with_branch() {
   local uri=$1
   local branch=$2
