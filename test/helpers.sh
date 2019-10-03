@@ -363,7 +363,7 @@ check_uri_from_ignoring() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
-check_uri_from_paths_ci_skip() {
+check_uri_from_paths_disable_ci_skip() {
   local uri=$1
   local ref=$2
 
