@@ -363,24 +363,7 @@ check_uri_from_ignoring() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
-check_uri_from_paths() {
-  local uri=$1
-  local ref=$2
-
-  shift 2
-
-  jq -n "{
-    source: {
-      uri: $(echo $uri | jq -R .),
-      paths: $(echo "$@" | jq -R '. | split(" ")')
-    },
-    version: {
-      ref: $(echo $ref | jq -R .)
-    }
-  }" | ${resource_dir}/check | tee /dev/stderr
-}
-
-check_uri_from_paths_disable_ci_skip() {
+check_uri_from_paths_ci_skip() {
   local uri=$1
   local ref=$2
 
@@ -391,7 +374,23 @@ check_uri_from_paths_disable_ci_skip() {
       uri: $(echo $uri | jq -R .),
       paths: $(echo "$@" | jq -R '. | split(" ")'),
       disable_ci_skip: true
+    },
+    version: {
+      ref: $(echo $ref | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
 
+check_uri_from_paths() {
+  local uri=$1
+  local ref=$2
+
+  shift 2
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      paths: $(echo "$@" | jq -R '. | split(" ")')
     },
     version: {
       ref: $(echo $ref | jq -R .)
