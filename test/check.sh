@@ -267,7 +267,6 @@ it_checks_given_paths_ci_skip_disabled() {
   local ref1=$(make_commit_to_file $repo file-a)
   local ref2=$(make_commit_to_file $repo file-a)
   local ref3=$(make_commit_to_file $repo file-a)
-  echo $ref1
   check_uri_from_paths_disable_ci_skip $repo $ref1 "file-a" | jq -e "
   . == [
     {ref: $(echo $ref1 | jq -R .)},
@@ -681,7 +680,7 @@ it_can_check_and_set_git_config() {
   mv ~/.gitconfig.orig ~/.gitconfig
 }
 
-run check_uri_from_paths_disable_ci_skip
+run it_checks_given_paths_ci_skip_disabled
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_first_commit_in_repo
