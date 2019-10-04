@@ -48,7 +48,7 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
-if [ -z "$branch" ]; then
+if [ -z "$branch" ] && [ "$only_tag" != "true" ]; then
   echo "invalid payload (missing branch)"
   exit 1
 fi
