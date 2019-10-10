@@ -2,7 +2,6 @@
 
 Tracks the commits in a [git](http://git-scm.com/) repository.
 
-
 ## Source Configuration
 
 * `uri`: *Required.* The location of the repository.
@@ -10,10 +9,10 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `branch`: The branch to track. This is *optional* if the resource is
    only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
 
-
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
-    ```
+
+    ```yaml
     private_key: |
       -----BEGIN RSA PRIVATE KEY-----
       MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
@@ -74,7 +73,6 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `gpg_keyserver`: *Optional.* GPG keyserver to download the public keys from.
   Defaults to `hkp:///keys.gnupg.net/`.
 
-
 * `git_crypt_key`: *Optional.* Base64 encoded
   [git-crypt](https://github.com/AGWA/git-crypt) key. Setting this will
   unlock / decrypt the repository with `git-crypt`. To get the key simply
@@ -82,12 +80,11 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `https_tunnel`: *Optional.* Information about an HTTPS proxy that will be used to tunnel SSH-based git commands over.
   Has the following sub-properties:
-    * `proxy_host`: *Required.* The host name or IP of the proxy server
-    * `proxy_port`: *Required.* The proxy server's listening port
-    * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
-  *   `proxy_password`: *Optional.* If the proxy requires authenticate,
-      use this password
-    
+  * `proxy_host`: *Required.* The host name or IP of the proxy server
+  * `proxy_port`: *Required.* The proxy server's listening port
+  * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
+  * `proxy_password`: *Optional.* If the proxy requires authenticate, use this password
+
 * `commit_filter`: *Optional.* Object containing commit message filters
   * `commit_filter.exclude`: *Optional.* Array containing strings that should
     cause a commit to be skipped
@@ -192,18 +189,18 @@ the case.
 
 #### Additional files populated
 
- * `.git/committer`: For committer notification on failed builds.
-   This special file `.git/committer` which is populated with the email address
-   of the author of the last commit. This can be used together with  an email
-   resource like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource)
-   to notify the committer in an on_failure step.
+* `.git/committer`: For committer notification on failed builds.
+ This special file `.git/committer` which is populated with the email address
+ of the author of the last commit. This can be used together with  an email
+ resource like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource)
+ to notify the committer in an on_failure step.
 
- * `.git/ref`: Version reference detected and checked out. It will usually contain
-   the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
+* `.git/ref`: Version reference detected and checked out. It will usually contain
+ the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
 
- *  `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
+* `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
 
- * `.git/commit_message`: For publishing the Git commit message on successful builds.
+* `.git/commit_message`: For publishing the Git commit message on successful builds.
 
 ### `out`: Push to a repository.
 
@@ -275,6 +272,7 @@ docker build -t git-resource -f dockerfiles/ubuntu/Dockerfile .
 If you want to run the integration tests, a bit more work is required. You will require
 an actual git repo to which you can push and pull, configured for SSH access. To do this,
 add two files to `integration-tests/ssh` (note that names **are** important):
+
 * `test_key`: This is the private key used to authenticate against your repo.
 * `test_repo`: This file contains one line of the form `test_repo_url[#test_branch]`.
   If the branch is not specified, it defaults to `master`. For example,
