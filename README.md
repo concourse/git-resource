@@ -180,6 +180,23 @@ correct key is provided set in `git_crypt_key`.
 
 * `short_ref_format`: *Optional.* When populating `.git/short_ref` use this `printf` format. Defaults to `%s`.
 
+* `describe_ref_options`: *Optional.* When populating `.git/describe_ref` use this options to call [`git describe`](https://git-scm.com/docs/git-describe). Defaults to `--always --dirty --broken`.
+
+    ```txt
+    --all                 use any ref
+    --tags                use any tag, even unannotated
+    --long                always use long format
+    --first-parent        only follow first parent
+    --abbrev[=<n>]        use <n> digits to display SHA-1s
+    --exact-match         only output exact matches
+    --candidates <n>      consider <n> most recent tags (default: 10)
+    --match <pattern>     only consider tags matching <pattern>
+    --exclude <pattern>   do not consider tags matching <pattern>
+    --always              show abbreviated commit object as fallback
+    --dirty[=<mark>]      append <mark> on dirty working tree (default: "-dirty")
+    --broken[=<mark>]     append <mark> on broken working tree (default: "-broken")
+    ```
+
 #### GPG signature verification
 
 If `commit_verification_keys` or `commit_verification_key_ids` is specified in
@@ -201,6 +218,10 @@ the case.
 * `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
 
 * `.git/commit_message`: For publishing the Git commit message on successful builds.
+
+* `.git/describe_ref`: Version reference detected and checked out. Can be templated with `describe_ref_options` parameter.
+ By default, it will contain the `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`).
+ If the repo was never tagged before, this falls back to a short commit SHA-1 ref.
 
 ### `out`: Push to a repository.
 
