@@ -35,6 +35,7 @@ tag=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 rebase=$(jq -r '.params.rebase // false' < $payload)
 merge=$(jq -r '.params.merge // false' < $payload)
+strategy_option=$(jq -r '.params.strategy_option // "recursive"' <$payload)
 returning=$(jq -r '.params.returning // "merged"' < $payload)
 force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
@@ -162,7 +163,7 @@ elif [ "$merge" = "true" ]; then
     git reset --hard $commit_to_push
 
     git fetch push-target "refs/notes/*:refs/notes/*"
-    git pull --no-edit push-target $branch
+    git pull -s $strategy_option --no-edit push-target $branch
 
     result="0"
     push_with_result_check result
