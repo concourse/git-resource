@@ -139,32 +139,32 @@ add_git_metadata_url() {
   # most common hosting scenarios for where a commit URL exists
   if [[ ! $origin =~ ^(https?://|ssh://git@|git@)([^/]+)/(.*)$ ]]; then
     jq ". + []"
-  fi
-  
-  local host=${BASH_REMATCH[2]}
-  local repo_path=${BASH_REMATCH[3]%.git}
+  else  
+    local host=${BASH_REMATCH[2]}
+    local repo_path=${BASH_REMATCH[3]%.git}
 
-  # Remap scp-style names so that "github.com:concourse" + "git-resource"
-  # becomes "github.com" + "concourse/git-resource"
-  if [[ ${BASH_REMATCH[1]} == "git@" && $host == *:* ]]; then
-    repo_path="${host#*:}/${repo_path}"
-    host=${host%%:*}
-  fi
+    # Remap scp-style names so that "github.com:concourse" + "git-resource"
+    # becomes "github.com" + "concourse/git-resource"
+    if [[ ${BASH_REMATCH[1]} == "git@" && $host == *:* ]]; then
+      repo_path="${host#*:}/${repo_path}"
+      host=${host%%:*}
+    fi
 
-  local url=""
-  case $host in
-    *github* | *gitlab* | *gogs* )
-      url="https://${host}/${repo_path}/commit/${commit}" ;;
-    *bitbucket* )
-      url="https://${host}/${repo_path}/commits/${commit}";;
-  esac
+    local url=""
+    case $host in
+      *github* | *gitlab* | *gogs* )
+        url="https://${host}/${repo_path}/commit/${commit}" ;;
+      *bitbucket* )
+        url="https://${host}/${repo_path}/commits/${commit}";;
+    esac
 
-  if [ -n "$url" ]; then
-    jq ". + [
-      {name: \"url\", value: \"${url}\"}
-    ]"
-  else
-    jq ". + []"
+    if [ -n "$url" ]; then
+      jq ". + [
+        {name: \"url\", value: \"${url}\"}
+      ]"
+    else
+      jq ". + []"
+    fi
   fi
 }
 
