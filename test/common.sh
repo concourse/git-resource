@@ -106,7 +106,7 @@ it_has_url_in_metadata_when_remote_is_gitlab() {
 it_has_url_in_metadata_when_remote_is_bitbucket() {
     local repo=$(init_repo)
     local ref=$(make_commit $repo "")
-    local expectedUrl="https://bitbucket.com/myteam/myrepo/commit/$ref"
+    local expectedUrl="https://bitbucket.com/myteam/myrepo/commits/$ref"
 
     # set a bitbucket ssh origin
     cd $repo
