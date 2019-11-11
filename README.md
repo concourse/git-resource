@@ -86,10 +86,6 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   The key should be stored in such a way that it can be directly imported
   by doing the following `echo "${git_crypt_gpg_key} | gpg --import"`.
 
-  [git-crypt](https://github.com/AGWA/git-crypt) key. Setting this will
-  unlock / decrypt the repository with `git-crypt`. To get the key simply
-  execute `git-crypt export-key -- - | base64` in an encrypted repository.
-
 * `https_tunnel`: *Optional.* Information about an HTTPS proxy that will be used to tunnel SSH-based git commands over.
   Has the following sub-properties:
     * `proxy_host`: *Required.* The host name or IP of the proxy server
