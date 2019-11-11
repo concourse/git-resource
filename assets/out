@@ -40,6 +40,7 @@ force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
 notes_file=$(jq -r '.params.notes // ""' < $payload)
+follow_tags=$(jq -r '.params.follow_tags // false' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -80,6 +81,11 @@ if [ $force = "true" ]; then
   forceflag="--force"
 fi
 
+followtagsflag=""
+if [ $follow_tags = "true" ]; then
+  followtagsflag="--follow-tags"
+fi
+
 tag_name=""
 if [ -n "$tag" ]; then
   tag_name="$(cat $tag)"
@@ -99,11 +105,11 @@ tag() {
 }
 
 push_src_and_tags() {
-  git push --tags push-target HEAD:refs/heads/$branch $forceflag
+  git push --tags push-target HEAD:refs/heads/$branch $forceflag $followtagsflag
 }
 
 push_tags() {
-  git push --tags push-target $forceflag
+  git push --tags push-target $forceflag $followtagsflag
 }
 
 add_and_push_notes() {
