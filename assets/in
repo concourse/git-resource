@@ -49,7 +49,7 @@ gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
-git_crypt_pub_key=$(jq -r '(.params.git_crypt_pub_key // "")' < $payload)
+git_crypt_gpg_key=$(jq -r '(.params.git_crypt_gpg_key // "")' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -118,13 +118,12 @@ git clean --force --force -d
 git submodule sync
 
 if [ -f $GIT_CRYPT_KEY_PATH ]; then
-  echo "unlocking git repo"
-  if [ ! -z "${git_crypt_pub_key}" ]; then
-    echo "${git_crypt_pub_key}" | gpg --batch --import || invalid_key "${git_crypt_pub_key}"
+  echo "unlocking git repo using symmetric key"
+  git-crypt unlock $GIT_CRYPT_KEY_PATH
+elif [ ! -z "${git_crypt_gpg_key}" ]; then
+  echo "unlocking git repo using gpg key"
+    echo "${git_crypt_gpg_key}" | gpg --import || invalid_key "${git_crypt_gpg_key}"
     git-crypt unlock
-  else
-    git-crypt unlock $GIT_CRYPT_KEY_PATH
-  fi
 fi
 
 
