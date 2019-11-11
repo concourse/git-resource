@@ -49,6 +49,7 @@ gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
+git_crypt_pub_key=$(jq -r '(.params.git_crypt_pub_key // "")' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -118,7 +119,12 @@ git submodule sync
 
 if [ -f $GIT_CRYPT_KEY_PATH ]; then
   echo "unlocking git repo"
-  git-crypt unlock $GIT_CRYPT_KEY_PATH
+  if [ ! -z "${git_crypt_pub_key}" ]; then
+    echo "${git_crypt_pub_key}" | gpg --batch --import || invalid_key "${git_crypt_pub_key}"
+    git-crypt unlock
+  else
+    git-crypt unlock $GIT_CRYPT_KEY_PATH
+  fi
 fi
 
 
