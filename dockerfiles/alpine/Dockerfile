@@ -29,9 +29,6 @@ RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
 
-ADD assets/ /opt/resource/
-RUN chmod +x /opt/resource/*
-
 ADD scripts/install_git_crypt.sh install_git_crypt.sh
 RUN ./install_git_crypt.sh && rm ./install_git_crypt.sh
 
@@ -190,14 +187,17 @@ RUN             rm -rf \
                     perl \
                     perl5
 
-FROM resource AS tests
-ADD test/ /tests
-RUN /tests/all.sh
+ADD assets/ /opt/resource/
+RUN chmod +x /opt/resource/*
 
-FROM resource AS integrationtests
-RUN apk --no-cache add squid
-ADD test/ /tests/test
-ADD integration-tests /tests/integration-tests
-RUN /tests/integration-tests/integration.sh
+# FROM resource AS tests
+# ADD test/ /tests
+# RUN /tests/all.sh
+
+# FROM resource AS integrationtests
+# RUN apk --no-cache add squid
+# ADD test/ /tests/test
+# ADD integration-tests /tests/integration-tests
+# RUN /tests/integration-tests/integration.sh
 
 FROM resource
