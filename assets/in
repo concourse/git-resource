@@ -29,6 +29,7 @@ cat > $payload <&0
 
 load_pubkey $payload
 load_git_crypt_key $payload
+load_git_crypt_key $payload
 configure_https_tunnel $payload
 configure_git_ssl_verification $payload
 configure_credentials $payload
@@ -49,10 +50,6 @@ gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
-
-# load git_crypt gpg key
-$GIT_CRYPT_GPG_KEY_PATH="/tmp/git-resource-git-crypt-gpg.key"
-(jq -r '(.params.git_crypt_gpg_key // empty)' < $payload) > $GIT_CRYPT_GPG_KEY_PATH
 
 configure_git_global "${git_config_payload}"
 
@@ -123,7 +120,7 @@ git submodule sync
 if [ -f $GIT_CRYPT_KEY_PATH ]; then
   echo "unlocking git repo using symmetric key" >&2
   git-crypt unlock $GIT_CRYPT_KEY_PATH
-elif [ ! -z "${git_crypt_gpg_key}" ]; then
+elif [ -f $GIT_CRYPT_GPG_KEY_PATH ]; then
   echo "unlocking git repo using gpg key" >&2
   gpg --import $GIT_CRYPT_GPG_KEY_PATH || invalid_key "${git_crypt_gpg_key}"
   git-crypt unlock

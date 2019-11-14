@@ -1,5 +1,6 @@
 export TMPDIR=${TMPDIR:-/tmp}
 export GIT_CRYPT_KEY_PATH=~/git-crypt.key
+export GIT_CRYPT_GPG_KEY_PATH=~/git-crypt-gpg.key
 
 load_pubkey() {
   local private_key_path=$TMPDIR/git-resource-private-key
@@ -177,5 +178,15 @@ load_git_crypt_key() {
 
   if [ -s $git_crypt_tmp_key_path ]; then
       cat $git_crypt_tmp_key_path | tr ' ' '\n' | base64 -d > $GIT_CRYPT_KEY_PATH
+  fi
+}
+
+load_git_crypt_key() {
+  local git_crypt_gpg_tmp_key_path=$TMPDIR/git-resource-git-crypt-gpg-key
+
+  (jq -r '.source.git_crypt_gpg_key // empty' < $1) > $git_crypt_gpg_tmp_key_path
+
+  if [ -s $git_crypt_gpg_tmp_key_path ]; then
+      cat $git_crypt_gpg_tmp_key_path | > $GIT_CRYPT_GPG_KEY_PATH
   fi
 }
