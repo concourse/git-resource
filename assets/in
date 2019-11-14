@@ -124,8 +124,6 @@ elif [ -f $GIT_CRYPT_GPG_KEY_PATH ]; then
   echo "unlocking git repo using gpg key" >&2
   gpg --import $GIT_CRYPT_GPG_KEY_PATH || invalid_key "${git_crypt_gpg_key}"
   git-crypt unlock
-  ls **/*.sec >&2
-  cat **/*.sec >&2
 fi
 
 

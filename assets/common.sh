@@ -187,6 +187,6 @@ load_git_crypt_key() {
   (jq -r '.source.git_crypt_gpg_key // empty' < $1) > $git_crypt_gpg_tmp_key_path
 
   if [ -s $git_crypt_gpg_tmp_key_path ]; then
-      cat $git_crypt_gpg_tmp_key_path | > $GIT_CRYPT_GPG_KEY_PATH
+      cat $git_crypt_gpg_tmp_key_path > $GIT_CRYPT_GPG_KEY_PATH
   fi
 }
