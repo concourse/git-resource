@@ -118,12 +118,14 @@ git clean --force --force -d
 git submodule sync
 
 if [ -f $GIT_CRYPT_KEY_PATH ]; then
-  echo "unlocking git repo using symmetric key"
+  echo "unlocking git repo using symmetric key" >&2
   git-crypt unlock $GIT_CRYPT_KEY_PATH
 elif [ ! -z "${git_crypt_gpg_key}" ]; then
-  echo "unlocking git repo using gpg key"
-    echo "${git_crypt_gpg_key}" | gpg --import || invalid_key "${git_crypt_gpg_key}"
-    git-crypt unlock
+  echo "unlocking git repo using gpg key" >&2
+  echo "${git_crypt_gpg_key}" | gpg --import || invalid_key "${git_crypt_gpg_key}"
+  git-crypt unlock
+  ls **/*.sec >&2
+  cat **/*.sec >&2
 fi
 
 
