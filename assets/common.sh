@@ -160,13 +160,32 @@ git_metadata() {
     add_git_metadata_url
 }
 
+configure_submodule_credentials() {
+  local username
+  local password
+  if [[ "$(jq -r '.source.submodules // ""' < "$1")" == "" ]]; then
+    return
+  fi
+
+  for k in $(jq -r '.source.submodules | keys | .[]' < "$1"); do
+    host=$(jq -r --argjson k "$k" '.source.submodules[$k].host // ""' < "$1")
+    username=$(jq -r --argjson k "$k" '.source.submodules[$k].username // ""' < "$1")
+    password=$(jq -r --argjson k "$k" '.source.submodules[$k].password // ""' < "$1")
+    if [ "$username" != "" -a "$password" != "" -a "$host" != "" ]; then
+      echo "machine $host login $username password $password" >> "${HOME}/.netrc"
+    fi
+  done
+}
+
 configure_credentials() {
   local username=$(jq -r '.source.username // ""' < $1)
   local password=$(jq -r '.source.password // ""' < $1)
 
   rm -f $HOME/.netrc
+  configure_submodule_credentials "$1"
+
   if [ "$username" != "" -a "$password" != "" ]; then
-    echo "default login $username password $password" > $HOME/.netrc
+    echo "default login $username password $password" >> "${HOME}/.netrc"
   fi
 }
 

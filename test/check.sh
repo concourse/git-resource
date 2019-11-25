@@ -82,6 +82,28 @@ it_can_check_with_credentials() {
   [ ! -f "$HOME/.netrc" ]
 }
 
+it_can_check_with_submodule_credentials() {
+  local repo=$(init_repo)
+  local ref=$(make_commit "$repo")
+  local expected_netrc
+  expected_netrc=$(cat <<EOF
+machine host1 login user2 password pass2
+default login user1 password pass1
+EOF
+)
+  check_uri_with_submodule_credentials "$repo" "user1" "pass1" "host1" "user2" "pass2" | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+  echo "Generated netrc $(cat ${HOME}/.netrc)"
+  echo "Expected netrc $expected_netrc"
+  [ "$(cat $HOME/.netrc)" = "$expected_netrc" ]
+
+  check_uri_with_credentials $repo "" "" | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+  [ ! -f "$HOME/.netrc" ]
+}
+
 it_clears_netrc_even_after_errors() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -702,6 +724,7 @@ run it_fails_if_key_has_password
 run it_configures_forward_agent
 run it_skips_forward_agent_configuration
 run it_can_check_with_credentials
+run it_can_check_with_submodule_credentials
 run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
