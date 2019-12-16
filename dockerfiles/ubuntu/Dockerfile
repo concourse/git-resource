@@ -1,9 +1,8 @@
 FROM ubuntu:bionic AS resource
 
 RUN apt-get update \
-  && apt-get install -y \
+  && apt-get install -y --no-install-recommends \
     curl \
-    git \
     gnupg \
     gzip \
     jq \
@@ -13,6 +12,11 @@ RUN apt-get update \
     g++ \
     openssh-client \
     libstdc++6 \
+    software-properties-common
+
+RUN apt-add-repository ppa:git-core/ppa \
+  && apt-get update \
+  && apt-get install -y git \
   && rm -rf /var/lib/apt/lists/*
 
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
