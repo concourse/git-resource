@@ -299,7 +299,7 @@ check_uri_with_submodule_credentials() {
       uri: $(echo $1 | jq -R .),
       username: $(echo $2 | jq -R .),
       password: $(echo $3 | jq -R .),
-      submodules: [
+      submodule_credentials: [
         {
           host: $(echo $4 | jq -R .),
           username: $(echo $5 | jq -R .),

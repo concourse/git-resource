@@ -163,14 +163,14 @@ git_metadata() {
 configure_submodule_credentials() {
   local username
   local password
-  if [[ "$(jq -r '.source.submodules // ""' < "$1")" == "" ]]; then
+  if [[ "$(jq -r '.source.submodule_credentials // ""' < "$1")" == "" ]]; then
     return
   fi
 
-  for k in $(jq -r '.source.submodules | keys | .[]' < "$1"); do
-    host=$(jq -r --argjson k "$k" '.source.submodules[$k].host // ""' < "$1")
-    username=$(jq -r --argjson k "$k" '.source.submodules[$k].username // ""' < "$1")
-    password=$(jq -r --argjson k "$k" '.source.submodules[$k].password // ""' < "$1")
+  for k in $(jq -r '.source.submodule_credentials | keys | .[]' < "$1"); do
+    host=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].host // ""' < "$1")
+    username=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].username // ""' < "$1")
+    password=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].password // ""' < "$1")
     if [ "$username" != "" -a "$password" != "" -a "$host" != "" ]; then
       echo "machine $host login $username password $password" >> "${HOME}/.netrc"
     fi

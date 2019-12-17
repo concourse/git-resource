@@ -52,10 +52,10 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
-* `submodules`: *Optional.* List of credentials for HTTP(s) auth when pulling/pushing private git submodules which are not stored in the same git server as the container repository.
+* `submodule_credentials`: *Optional.* List of credentials for HTTP(s) auth when pulling/pushing private git submodules which are not stored in the same git server as the container repository.
     Example:
     ```
-    submodules:
+    submodule_credentials:
     - host: github.com
       username: git-user
       password: git-password
@@ -144,7 +144,7 @@ resources:
   source:
     uri: git@github.com:concourse/git-resource.git
     branch: master
-    submodules:
+    submodule_credentials:
     - host: some.other.git.server
       username: user
       password: verysecurepassword
