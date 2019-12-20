@@ -52,6 +52,17 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
+* `submodule_credentials`: *Optional.* List of credentials for HTTP(s) auth when pulling/pushing private git submodules which are not stored in the same git server as the container repository.
+    Example:
+    ```
+    submodule_credentials:
+    - host: github.com
+      username: git-user
+      password: git-password
+    - <another-configuration>
+    ```
+    Note that `host` is specified with no protocol extensions.
+
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
   it will configure git global options, setting each name with each value.
 
@@ -122,6 +133,27 @@ resources:
       proxy_port: 3128
       proxy_user: myuser
       proxy_password: myverysecurepassword
+```
+
+Resource configuration for a private repo with a private submodule from different git server:
+
+``` yaml
+resources:
+- name: source-code
+  type: git
+  source:
+    uri: git@github.com:concourse/git-resource.git
+    branch: master
+    submodule_credentials:
+    - host: some.other.git.server
+      username: user
+      password: verysecurepassword
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
+      <Lots more text>
+      DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+      -----END RSA PRIVATE KEY-----
 ```
 
 Fetching a repo with only 100 commits of history:
