@@ -588,6 +588,20 @@ check_uri_with_key_and_ssh_agent() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_key_and_private_key_user() {
+  local uri=$1
+  local key=$2
+  local user=$3
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      private_key: $(cat $key | jq -s -R .),
+      private_key_user: $user
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_with_filter() {
   local uri=$1
   local ref=$2
