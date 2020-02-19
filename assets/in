@@ -188,6 +188,9 @@ echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }"
 # for example
 git log -1 --format=format:%B > .git/commit_message
 
+# Store commit date in .git/commit_timestamp. Can be used for tagging builds
+git log -1 --format=%ci > .git/commit_timestamp
+
 metadata=$(git_metadata)
 
 if [ "$clean_tags" == "true" ]; then

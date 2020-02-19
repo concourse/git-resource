@@ -237,6 +237,8 @@ the case.
 
  * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
+ * `.git/commit_timestamp`: For tagging builds with a timestamp.
+
 ### `out`: Push to a repository.
 
 Push the checked-out reference to the source's URI and branch. All tags are
