@@ -84,7 +84,7 @@ then
     whitelist_items=$(echo $filter_whitelist | jq -r -c '.[]')
     for wli in "$whitelist_items"
     do
-        list_command+=" | git rev-list --stdin --grep=\"$wli\" --first-parent --no-walk"
+        list_command+=" | git rev-list --stdin --date-order --grep=\"$wli\" --first-parent --no-walk"
     done
 fi
 
@@ -93,13 +93,13 @@ then
     blacklist_items=$(echo $filter_blacklist | jq -r -c '.[]')
     for bli in "$blacklist_items"
     do
-        list_command+=" | git rev-list --stdin --grep=\"$bli\" --invert-grep --first-parent --no-walk"
+        list_command+=" | git rev-list --stdin --date-order --grep=\"$bli\" --invert-grep --first-parent --no-walk"
     done
 fi
 
 
 if [ "$skip_ci_disabled" != "true" ]; then
-  list_command+=" | git rev-list --stdin --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent --no-walk"
+  list_command+=" | git rev-list --stdin --date-order --grep=\"\\[ci\\sskip\\]\" --grep=\"\\[skip\\sci\\]\" --invert-grep --first-parent --no-walk"
 fi
 
 replace_escape_chars() {
@@ -121,12 +121,12 @@ get_commit(){
 #if no range is selected just grab the last commit that fits the filter
 if [ -z "$log_range" ]
 then
-    list_command+="| git rev-list --stdin -1"
+    list_command+="| git rev-list --stdin --date-order -1"
 fi
 
 if [ "$reverse" == "true" ]
 then
-    list_command+="| git rev-list --stdin --first-parent --no-walk --reverse"
+    list_command+="| git rev-list --stdin --date-order --first-parent --no-walk --reverse"
 fi
 
 if [ -n "$tag_filter" ]; then
