@@ -702,6 +702,16 @@ it_can_check_and_set_git_config() {
   mv ~/.gitconfig.orig ~/.gitconfig
 }
 
+it_checks_lastest_commit() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_future $repo)
+  local ref2=$(make_commit $repo)
+
+  check_uri $repo | jq -e "
+    . == [{ref: $(echo $ref2 | jq -R .)}]
+  "
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_first_commit_in_repo
@@ -738,3 +748,4 @@ run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
 run it_can_check_from_a_ref_with_paths_merged_in
 run it_can_check_with_tag_filter_given_branch_first_ref
+run it_checks_lastest_commit

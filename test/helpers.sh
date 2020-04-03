@@ -137,10 +137,21 @@ make_commit_to_file_on_branch() {
   # modify file and commit
   echo x >> $repo/$file
   git -C $repo add $file
-  git -C $repo \
-    -c user.name='test' \
-    -c user.email='test@example.com' \
-    commit -q -m "commit $(wc -l $repo/$file) $msg"
+
+  if [ "$file" = "future-file" ]; then
+    # if future-file, create a commit with date in the future
+    # Usefull to veryfy if git rev-list return the real latest commit
+    GIT_COMMITTER_DATE="$(date -R -d '1 year')" git -C $repo \
+        -c user.name='test' \
+        -c user.email='test@example.com' \
+        commit -q -m "commit $(wc -l $repo/$file) $msg" \
+        --date "$(date -R -d '1 year')"
+  else
+    git -C $repo \
+      -c user.name='test' \
+      -c user.email='test@example.com' \
+      commit -q -m "commit $(wc -l $repo/$file) $msg"
+  fi
 
   # output resulting sha
   git -C $repo rev-parse HEAD
@@ -184,6 +195,10 @@ make_commit_to_branch() {
 
 make_commit() {
   make_commit_to_file $1 some-file "${2:-}"
+}
+
+make_commit_to_future() {
+  make_commit_to_file $1 future-file "${2:-}"
 }
 
 make_commit_to_be_skipped() {
