@@ -81,19 +81,21 @@ fi
 list_command="git rev-list --all --first-parent $log_range $paths_search"
 if [ `echo $filter_whitelist | jq -r '. | length'` -gt 0 ]
 then
+    list_command+=" | git rev-list --stdin --date-order --first-parent --no-walk "
     whitelist_items=$(echo $filter_whitelist | jq -r -c '.[]')
     for wli in "$whitelist_items"
     do
-        list_command+=" | git rev-list --stdin --date-order --grep=\"$wli\" --first-parent --no-walk"
+        list_command+=" --grep=\"$wli\""
     done
 fi
 
 if [ `echo $filter_blacklist | jq -r '. | length'` -gt 0 ]
 then
+    list_command+=" | git rev-list --stdin --date-order --invert-grep --first-parent --no-walk "
     blacklist_items=$(echo $filter_blacklist | jq -r -c '.[]')
     for bli in "$blacklist_items"
     do
-        list_command+=" | git rev-list --stdin --date-order --grep=\"$bli\" --invert-grep --first-parent --no-walk"
+        list_command+=" --grep=\"$bli\""
     done
 fi
 
