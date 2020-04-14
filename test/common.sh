@@ -116,10 +116,10 @@ it_has_url_in_metadata_when_remote_is_bitbucket() {
     test $(git_metadata | jq -r '.[] | select(.name == "url") | .value') = $expectedUrl
 }
 
-it_truncates_large_messages() {
+it_truncates_large_messages() {    
     local repo=$(init_repo)
-    local ref=$(make_commit $repo "")
     local message=$(shuf -zer -n20000  {A..Z})
+    local ref=$(make_commit $repo $message)    
     cd $repo
 
     test $(git_metadata | jq -r '. | map(select(.name == "url")) | length') = 0
@@ -136,6 +136,5 @@ run it_has_url_in_metadata_when_remote_is_github_https
 run it_has_url_in_metadata_when_remote_is_likely_github_enterprise
 
 run it_has_url_in_metadata_when_remote_is_gitlab
-
 run it_has_url_in_metadata_when_remote_is_bitbucket
-
+run it_truncates_large_messages
