@@ -116,6 +116,15 @@ it_has_url_in_metadata_when_remote_is_bitbucket() {
     test $(git_metadata | jq -r '.[] | select(.name == "url") | .value') = $expectedUrl
 }
 
+it_truncates_large_messages() {
+    local repo=$(init_repo)
+    local ref=$(make_commit $repo "")
+    local message=$(shuf -zer -n20000  {A..Z})
+    cd $repo
+
+    test $(git_metadata | jq -r '. | map(select(.name == "url")) | length') = 0
+}
+
 
 run it_has_no_url_in_metadata_when_remote_is_not_configured
 run it_has_no_url_in_metadata_when_remote_is_not_known
