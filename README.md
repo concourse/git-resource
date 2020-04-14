@@ -52,6 +52,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
+* `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
+  all tags in the repository. If `false` no tags will be fetched.
+
 * `submodule_credentials`: *Optional.* List of credentials for HTTP(s) auth when pulling/pushing private git submodules which are not stored in the same git server as the container repository.
     Example:
     ```
@@ -98,7 +101,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
   *   `proxy_password`: *Optional.* If the proxy requires authenticate,
       use this password
-    
+
 * `commit_filter`: *Optional.* Object containing commit message filters
   * `commit_filter.exclude`: *Optional.* Array containing strings that should
     cause a commit to be skipped
@@ -197,6 +200,11 @@ correct key is provided set in `git_crypt_key`.
   not pass a `paths` filter test from skewing the cloned history away from
   `version.ref`, this resource will automatically deepen the clone until
   `version.ref` is found again.
+
+* `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
+  all tags in the repository. If `false` no tags will be fetched.
+
+  Will override `fetch_tags` source configuration if defined.
 
 * `submodules`: *Optional.* If `none`, submodules will not be
   fetched. If specified as a list of paths, only the given paths will be
