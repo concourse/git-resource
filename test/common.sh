@@ -122,7 +122,7 @@ it_truncates_large_messages() {
     local ref=$(make_commit $repo $message)
     cd $repo
 
-    test $(git_metadata | jq -r '.[] | select(.name == "message") | .value' | wc -m) = 10240
+    test $(git_metadata | jq -r '.[] | select(.name == "message") | .value' | wc -m) = 10241
 }
 
 
