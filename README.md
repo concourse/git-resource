@@ -171,6 +171,19 @@ Pushing local commits to the repo:
   params: {repository: some-other-repo}
 ```
 
+Fetching a repo pinned to a specific commit:
+
+``` yaml
+resources:
+- name: source-code
+  type: git
+  source:
+    uri: git@github.com:concourse/git-resource.git
+    branch: master
+  version:
+    ref: commit-sha
+```
+
 ## Behavior
 
 ### `check`: Check for new commits.
