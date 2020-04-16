@@ -75,10 +75,10 @@ if test "$depth" -gt 0 2> /dev/null; then
 fi
 
 tagflag=""
-if [ -n "$tag_filter" ] || [ "$fetch_tags" == "true" ] ; then
-  tagflag="--tags"
-elif [ "$fetch_tags" == "false" ] ; then
+if [ "$fetch_tags" == "false" ] ; then
   tagflag="--no-tags"
+elif [ -n "$tag_filter" ] || [ "$fetch_tags" == "true" ] ; then
+  tagflag="--tags"
 fi
 
 if [ "$disable_git_lfs" == "true" ]; then

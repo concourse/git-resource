@@ -38,10 +38,10 @@ configure_git_global "${git_config_payload}"
 destination=$TMPDIR/git-resource-repo-cache
 
 tagflag=""
-if [ -n "$tag_filter" ] || [ "$fetch_tags" == "true" ] ; then
-  tagflag="--tags"
-elif [ "$fetch_tags" == "false" ] ; then
+if [ "$fetch_tags" == "false" ] ; then
   tagflag="--no-tags"
+elif [ -n "$tag_filter" ] || [ "$fetch_tags" == "true" ] ; then
+  tagflag="--tags"
 fi
 
 # We're just checking for commits; we don't ever need to fetch LFS files here!
