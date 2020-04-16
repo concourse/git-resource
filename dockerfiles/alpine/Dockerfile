@@ -190,14 +190,14 @@ RUN             rm -rf \
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
 
-# FROM resource AS tests
-# ADD test/ /tests
-# RUN /tests/all.sh
+FROM resource AS tests
+ADD test/ /tests
+RUN /tests/all.sh
 
-# FROM resource AS integrationtests
-# RUN apk --no-cache add squid
-# ADD test/ /tests/test
-# ADD integration-tests /tests/integration-tests
-# RUN /tests/integration-tests/integration.sh
+FROM resource AS integrationtests
+RUN apk --no-cache add squid
+ADD test/ /tests/test
+ADD integration-tests /tests/integration-tests
+RUN /tests/integration-tests/integration.sh
 
 FROM resource
