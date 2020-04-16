@@ -118,7 +118,7 @@ it_has_url_in_metadata_when_remote_is_bitbucket() {
 
 it_truncates_large_messages() {
     local repo=$(init_repo)
-    local message=$(shuf -zer -n20000  {A..Z})
+    local message=$(cat /dev/urandom | tr -dc A-Z | head -c 20000 ; echo '')
     local ref=$(make_commit $repo $message)
     cd $repo
 
