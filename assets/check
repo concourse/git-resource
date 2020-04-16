@@ -25,7 +25,6 @@ branch=$(jq -r '.source.branch // ""' < $payload)
 paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
-fetch_tags=$(jq -r '.source.fetch_tags // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
@@ -38,10 +37,10 @@ configure_git_global "${git_config_payload}"
 destination=$TMPDIR/git-resource-repo-cache
 
 tagflag=""
-if [ "$fetch_tags" == "false" ] ; then
-  tagflag="--no-tags"
-elif [ -n "$tag_filter" ] || [ "$fetch_tags" == "true" ] ; then
+if [ -n "$tag_filter" ] ; then
   tagflag="--tags"
+else
+  tagflag="--no-tags"
 fi
 
 # We're just checking for commits; we don't ever need to fetch LFS files here!
