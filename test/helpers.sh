@@ -864,7 +864,6 @@ put_uri_with_only_tag() {
   jq -n "{
     source: {
       uri: $(echo $1 | jq -R .),
-      branch: \"master\"
     },
     params: {
       repository: $(echo $3 | jq -R .),
