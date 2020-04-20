@@ -451,7 +451,7 @@ it_skips_marked_commits_with_no_version() {
 it_skips_excluded_commits() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
-  local ref2=$(make_commit $repo "not skipped")
+  local ref2=$(make_commit_to_future $repo "not skipped")
   local ref3=$(make_commit $repo "should skip this commit")
   local ref4=$(make_commit $repo)
 
@@ -467,13 +467,15 @@ it_skips_excluded_commits() {
 it_skips_non_included_commits() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
-  local ref2=$(make_commit $repo "not skipped commit")
-  local ref3=$(make_commit $repo "should skip this commit")
-  local ref4=$(make_commit $repo)
+  local ref2=$(make_commit_to_future $repo "not skipped commit")
+  local ref3=$(make_commit $repo "not skipped commit 2")
+  local ref4=$(make_commit $repo "should skip this commit")
+  local ref5=$(make_commit $repo)
 
   check_uri_with_filter $repo $ref1 "include" "not skipped" | jq -e "
     . == [
-      {ref: $(echo $ref2 | jq -R .)}
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref3 | jq -R .)}
     ]
   "
 }
@@ -512,7 +514,7 @@ local repo=$(init_repo)
 
 it_does_not_skip_marked_commits_when_disable_skip_configured() {
   local repo=$(init_repo)
-  local ref1=$(make_commit $repo)
+  local ref1=$(make_commit_to_future $repo)
   local ref2=$(make_commit_to_be_skipped $repo)
   local ref3=$(make_commit $repo)
   local ref4=$(make_commit_to_be_skipped2 $repo)
@@ -702,6 +704,16 @@ it_can_check_and_set_git_config() {
   mv ~/.gitconfig.orig ~/.gitconfig
 }
 
+it_checks_lastest_commit() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_future $repo)
+  local ref2=$(make_commit $repo)
+
+  check_uri $repo | jq -e "
+    . == [{ref: $(echo $ref2 | jq -R .)}]
+  "
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_first_commit_in_repo
@@ -738,3 +750,4 @@ run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
 run it_can_check_from_a_ref_with_paths_merged_in
 run it_can_check_with_tag_filter_given_branch_first_ref
+run it_checks_lastest_commit
