@@ -738,6 +738,30 @@ get_uri_at_branch() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+get_uri_at_branch_without_fetch_tags() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .)
+    },
+    params: {
+      fetch_tags: \"false\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
+get_uri_at_branch_with_fetch_tags() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .)
+    },
+    params: {
+      fetch_tags: \"true\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
 get_uri_with_config() {
   jq -n "{
     source: {
