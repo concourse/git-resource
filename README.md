@@ -10,6 +10,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `branch`: The branch to track. This is *optional* if the resource is
    only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
 
+* `ignore_branch`: The branch to ignore, to be used in conjunction with `tag_filter`. This cannot be used with `branch` filter, `branch` filter will take precedence.
 
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
@@ -98,7 +99,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
   *   `proxy_password`: *Optional.* If the proxy requires authenticate,
       use this password
-    
+
 * `commit_filter`: *Optional.* Object containing commit message filters
   * `commit_filter.exclude`: *Optional.* Array containing strings that should
     cause a commit to be skipped

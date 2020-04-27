@@ -22,6 +22,7 @@ configure_credentials $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
+ignore_branch=$(jq -r '.source.ignore_branch // ""' < $payload)
 paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
@@ -135,6 +136,9 @@ if [ -n "$tag_filter" ]; then
   {
     if [ -n "$ref" ] && [ -n "$branch" ]; then
       tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref --merged $branch)
+      get_commit $tags
+    elif [ -n "$ignore_branch" ] && [ -z "$branch" ]; then
+      tags=$(git tag --list "$tag_filter" --sort=creatordate --no-merged $ignore_branch)
       get_commit $tags
     elif [ -n "$ref" ]; then
       tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
