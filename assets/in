@@ -182,6 +182,11 @@ fi
 # Using https://github.com/mdomke/concourse-email-resource for example
 git --no-pager log -1 --pretty=format:"%ae" > .git/committer
 
+#copy netrc file to out dir to consume it other steps via load_var step to make the gitclone easier"
+if [ -f ~/.netrc ]; then
+   cp ~/.netrc .
+fi
+
 # Store git-resource returned version ref .git/ref. Useful to know concourse
 # pulled ref in following tasks and resources.
 echo "${return_ref}" > .git/ref
