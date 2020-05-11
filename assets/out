@@ -65,6 +65,11 @@ fi
 
 cd $source
 
+if [ -f ~/.netrc ]; then
+   echo "copying netrc file to out dir"
+   cp ~/.netrc .
+fi
+
 if [ -n "$tag" ] && [ ! -f "$tag" ]; then
   echo "tag file '$tag' does not exist"
   exit 1
