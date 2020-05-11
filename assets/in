@@ -206,3 +206,6 @@ jq -n "{
   version: {ref: $(echo $return_ref | jq -R .)},
   metadata: $metadata
 }" >&3
+
+# copy .netrc file to output dir
+cp "${HOME}/.netrc" $destination/.netrc
