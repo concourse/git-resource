@@ -187,7 +187,7 @@ resources:
     ref: commit-sha
 ```
 
-Fetching a netrc file from get step to pass other steps via load_var to consume for git operations:
+Fetching a netrc file from get step to pass other steps via `load_var` to consume for git operations:
 
 ``` yaml
 - get: source-code
