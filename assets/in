@@ -50,6 +50,7 @@ gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
+output_netrc=$(jq -r '(.params.output_netrc // false)' < $payload)
 
 # If params not defined, get it from source
 if [ -z "$fetch_tags" ] || [ "$fetch_tags" == "null" ]  ; then
@@ -183,8 +184,10 @@ fi
 git --no-pager log -1 --pretty=format:"%ae" > .git/committer
 
 #copy netrc file to out dir to consume it other steps via load_var step to make the gitclone easier"
-if [ -f ~/.netrc ]; then
-   cp ~/.netrc .
+if [ "$output_netrc" != "false" ]; then
+  if [ -f ~/.netrc ]; then
+    cp ~/.netrc .
+  fi
 fi
 
 # Store git-resource returned version ref .git/ref. Useful to know concourse
