@@ -187,6 +187,13 @@ resources:
     ref: commit-sha
 ```
 
+Fetching a netrc file from get step to pass other steps via load_var to consume for git operations:
+
+``` yaml
+- get: source-code
+  params: {output_netrc: true}
+```
+
 ## Behavior
 
 ### `check`: Check for new commits.
