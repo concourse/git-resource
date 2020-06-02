@@ -52,6 +52,7 @@ clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
 timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' < $payload)
 describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' < $payload)
+disable_single_branch=$(jq -r '(.source.disable_single_branch // false)' < $payload)
 
 # If params not defined, get it from source
 if [ -z "$fetch_tags" ] || [ "$fetch_tags" == "null" ]  ; then
@@ -88,7 +89,13 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
+singleflag="--single-branch"
+if [ "$disable_single_branch" == "true" ]; then
+  echo "Disable --single-branch git option"
+  singleflag=""
+fi
+
+git clone $singleflag $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
 

@@ -283,6 +283,16 @@ check_uri_with_branch() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_branch_disable_single_branch() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .),
+      disable_single_branch: true
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 get_initial_ref() {
   local repo=$1
 
@@ -628,6 +638,19 @@ get_uri_with_branch() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+get_uri_with_branch_disable_single_branch() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .),
+      disable_single_branch: true
+    },
+    params: {
+      short_ref_format: \"test-%s\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
 get_uri_with_git_crypt_key() {
   local git_crypt_key_path=$(git_crypt_fixture_key_path)
   local git_crypt_key_base64_encoded=$(cat $git_crypt_key_path | base64)
@@ -893,6 +916,21 @@ put_uri() {
     },
     params: {
       repository: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_branch() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\",
+      disable_single_branch: true
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      branch: $(echo $4 | jq -R .),
+      rebase: true
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }

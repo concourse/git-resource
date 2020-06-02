@@ -30,6 +30,7 @@ ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
 filter_whitelist=$(jq -r '.source.commit_filter.include // []' < $payload)
 filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' < $payload)
+disable_single_branch=$(jq -r '(.source.disable_single_branch // false)' < $payload)
 reverse=false
 
 configure_git_global "${git_config_payload}"
@@ -56,7 +57,13 @@ else
     branchflag="--branch $branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination $tagflag
+  singleflag="--single-branch"
+  if [ "$disable_single_branch" == "true" ]; then
+    echo "Disable --single-branch git option"
+    singleflag=""
+  fi
+
+  git clone $singleflag $uri $branchflag $destination $tagflag
   cd $destination
 fi
 

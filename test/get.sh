@@ -77,6 +77,18 @@ it_can_get_from_url_only_single_branch() {
   ! git -C $dest rev-parse origin/bogus
 }
 
+it_can_get_from_url_no_single_branch() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  get_uri_with_branch_disable_single_branch $repo "master" $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  git -C $dest rev-parse origin/bogus
+}
+
 it_omits_empty_branch_in_metadata() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
@@ -835,6 +847,7 @@ run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
+run it_can_get_from_url_no_single_branch
 run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata

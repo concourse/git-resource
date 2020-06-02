@@ -31,6 +31,35 @@ it_can_put_to_url() {
   test "$(git -C $repo1 rev-parse some-tag)" = $ref
 }
 
+it_can_put_to_url_with_branch() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  echo bogus > $src/branch-file
+
+  # create a tag to push
+  git -C $repo2 tag some-tag
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  ! put_uri_with_branch $repo1 $src repo branch-file | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch to bogus
+  git -C $repo1 checkout bogus
+
+  test -e $repo1/some-file
+  ! test "$(git -C $repo1 rev-parse HEAD)" = $ref
+  test "$(git -C $repo1 rev-parse some-tag)" = $ref
+}
+
 it_returns_branch_in_metadata() {
   local repo1=$(init_repo)
 
@@ -562,6 +591,7 @@ it_will_fail_put_with_conflicting_tag_and_not_force_push() {
 }
 
 run it_can_put_to_url
+run it_can_put_to_url_with_branch
 run it_returns_branch_in_metadata
 run it_can_put_to_url_with_tag
 run it_can_put_to_url_with_tag_and_prefix
