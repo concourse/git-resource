@@ -51,6 +51,22 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
+* `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
+  all tags in the repository. If `false` no tags will be fetched.
+
+* `submodule_credentials`: *Optional.* List of credentials for HTTP(s) auth when pulling/pushing private git submodules which are not stored in the same git server as the container repository.
+    Example:
+
+    ```
+    submodule_credentials:
+    - host: github.com
+      username: git-user
+      password: git-password
+    - <another-configuration>
+    ```
+
+    Note that `host` is specified with no protocol extensions.
+
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
   it will configure git global options, setting each name with each value.
 
@@ -83,7 +99,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   * `proxy_host`: *Required.* The host name or IP of the proxy server
   * `proxy_port`: *Required.* The proxy server's listening port
   * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
-  * `proxy_password`: *Optional.* If the proxy requires authenticate, use this password
+  * `proxy_password`: *Optional.* If the proxy requires authenticate,
+      use this password
 
 * `commit_filter`: *Optional.* Object containing commit message filters
   * `commit_filter.exclude`: *Optional.* Array containing strings that should
@@ -121,6 +138,27 @@ resources:
       proxy_password: myverysecurepassword
 ```
 
+Resource configuration for a private repo with a private submodule from different git server:
+
+``` yaml
+resources:
+- name: source-code
+  type: git
+  source:
+    uri: git@github.com:concourse/git-resource.git
+    branch: master
+    submodule_credentials:
+    - host: some.other.git.server
+      username: user
+      password: verysecurepassword
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
+      <Lots more text>
+      DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+      -----END RSA PRIVATE KEY-----
+```
+
 Fetching a repo with only 100 commits of history:
 
 ``` yaml
@@ -136,9 +174,22 @@ Pushing local commits to the repo:
   params: {repository: some-other-repo}
 ```
 
+Fetching a repo pinned to a specific commit:
+
+``` yaml
+resources:
+- name: source-code
+  type: git
+  source:
+    uri: git@github.com:concourse/git-resource.git
+    branch: master
+  version:
+    ref: commit-sha
+```
+
 ## Behavior
 
-### `check`: Check for new commits.
+### `check`: Check for new commits
 
 The repository is cloned (or pulled if already present), and any commits
 from the given version on are returned. If no version is given, the ref
@@ -147,7 +198,7 @@ for `HEAD` is returned.
 Any commits that contain the string `[ci skip]` will be ignored. This
 allows you to commit to your repository without triggering a new version.
 
-### `in`: Clone the repository, at the given ref.
+### `in`: Clone the repository, at the given ref
 
 Clones the repository to the destination, and locks it down to a given ref.
 It will return the same given ref as version.
@@ -162,6 +213,11 @@ correct key is provided set in `git_crypt_key`.
   not pass a `paths` filter test from skewing the cloned history away from
   `version.ref`, this resource will automatically deepen the clone until
   `version.ref` is found again.
+
+* `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
+  all tags in the repository. If `false` no tags will be fetched.
+
+  Will override `fetch_tags` source configuration if defined.
 
 * `submodules`: *Optional.* If `none`, submodules will not be
   fetched. If specified as a list of paths, only the given paths will be
@@ -223,7 +279,7 @@ the case.
  By default, it will contain the `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`).
  If the repo was never tagged before, this falls back to a short commit SHA-1 ref.
 
-### `out`: Push to a repository.
+### `out`: Push to a repository
 
 Push the checked-out reference to the source's URI and branch. All tags are
 also pushed to the source. If a fast-forward for the branch is not possible

@@ -124,7 +124,7 @@ add_git_metadata_tags() {
 }
 
 add_git_metadata_message() {
-  local message=$(git log -1 --format=format:%B | jq -s -R .)
+  local message=$(git log -1 --format=format:%B | head -c 10240 | jq -s -R .)
 
   jq ". + [
     {name: \"message\", value: ${message}, type: \"message\"}
@@ -135,18 +135,36 @@ add_git_metadata_url() {
   local commit=$(git rev-parse HEAD)
   local origin=$(git remote get-url --all origin) 2> /dev/null
 
-  if echo $origin | grep github.com > /dev/null; then
-
-    # git@github.com:concourse/git-resource.git     -> concourse/git-resource
-    # https://github.com/concourse/git-resource.git -> concourse/git-resource
-    local ownerRepo=$(echo $origin | sed -e' s/.*github.com[:\/]//; s/\.git$//')
-    local url=$(echo "https://github.com/$ownerRepo/commit/$commit" | jq -R . )
-
-    jq ". + [
-        {name: \"url\", value: ${url}}
-    ]"
-  else
+  # This is not exhaustive for remote URL formats, but does cover the
+  # most common hosting scenarios for where a commit URL exists
+  if [[ ! $origin =~ ^(https?://|ssh://git@|git@)([^/]+)/(.*)$ ]]; then
     jq ". + []"
+  else  
+    local host=${BASH_REMATCH[2]}
+    local repo_path=${BASH_REMATCH[3]%.git}
+
+    # Remap scp-style names so that "github.com:concourse" + "git-resource"
+    # becomes "github.com" + "concourse/git-resource"
+    if [[ ${BASH_REMATCH[1]} == "git@" && $host == *:* ]]; then
+      repo_path="${host#*:}/${repo_path}"
+      host=${host%%:*}
+    fi
+
+    local url=""
+    case $host in
+      *github* | *gitlab* | *gogs* )
+        url="https://${host}/${repo_path}/commit/${commit}" ;;
+      *bitbucket* )
+        url="https://${host}/${repo_path}/commits/${commit}";;
+    esac
+
+    if [ -n "$url" ]; then
+      jq ". + [
+        {name: \"url\", value: \"${url}\"}
+      ]"
+    else
+      jq ". + []"
+    fi
   fi
 }
 
@@ -160,13 +178,32 @@ git_metadata() {
     add_git_metadata_url
 }
 
+configure_submodule_credentials() {
+  local username
+  local password
+  if [[ "$(jq -r '.source.submodule_credentials // ""' < "$1")" == "" ]]; then
+    return
+  fi
+
+  for k in $(jq -r '.source.submodule_credentials | keys | .[]' < "$1"); do
+    host=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].host // ""' < "$1")
+    username=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].username // ""' < "$1")
+    password=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].password // ""' < "$1")
+    if [ "$username" != "" -a "$password" != "" -a "$host" != "" ]; then
+      echo "machine $host login $username password $password" >> "${HOME}/.netrc"
+    fi
+  done
+}
+
 configure_credentials() {
   local username=$(jq -r '.source.username // ""' < $1)
   local password=$(jq -r '.source.password // ""' < $1)
 
   rm -f $HOME/.netrc
+  configure_submodule_credentials "$1"
+
   if [ "$username" != "" -a "$password" != "" ]; then
-    echo "default login $username password $password" > $HOME/.netrc
+    echo "default login $username password $password" >> "${HOME}/.netrc"
   fi
 }
 

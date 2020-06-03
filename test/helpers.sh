@@ -137,10 +137,21 @@ make_commit_to_file_on_branch() {
   # modify file and commit
   echo x >> $repo/$file
   git -C $repo add $file
-  git -C $repo \
-    -c user.name='test' \
-    -c user.email='test@example.com' \
-    commit -q -m "commit $(wc -l $repo/$file) $msg"
+
+  if [ "$file" = "future-file" ]; then
+    # if future-file, create a commit with date in the future
+    # Usefull to veryfy if git rev-list return the real latest commit
+    GIT_COMMITTER_DATE="$(date -R -d '1 year')" git -C $repo \
+        -c user.name='test' \
+        -c user.email='test@example.com' \
+        commit -q -m "commit $(wc -l $repo/$file) $msg" \
+        --date "$(date -R -d '1 year')"
+  else
+    git -C $repo \
+      -c user.name='test' \
+      -c user.email='test@example.com' \
+      commit -q -m "commit $(wc -l $repo/$file) $msg"
+  fi
 
   # output resulting sha
   git -C $repo rev-parse HEAD
@@ -184,6 +195,10 @@ make_commit_to_branch() {
 
 make_commit() {
   make_commit_to_file $1 some-file "${2:-}"
+}
+
+make_commit_to_future() {
+  make_commit_to_file $1 future-file "${2:-}"
 }
 
 make_commit_to_be_skipped() {
@@ -293,6 +308,22 @@ check_uri_with_credentials() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_submodule_credentials() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      username: $(echo $2 | jq -R .),
+      password: $(echo $3 | jq -R .),
+      submodule_credentials: [
+        {
+          host: $(echo $4 | jq -R .),
+          username: $(echo $5 | jq -R .),
+          password: $(echo $6 | jq -R .)
+        }
+      ]
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
 
 check_uri_ignoring() {
   local uri=$1
@@ -707,6 +738,30 @@ get_uri_at_branch() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+get_uri_at_branch_without_fetch_tags() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .)
+    },
+    params: {
+      fetch_tags: \"false\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
+get_uri_at_branch_with_fetch_tags() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .)
+    },
+    params: {
+      fetch_tags: \"true\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
 get_uri_with_config() {
   jq -n "{
     source: {
@@ -848,7 +903,6 @@ put_uri_with_only_tag() {
   jq -n "{
     source: {
       uri: $(echo $1 | jq -R .),
-      branch: \"master\"
     },
     params: {
       repository: $(echo $3 | jq -R .),

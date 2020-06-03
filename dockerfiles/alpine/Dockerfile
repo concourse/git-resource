@@ -16,7 +16,8 @@ RUN apk --no-cache add \
   openssh \
   perl \
   tar \
-  libstdc++
+  libstdc++ \
+  coreutils
 
 WORKDIR /root
 RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
