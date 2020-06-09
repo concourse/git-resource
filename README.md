@@ -212,7 +212,8 @@ correct key is provided set in `git_crypt_key`.
   repository using the `--depth` option. To prevent newer commits that do
   not pass a `paths` filter test from skewing the cloned history away from
   `version.ref`, this resource will automatically deepen the clone until
-  `version.ref` is found again.
+  `version.ref` is found again. It will deepen with exponentially increasing steps
+  until a maximum of 127 + `depth` commits or else resort to unshallow the repository.
 
 * `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
   all tags in the repository. If `false` no tags will be fetched.

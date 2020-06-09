@@ -199,8 +199,8 @@ it_falls_back_to_deep_clone_if_ref_not_found() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
 
-  # 128 is the threshold when it starts doing a deep clone
-  for (( i = 0; i < 128; i++ )); do
+  # 127 is the threshold when it starts doing a deep clone
+  for (( i = 0; i < 127; i++ )); do
     make_commit $repo >/dev/null
   done
 
@@ -214,16 +214,56 @@ it_falls_back_to_deep_clone_if_ref_not_found() {
   test "$(git -C $dest rev-parse HEAD)" = $ref1
 
   echo "testing for msg 1" >&2
-  for d in 1 2 4 8 16 32 64 128; do
-    grep "Could not find ref ${ref1} in a shallow clone of depth ${d}" <$TMPDIR/stderr
+  for d in 1 3 7 15 31 63 127; do
+    grep "Could not find ref ${ref1}~0 in a shallow clone of depth ${d}" <$TMPDIR/stderr
   done
   echo "test for msg 1 done" >&2
 
-  for d in 2 4 8 16 32 64 128; do
-    grep "Deepening the shallow clone to depth ${d}..." <$TMPDIR/stderr
+  for d in 2 4 8 16 32 64; do
+    grep "Deepening the shallow clone by an additional ${d}..." <$TMPDIR/stderr
   done
 
-  grep "Reached depth threshold 128, falling back to deep clone..." <$TMPDIR/stderr
+  grep "Reached depth threshold 127, falling back to deep clone..." <$TMPDIR/stderr
+}
+
+it_considers_depth_if_ref_not_found() {
+  local repo=$(init_repo)
+  local depth=3
+
+  # make commits we're interested
+  local ref0=$(make_commit $repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo)
+  local ref3=$(make_commit $repo)
+  
+  # make a total of 22 commits, so that ref0 is never fetched
+  for (( i = 0; i < 18; i++ )); do
+    make_commit $repo >/dev/null
+  done
+
+  local dest=$TMPDIR/destination
+
+  ( get_uri_at_depth_at_ref "file://$repo" $depth $ref3 $dest 3>&2- 2>&1- 1>&3- 3>&- | tee $TMPDIR/stderr ) 3>&1- 1>&2- 2>&3- 3>&- | jq -e "
+    .version == {ref: $(echo $ref3 | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref3
+  test "$(git -C $dest rev-parse HEAD~1)" = $ref2
+  test "$(git -C $dest rev-parse HEAD~2)" = $ref1
+  test -e "$dest/.git/shallow" # it's still shallow
+
+  echo "testing for 'could not find' messages'" >&2
+  for d in 3 9; do
+    grep "Could not find ref ${ref3}~2 in a shallow clone of depth ${d}" <$TMPDIR/stderr
+  done
+  echo "testing for 'could not find' messages done" >&2
+
+  echo "testing for 'deepening' messages'" >&2
+  for d in 6 12; do
+    grep "Deepening the shallow clone by an additional ${d}..." <$TMPDIR/stderr
+  done
+  echo "testing for 'deepening' messages' done" >&2
 }
 
 it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set() {
@@ -343,8 +383,8 @@ it_falls_back_to_deep_clone_of_submodule_if_ref_not_found() {
   local main_repo_last_commit_id=$(git -C $main_repo rev-parse HEAD)
   local submodule_repo_last_commit_id=$(git -C $submodule_repo rev-parse HEAD)
 
-  # 128 is the threshold when it starts doing a deep clone
-  for (( i = 0; i < 128; i++ )); do
+  # 127 is the threshold when it starts doing a deep clone
+  for (( i = 0; i < 127; i++ )); do
     make_commit $submodule_repo >/dev/null
   done
 
@@ -360,17 +400,21 @@ it_falls_back_to_deep_clone_of_submodule_if_ref_not_found() {
 
   test "$(git -C $main_repo rev-parse HEAD)" = $main_repo_last_commit_id
 
-  echo "testing for msg 1" >&2
-  for d in 1 2 4 8 16 32 64 128; do
-    grep "Could not find ref ${submodule_repo_last_commit_id} in a shallow clone of depth ${d}" <$TMPDIR/stderr
+  echo "testing for 'could not find' messages'" >&2
+  for d in 1 3 7 15 31 63 127; do
+    grep "Could not find ref ${submodule_repo_last_commit_id}~0 in a shallow clone of depth ${d}" <$TMPDIR/stderr
   done
-  echo "test for msg 1 done" >&2
+  echo "testing for 'could not find' messages done" >&2
 
-  for d in 2 4 8 16 32 64 128; do
-    grep "Deepening the shallow clone to depth ${d}..." <$TMPDIR/stderr
+  echo "testing for 'deepening' messages'" >&2
+  for d in 2 4 8 16 32 64; do
+    grep "Deepening the shallow clone by an additional ${d}..." <$TMPDIR/stderr
   done
+  echo "testing for 'deepening' messages' done" >&2
 
-  grep "Reached depth threshold 128, falling back to deep clone..." <$TMPDIR/stderr
+  echo "testing for 'reached threshold' message'" >&2
+  grep "Reached depth threshold 127, falling back to deep clone..." <$TMPDIR/stderr
+  echo "testing for 'reached threshold' message done'" >&2
 }
 
 it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule() {
@@ -767,6 +811,7 @@ run it_returns_list_of_tags_in_metadata
 run it_honors_the_depth_flag
 run it_can_get_from_url_at_depth_at_ref
 run it_falls_back_to_deep_clone_if_ref_not_found
+run it_considers_depth_if_ref_not_found
 run it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set
 run it_can_get_and_set_git_config
 run it_returns_same_ref

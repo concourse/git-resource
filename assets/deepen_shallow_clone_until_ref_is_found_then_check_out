@@ -3,11 +3,14 @@
 
 set -e
 
-readonly max_depth=128
+readonly max_depth=127
 
 declare depth="$1"
 readonly ref="$2"
 readonly tagflag="$3"
+
+declare total_depth="$depth"
+declare depth_from_ref=$((depth - 1))
 
 # A shallow clone may not contain the Git commit $ref:
 # 1. The depth of the shallow clone is measured backwards from the latest
@@ -24,7 +27,7 @@ readonly tagflag="$3"
 git_dir="$(git rev-parse --git-dir)"
 readonly git_dir
 
-while ! git checkout -q "$ref" &>/dev/null; do
+while ! git checkout -q "$ref~$depth_from_ref" &>/dev/null; do
   # once the depth of a shallow clone reaches the max depth of the origin
   # repo, Git silenty turns it into a deep clone
   if [ ! -e "$git_dir"/shallow ]; then
@@ -32,19 +35,20 @@ while ! git checkout -q "$ref" &>/dev/null; do
     break
   fi
 
-  echo "Could not find ref ${ref} in a shallow clone of depth ${depth}"
+  echo "Could not find ref ${ref}~${depth_from_ref} in a shallow clone of depth ${total_depth}"
 
   (( depth *= 2 ))
 
-  if [ "$depth" -gt "$max_depth" ]; then
+  if [ "$total_depth" -ge "$max_depth" ]; then
     echo "Reached depth threshold ${max_depth}, falling back to deep clone..."
     git fetch --unshallow origin $tagflag
 
     break
   fi
 
-  echo "Deepening the shallow clone to depth ${depth}..."
-  git fetch --depth "$depth" origin $tagflag
+  echo "Deepening the shallow clone by an additional ${depth}..."
+  git fetch --deepen "$depth" origin $tagflag
+  (( total_depth += depth ))
 done
 
 git checkout -q "$ref"
