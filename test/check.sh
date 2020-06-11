@@ -714,6 +714,37 @@ it_checks_lastest_commit() {
   "
 }
 
+it_can_check_a_repo_having_multiple_root_commits() {
+  local repo=$(init_repo)
+  local ref1=$(get_initial_ref $repo)
+  local ref2=$(make_commit $repo)
+
+  # Make the second root commit, the commit tree will look like:
+  #
+  #   * ref3
+  #   |\
+  #   | * second root
+  #   * ref2
+  #   * ref1
+  #
+  # Where ref1 is the first commit of the repo, and "second root" is created
+  # to simulator the issue in https://github.com/concourse/git-resource/pull/324,
+  # that is also a root commit.
+  git -C $repo checkout --orphan temp $ref2
+  git -C $repo commit -m "second root" --allow-empty
+  git -C $repo checkout master
+  git -C $repo merge temp --allow-unrelated-histories -m "merge commit"
+  ref3=$(git -C $repo rev-parse HEAD)
+
+  check_uri_from $repo $ref1 | jq -e "
+    . == [
+      {ref: $(echo $ref1 | jq -R .)},
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref3 | jq -R .)}
+    ]
+  "
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_first_commit_in_repo
@@ -751,3 +782,4 @@ run it_can_check_from_a_ref_and_only_show_merge_commit
 run it_can_check_from_a_ref_with_paths_merged_in
 run it_can_check_with_tag_filter_given_branch_first_ref
 run it_checks_lastest_commit
+run it_can_check_a_repo_having_multiple_root_commits
