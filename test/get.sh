@@ -696,6 +696,11 @@ it_can_get_returned_ref() {
   local expected_short_ref="test-$(echo ${ref3} | cut -c1-7)"
   test "$(cat $dest/.git/short_ref)" = $expected_short_ref || \
     ( echo ".git/short_ref does not match. Expected '${expected_short_ref}', got '$(cat $dest/.git/short_ref)'"; return 1 )
+
+  test -e $dest/.git/describe_ref || ( echo ".git/describe_ref does not exist."; return 1 )
+  local expected_describe_ref="0.9-production"
+  test "$(cat $dest/.git/describe_ref)" = $expected_describe_ref || \
+    ( echo ".git/describe_ref does not match. Expected '${expected_describe_ref}', got '$(cat $dest/.git/describe_ref)'"; return 1 )
 }
 
 it_can_get_commit_message() {

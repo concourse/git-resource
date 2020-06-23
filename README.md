@@ -2,7 +2,6 @@
 
 Tracks the commits in a [git](http://git-scm.com/) repository.
 
-
 ## Source Configuration
 
 * `uri`: *Required.* The location of the repository.
@@ -10,10 +9,10 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `branch`: The branch to track. This is *optional* if the resource is
    only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
 
-
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
-    ```
+
+    ```yaml
     private_key: |
       -----BEGIN RSA PRIVATE KEY-----
       MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
@@ -57,6 +56,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `submodule_credentials`: *Optional.* List of credentials for HTTP(s) auth when pulling/pushing private git submodules which are not stored in the same git server as the container repository.
     Example:
+
     ```
     submodule_credentials:
     - host: github.com
@@ -64,6 +64,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       password: git-password
     - <another-configuration>
     ```
+
     Note that `host` is specified with no protocol extensions.
 
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
@@ -88,7 +89,6 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `gpg_keyserver`: *Optional.* GPG keyserver to download the public keys from.
   Defaults to `hkp:///keys.gnupg.net/`.
 
-
 * `git_crypt_key`: *Optional.* Base64 encoded
   [git-crypt](https://github.com/AGWA/git-crypt) key. Setting this will
   unlock / decrypt the repository with `git-crypt`. To get the key simply
@@ -96,10 +96,10 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `https_tunnel`: *Optional.* Information about an HTTPS proxy that will be used to tunnel SSH-based git commands over.
   Has the following sub-properties:
-    * `proxy_host`: *Required.* The host name or IP of the proxy server
-    * `proxy_port`: *Required.* The proxy server's listening port
-    * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
-  *   `proxy_password`: *Optional.* If the proxy requires authenticate,
+  * `proxy_host`: *Required.* The host name or IP of the proxy server
+  * `proxy_port`: *Required.* The proxy server's listening port
+  * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
+  * `proxy_password`: *Optional.* If the proxy requires authenticate,
       use this password
 
 * `commit_filter`: *Optional.* Object containing commit message filters
@@ -189,7 +189,7 @@ resources:
 
 ## Behavior
 
-### `check`: Check for new commits.
+### `check`: Check for new commits
 
 The repository is cloned (or pulled if already present), and any commits
 from the given version on are returned. If no version is given, the ref
@@ -198,7 +198,7 @@ for `HEAD` is returned.
 Any commits that contain the string `[ci skip]` will be ignored. This
 allows you to commit to your repository without triggering a new version.
 
-### `in`: Clone the repository, at the given ref.
+### `in`: Clone the repository, at the given ref
 
 Clones the repository to the destination, and locks it down to a given ref.
 It will return the same given ref as version.
@@ -237,6 +237,8 @@ correct key is provided set in `git_crypt_key`.
 
 * `short_ref_format`: *Optional.* When populating `.git/short_ref` use this `printf` format. Defaults to `%s`.
 
+* `describe_ref_options`: *Optional.* When populating `.git/describe_ref` use this options to call [`git describe`](https://git-scm.com/docs/git-describe). Defaults to `--always --dirty --broken`.
+
 #### GPG signature verification
 
 If `commit_verification_keys` or `commit_verification_key_ids` is specified in
@@ -246,20 +248,24 @@ the case.
 
 #### Additional files populated
 
- * `.git/committer`: For committer notification on failed builds.
-   This special file `.git/committer` which is populated with the email address
-   of the author of the last commit. This can be used together with  an email
-   resource like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource)
-   to notify the committer in an on_failure step.
+* `.git/committer`: For committer notification on failed builds.
+ This special file `.git/committer` which is populated with the email address
+ of the author of the last commit. This can be used together with  an email
+ resource like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource)
+ to notify the committer in an on_failure step.
 
- * `.git/ref`: Version reference detected and checked out. It will usually contain
-   the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
+* `.git/ref`: Version reference detected and checked out. It will usually contain
+ the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
 
- *  `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
+* `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
 
- * `.git/commit_message`: For publishing the Git commit message on successful builds.
+* `.git/commit_message`: For publishing the Git commit message on successful builds.
 
-### `out`: Push to a repository.
+* `.git/describe_ref`: Version reference detected and checked out. Can be templated with `describe_ref_options` parameter.
+ By default, it will contain the `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`).
+ If the repo was never tagged before, this falls back to a short commit SHA-1 ref.
+
+### `out`: Push to a repository
 
 Push the checked-out reference to the source's URI and branch. All tags are
 also pushed to the source. If a fast-forward for the branch is not possible
@@ -329,6 +335,7 @@ docker build -t git-resource -f dockerfiles/ubuntu/Dockerfile .
 If you want to run the integration tests, a bit more work is required. You will require
 an actual git repo to which you can push and pull, configured for SSH access. To do this,
 add two files to `integration-tests/ssh` (note that names **are** important):
+
 * `test_key`: This is the private key used to authenticate against your repo.
 * `test_repo`: This file contains one line of the form `test_repo_url[#test_branch]`.
   If the branch is not specified, it defaults to `master`. For example,

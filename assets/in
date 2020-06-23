@@ -50,6 +50,7 @@ gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
+describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' < $payload)
 
 # If params not defined, get it from source
 if [ -z "$fetch_tags" ] || [ "$fetch_tags" == "null" ]  ; then
@@ -195,6 +196,10 @@ echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }"
 # Using https://github.com/cloudfoundry-community/slack-notification-resource
 # for example
 git log -1 --format=format:%B > .git/commit_message
+
+# Store describe_ref when available. Useful to build Docker images with
+# a custom tag, or package to publish
+echo "$(git describe ${describe_ref_options})" > .git/describe_ref
 
 metadata=$(git_metadata)
 
