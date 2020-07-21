@@ -68,7 +68,7 @@ if [ -n "$ref" ] && git cat-file -e "$ref"; then
     log_range="HEAD"
   else
     reverse=true
-    log_range="${ref}~10..HEAD"
+    log_range="${ref}~1..HEAD"
   fi
 else
   log_range=""
