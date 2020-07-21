@@ -30,6 +30,7 @@ ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
 filter_whitelist=$(jq -r '.source.commit_filter.include // []' < $payload)
 filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' < $payload)
+depth=$(jq -r '.source.depth // 1' < $payload)
 reverse=false
 
 configure_git_global "${git_config_payload}"
@@ -67,7 +68,7 @@ if [ -n "$ref" ] && git cat-file -e "$ref"; then
     log_range="HEAD"
   else
     reverse=true
-    log_range="${ref}~1..HEAD"
+    log_range="${ref}~10..HEAD"
   fi
 else
   log_range=""
@@ -125,7 +126,7 @@ get_commit(){
 #if no range is selected just grab the last commit that fits the filter
 if [ -z "$log_range" ]
 then
-    list_command+="| git rev-list --stdin --date-order --no-walk=unsorted -1"
+    list_command+="| git rev-list --stdin --date-order --no-walk=unsorted -$depth"
 fi
 
 if [ "$reverse" == "true" ]
