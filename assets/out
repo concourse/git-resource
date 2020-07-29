@@ -38,6 +38,7 @@ merge=$(jq -r '.params.merge // false' < $payload)
 returning=$(jq -r '.params.returning // "merged"' < $payload)
 force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
+checkout=$(jq -r '.params.checkout // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
 notes_file=$(jq -r '.params.notes // ""' < $payload)
 
@@ -48,7 +49,7 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
-if [ -z "$branch" ] && [ "$only_tag" != "true" ]; then
+if [ -z "$branch" ] && [ "$only_tag" != "true" ] && [ "$checkout" = "false" ]; then
   echo "invalid payload (missing branch)"
   exit 1
 fi
@@ -152,7 +153,10 @@ push_with_result_check() {
 git remote add push-target $uri
 commit_to_push=$(git rev-parse HEAD)
 
-if [ "$only_tag" = "true" ]; then
+if [ "$checkout" != "false" ]; then
+  git fetch origin "$checkout"
+  git checkout "$checkout"
+elif [ "$only_tag" = "true" ]; then
   tag
   push_tags
 elif [ "$merge" = "true" ]; then
