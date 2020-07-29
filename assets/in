@@ -34,9 +34,9 @@ configure_git_ssl_verification $payload
 configure_credentials $payload
 
 uri=$(jq -r '.source.uri // ""' < $payload)
-branch=$(jq -r '.source.branch // ""' < $payload)
+branch=$(jq -r '.source.branch // "HEAD"' < $payload) # HEAD will reference the default branch on the remote
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
-ref=$(jq -r '.version.ref // "HEAD"' < $payload)
+ref=$(jq -r '.version.ref // ""' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
@@ -65,11 +65,6 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
-branchflag=""
-if [ -n "$branch" ]; then
-  branchflag="--branch $branch"
-fi
-
 depthflag=""
 if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
@@ -87,11 +82,23 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
-
+mkdir -p $destination
 cd $destination
 
-git fetch origin refs/notes/*:refs/notes/* $tagflag
+git init
+git remote add origin $uri
+
+if [ -z "$ref" ]; then
+  # default ref to tip of the given branch
+  ref=$(git ls-remote origin $branch | cut -f1)
+fi
+
+# fetching unadvertised commits is an optional server setting that is disabled by default
+# but does work with common hosting providers such as github, if it fails fall back on
+# fetching the branch and trying to find it through there
+git fetch origin $ref refs/notes/*:refs/notes/* $tagflag $depthflag \
+  || git fetch origin $branch refs/notes/*:refs/notes/* $tagflag $depthflag
+
 
 if [ "$depth" -gt 0 ]; then
   "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref" "$tagflag"
