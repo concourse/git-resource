@@ -84,6 +84,8 @@ it_omits_empty_branch_in_metadata() {
   local ref3=$(make_commit_to_branch $repo branch-a)
   local ref4=$(make_commit $repo)
 
+  git_config $repo uploadpack.allowAnySHA1InWant true
+
   local dest=$TMPDIR/destination
 
   get_uri_at_ref $repo $ref2 $dest | jq -e "

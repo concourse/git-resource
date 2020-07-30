@@ -54,6 +54,13 @@ init_repo() {
   )
 }
 
+git_config() {
+  local start=$(pwd)
+  cd $1
+  git config $2 $3
+  cd $start
+}
+
 init_repo_with_submodule() {
   local submodule=$(init_repo)
   make_commit $submodule >/dev/null
@@ -269,7 +276,7 @@ make_annotated_tag() {
 check_uri() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
 }
@@ -277,7 +284,7 @@ check_uri() {
 check_uri_with_branch() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: $(echo $2 | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
@@ -292,7 +299,7 @@ get_initial_ref() {
 check_uri_with_key() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       private_key: $(cat $2 | jq -s -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
@@ -301,7 +308,7 @@ check_uri_with_key() {
 check_uri_with_credentials() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       username: $(echo $2 | jq -R .),
       password: $(echo $3 | jq -R .)
     }
@@ -311,7 +318,7 @@ check_uri_with_credentials() {
 check_uri_with_submodule_credentials() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       username: $(echo $2 | jq -R .),
       password: $(echo $3 | jq -R .),
       submodule_credentials: [
@@ -332,7 +339,7 @@ check_uri_ignoring() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       ignore_paths: $(echo "$@" | jq -R '. | split(" ")')
     }
   }" | ${resource_dir}/check | tee /dev/stderr
@@ -345,7 +352,7 @@ check_uri_paths() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       paths: $(echo "$@" | jq -R '. | split(" ")')
     }
   }" | ${resource_dir}/check | tee /dev/stderr
@@ -359,7 +366,7 @@ check_uri_paths_ignoring() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       paths: [$(echo $paths | jq -R .)],
       ignore_paths: $(echo "$@" | jq -R '. | split(" ")')
     }
@@ -369,7 +376,7 @@ check_uri_paths_ignoring() {
 check_uri_from() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     version: {
       ref: $(echo $2 | jq -R .)
@@ -385,7 +392,7 @@ check_uri_from_ignoring() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       ignore_paths: $(echo "$@" | jq -R '. | split(" ")')
     },
     version: {
@@ -402,7 +409,7 @@ check_uri_from_paths_disable_ci_skip() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       paths: $(echo "$@" | jq -R '. | split(" ")'),
       disable_ci_skip: true
     },
@@ -420,7 +427,7 @@ check_uri_from_paths() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       paths: $(echo "$@" | jq -R '. | split(" ")')
     },
     version: {
@@ -437,7 +444,7 @@ check_uri_from_paths_with_branch() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       paths: $(echo "$@" | jq -R '. | split(" ")'),
       branch: $(echo $branch | jq -R .),
       disable_ci_skip: true
@@ -454,7 +461,7 @@ check_uri_from_paths_ignoring() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       paths: [$(echo $paths | jq -R .)],
       ignore_paths: $(echo "$@" | jq -R '. | split(" ")')
     },
@@ -469,7 +476,7 @@ check_uri_with_tag_filter() {
   local tag_filter=$2
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       tag_filter: $(echo $tag_filter | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
@@ -481,7 +488,7 @@ check_uri_with_tag_filter_given_branch() {
   local branch=$3
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       tag_filter: $(echo $tag_filter | jq -R .),
       branch: $(echo $branch | jq -R .)
     }
@@ -495,7 +502,7 @@ check_uri_with_tag_filter_from() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       tag_filter: $(echo $tag_filter | jq -R .)
     },
     version: {
@@ -507,7 +514,7 @@ check_uri_with_tag_filter_from() {
 check_uri_with_config() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       git_config: [
         {
           name: \"core.pager\",
@@ -525,7 +532,7 @@ check_uri_with_config() {
 check_uri_disable_ci_skip() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       disable_ci_skip: true
     },
     version: {
@@ -541,7 +548,7 @@ check_uri_with_key_and_ssh_agent() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       private_key: $(cat $2 | jq -s -R .),
       forward_agent: $3
     }
@@ -556,7 +563,7 @@ check_uri_with_filter() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri| jq -R .),
+      uri: $(echo "file://$uri"| jq -R .),
       commit_filter: {
         $(echo $type | jq -R .): [
             $(echo $value | jq -R .)
@@ -577,7 +584,7 @@ check_uri_with_filters() {
 
   jq -n "{
     source: {
-      uri: $(echo $uri| jq -R .),
+      uri: $(echo "file://$uri"| jq -R .),
       commit_filter: {
         include: [
             $(echo $included | jq -R .)
@@ -596,7 +603,7 @@ check_uri_with_filters() {
 get_uri() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
     },
     params: {
       short_ref_format: \"test-%s\"
@@ -607,7 +614,7 @@ get_uri() {
 get_uri_disable_lfs() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
     },
     params: {
       short_ref_format: \"test-%s\",
@@ -619,7 +626,7 @@ get_uri_disable_lfs() {
 get_uri_with_branch() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: $(echo $2 | jq -R .),
     },
     params: {
@@ -634,7 +641,7 @@ get_uri_with_git_crypt_key() {
 
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       git_crypt_key: $(echo $git_crypt_key_base64_encoded | jq -R .)
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
@@ -643,7 +650,7 @@ get_uri_with_git_crypt_key() {
 get_uri_at_depth() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     params: {
       depth: $(echo $2 | jq -R .)
@@ -654,7 +661,7 @@ get_uri_at_depth() {
 get_uri_at_depth_at_ref() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     params: {
       depth: $(echo $2 | jq -R .)
@@ -668,7 +675,7 @@ get_uri_at_depth_at_ref() {
 get_uri_with_submodules_at_depth() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     params: {
       depth: $(echo $2 | jq -R .),
@@ -680,7 +687,7 @@ get_uri_with_submodules_at_depth() {
 get_uri_with_submodules_all() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     params: {
       depth: $(echo $2 | jq -R .),
@@ -692,7 +699,7 @@ get_uri_with_submodules_all() {
 get_uri_with_submodules_and_parameter_remote() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     params: {
       depth: $(echo $2 | jq -R .),
@@ -705,7 +712,7 @@ get_uri_with_submodules_and_parameter_remote() {
 get_uri_with_submodules_and_parameter_recursive() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     params: {
       depth: $(echo $2 | jq -R .),
@@ -718,7 +725,7 @@ get_uri_with_submodules_and_parameter_recursive() {
 get_uri_at_ref() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     version: {
       ref: $(echo $2 | jq -R .)
@@ -732,7 +739,7 @@ get_uri_at_ref() {
 get_uri_at_branch() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: $(echo $2 | jq -R .)
     }
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
@@ -741,7 +748,7 @@ get_uri_at_branch() {
 get_uri_at_branch_without_fetch_tags() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: $(echo $2 | jq -R .)
     },
     params: {
@@ -753,7 +760,7 @@ get_uri_at_branch_without_fetch_tags() {
 get_uri_at_branch_with_fetch_tags() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: $(echo $2 | jq -R .)
     },
     params: {
@@ -765,7 +772,7 @@ get_uri_at_branch_with_fetch_tags() {
 get_uri_with_config() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       git_config: [
         {
           name: \"core.pager\",
@@ -783,7 +790,7 @@ get_uri_with_config() {
 get_uri_with_verification_key() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"]
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
@@ -799,7 +806,7 @@ get_uri_with_verification_key_and_tag_filter() {
   local version=$4
   jq -n "{
     source: {
-      uri: $(echo $uri | jq -R .),
+      uri: $(echo "file://$uri" | jq -R .),
       commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"],
       tag_filter: $(echo $tag_filter | jq -R .)
     },
@@ -815,7 +822,7 @@ get_uri_with_verification_key_and_tag_filter() {
 get_uri_with_invalid_verification_key() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       commit_verification_keys: [\"abcd\"]
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
@@ -824,7 +831,7 @@ get_uri_with_invalid_verification_key() {
 get_uri_with_unknown_verification_key() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       commit_verification_keys: [\"$(cat ${test_dir}/gpg/unknown_public.key)\"]
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
@@ -836,7 +843,7 @@ get_uri_with_unknown_verification_key() {
 get_uri_when_using_keyserver() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       commit_verification_key_ids: [\"A3E20CD6371D49E244B0730D1CDD25AEB0F5F8EF\"]
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
@@ -848,7 +855,7 @@ get_uri_when_using_keyserver() {
 get_uri_when_using_keyserver_and_bogus_key() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       commit_verification_key_ids: [\"abcd\"]
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
@@ -857,7 +864,7 @@ get_uri_when_using_keyserver_and_bogus_key() {
 get_uri_when_using_keyserver_and_unknown_key() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       commit_verification_key_ids: [\"24C51CCE1AB7B2EFEF72B9A48EAB0B8DEE26E5FD\"]
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
@@ -866,7 +873,7 @@ get_uri_when_using_keyserver_and_unknown_key() {
 get_uri_with_clean_tags() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $(echo "file://$1" | jq -R .)
     },
     params: {
       clean_tags: $(echo $3 | jq -R .),
@@ -877,7 +884,7 @@ get_uri_with_clean_tags() {
 put_uri() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -889,7 +896,7 @@ put_uri() {
 put_uri_with_force() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -902,7 +909,7 @@ put_uri_with_force() {
 put_uri_with_only_tag() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
     },
     params: {
       repository: $(echo $3 | jq -R .),
@@ -914,7 +921,7 @@ put_uri_with_only_tag() {
 put_uri_with_only_tag_with_force() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -928,7 +935,7 @@ put_uri_with_only_tag_with_force() {
 put_uri_with_rebase() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -941,7 +948,7 @@ put_uri_with_rebase() {
 put_uri_with_merge() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -954,7 +961,7 @@ put_uri_with_merge() {
 put_uri_with_merge_returning_unmerged() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -968,7 +975,7 @@ put_uri_with_merge_returning_unmerged() {
 put_uri_with_merge_and_rebase() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -982,7 +989,7 @@ put_uri_with_merge_and_rebase() {
 put_uri_with_tag() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -995,7 +1002,7 @@ put_uri_with_tag() {
 put_uri_with_tag_and_prefix() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -1009,7 +1016,7 @@ put_uri_with_tag_and_prefix() {
 put_uri_with_tag_and_annotation() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -1023,7 +1030,7 @@ put_uri_with_tag_and_annotation() {
 put_uri_with_rebase_with_tag() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -1037,7 +1044,7 @@ put_uri_with_rebase_with_tag() {
 put_uri_with_rebase_with_tag_and_prefix() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -1052,7 +1059,7 @@ put_uri_with_rebase_with_tag_and_prefix() {
 put_uri_with_notes() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -1065,7 +1072,7 @@ put_uri_with_notes() {
 put_uri_with_rebase_with_notes() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\"
     },
     params: {
@@ -1079,7 +1086,7 @@ put_uri_with_rebase_with_notes() {
 put_uri_with_config() {
   jq -n "{
     source: {
-      uri: $(echo $1 | jq -R .),
+      uri: $(echo "file://$1" | jq -R .),
       branch: \"master\",
       git_config: [
         {
