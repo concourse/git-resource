@@ -99,7 +99,7 @@ it_omits_empty_branch_in_metadata() {
 it_returns_branch_in_metadata() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
-  local ref2=$(make_commit $repo)
+  local ref2=$(make_commit $repo some-change)
 
   local dest=$TMPDIR/destination
 
