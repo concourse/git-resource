@@ -96,8 +96,8 @@ add_git_metadata_committer() {
 }
 
 add_git_metadata_branch() {
-  local branch=$(git show-ref --heads | \
-    sed -n "s/^$(git rev-parse HEAD) refs\/heads\/\(.*\)/\1/p" |  \
+  local branch=$(git ls-remote origin | \
+    sed -n "s/^$(git rev-parse HEAD)\trefs\/heads\/\(.*\)/\1/p" |  \
     jq -R  ". | select(. != \"\")" | jq -r -s "map(.) | join (\",\")")
 
   if [ -n "${branch}" ]; then
