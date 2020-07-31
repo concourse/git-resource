@@ -600,10 +600,10 @@ check_uri_with_filters() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
-get_uri() {
+get_url() {
   jq -n "{
     source: {
-      uri: $(echo "file://$1" | jq -R .),
+      uri: $(echo "$1" | jq -R .),
     },
     params: {
       short_ref_format: \"test-%s\"
@@ -611,14 +611,25 @@ get_uri() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
-get_uri_disable_lfs() {
+get_url_disable_lfs() {
+  jq -n "{
+    source: {
+      uri: $(echo "$1" | jq -R .),
+    },
+    params: {
+      short_ref_format: \"test-%s\",
+      disable_git_lfs: \"true\"
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
+get_uri() {
   jq -n "{
     source: {
       uri: $(echo "file://$1" | jq -R .),
     },
     params: {
-      short_ref_format: \"test-%s\",
-      disable_git_lfs: \"true\"
+      short_ref_format: \"test-%s\"
     }
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }

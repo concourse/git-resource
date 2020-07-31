@@ -15,7 +15,7 @@ it_can_clone_with_lfs() {
 	cd $(mktemp -d $TMPDIR/repo.XXXXXX)
 	local dest=$TMPDIR/destination
 
-	get_uri $lfsrepo $dest
+	get_url $lfsrepo $dest
 
 	test -e "$dest/test"
 	test "$(cat $dest/test)" = "SUCCESS"
@@ -25,7 +25,7 @@ it_can_clone_with_lfs_disabled() {
 	cd $(mktemp -d $TMPDIR/repo.XXXXXX)
 	local dest=$TMPDIR/destination
 
-	get_uri_disable_lfs $lfsrepo $dest
+	get_url_disable_lfs $lfsrepo $dest
 
 	test -e "$dest/test"
 	test "$(cat $dest/test)" != "SUCCESS"
