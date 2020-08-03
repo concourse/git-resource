@@ -50,6 +50,7 @@ gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
 clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
+timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' < $payload)
 describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' < $payload)
 
 # If params not defined, get it from source
@@ -198,7 +199,7 @@ echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }"
 git log -1 --format=format:%B > .git/commit_message
 
 # Store commit date in .git/commit_timestamp. Can be used for tagging builds
-git log -1 --format=%cd --date=iso8601 > .git/commit_timestamp
+git log -1 --format=%cd --date=${timestamp_format} > .git/commit_timestamp
 
 # Store describe_ref when available. Useful to build Docker images with
 # a custom tag, or package to publish
