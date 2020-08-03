@@ -261,6 +261,8 @@ the case.
 
 * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
+ * `.git/commit_timestamp`: For tagging builds with a timestamp.
+
 * `.git/describe_ref`: Version reference detected and checked out. Can be templated with `describe_ref_options` parameter.
  By default, it will contain the `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`).
  If the repo was never tagged before, this falls back to a short commit SHA-1 ref.

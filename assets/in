@@ -197,6 +197,9 @@ echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }"
 # for example
 git log -1 --format=format:%B > .git/commit_message
 
+# Store commit date in .git/commit_timestamp. Can be used for tagging builds
+git log -1 --format=%cd --date=iso8601 > .git/commit_timestamp
+
 # Store describe_ref when available. Useful to build Docker images with
 # a custom tag, or package to publish
 echo "$(git describe ${describe_ref_options})" > .git/describe_ref
