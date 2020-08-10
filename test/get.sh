@@ -3,7 +3,6 @@
 set -e
 
 source $(dirname $0)/helpers.sh
-source $(dirname $0)/common.sh
 
 it_can_get_from_url() {
   local repo=$(init_repo)
@@ -719,21 +718,30 @@ it_can_get_commit_message() {
     ( echo "Commit message does not match."; return 1 )
 }
 
-it_can_get_commit_timestamp() {
+it_can_get_commit_timestamps() {
+  run test_commit_timestamp_format "iso8601"
+  run test_commit_timestamp_format "iso-strict"
+  run test_commit_timestamp_format "rfc"
+  run test_commit_timestamp_format "short"
+  run test_commit_timestamp_format "raw"
+  run test_commit_timestamp_format "unix"
+}
+
+test_commit_timestamp_format() {
   local repo=$(init_repo)
   local commit_message='Time-is-relevant!'
   local ref=$(make_commit $repo $commit_message)
   local dest=$TMPDIR/destination
 
-  get_uri $repo $dest $1
+  get_uri_with_custom_timestamp $repo $dest $1
 
   pushd $dest
-  local expected_timestamp=$(git_metadata | jq -r '.[] | select(.name == "committer_date") | .value')
+  local expected_timestamp=$(git log -1 --date=$1 --format=format:%cd)
   popd
 
   test -e $dest/.git/commit_timestamp || ( echo ".git/commit_timestamp does not exist."; return 1 )
   test "$(cat $dest/.git/commit_timestamp)" = "$expected_timestamp" || \
-    ( echo "Commit timestamp differs from expectation."; return 1 )
+    ( echo "Commit timestamp for format $1 differs from expectation."; return 1 )
 }
 
 it_decrypts_git_crypted_files() {
@@ -849,7 +857,7 @@ run it_can_get_signed_commit_via_tag
 run it_can_get_committer_email
 run it_can_get_returned_ref
 run it_can_get_commit_message
-run it_can_get_commit_timestamp
+run it_can_get_commit_timestamps
 run it_decrypts_git_crypted_files
 run it_clears_tags_with_clean_tags_param
 run it_retains_tags_by_default
