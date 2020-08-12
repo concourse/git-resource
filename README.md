@@ -237,6 +237,8 @@ correct key is provided set in `git_crypt_key`.
 
 * `short_ref_format`: *Optional.* When populating `.git/short_ref` use this `printf` format. Defaults to `%s`.
 
+* `timestamp_format`: *Optional.* When populating `.git/commit_timestamp` use this options to pass to [`git log --date`](https://git-scm.com/docs/git-log#Documentation/git-log.txt---dateltformatgt). Defaults to `iso8601`.
+
 * `describe_ref_options`: *Optional.* When populating `.git/describe_ref` use this options to call [`git describe`](https://git-scm.com/docs/git-describe). Defaults to `--always --dirty --broken`.
 
 #### GPG signature verification
@@ -260,6 +262,8 @@ the case.
 * `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
 
 * `.git/commit_message`: For publishing the Git commit message on successful builds.
+
+ * `.git/commit_timestamp`: For tagging builds with a timestamp.
 
 * `.git/describe_ref`: Version reference detected and checked out. Can be templated with `describe_ref_options` parameter.
  By default, it will contain the `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`).

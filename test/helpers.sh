@@ -874,6 +874,17 @@ get_uri_with_clean_tags() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_with_custom_timestamp() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+    },
+    params: {
+      timestamp_format: \"$3\"
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
 put_uri() {
   jq -n "{
     source: {
