@@ -1,4 +1,6 @@
-FROM alpine:edge AS resource
+# temporaily use alpine:3 since alpine:edge uses musl-1.2.1 which breaks
+# docker for mac due to (lack of) ipv6 dns resolution
+FROM alpine:3 AS resource
 
 RUN apk --no-cache add \
   bash \
