@@ -109,10 +109,6 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     *MUST* be included in commit messages for the commit to not be
     skipped
 
-* `disable_single_branch`: Allows for commits that don't include in the tracked branch
-  to be discovered by the resource. This is *optional* basically, but it is *required*
-  when `branch` parameter is used in a `put` step.
-
 ### Example
 
 Resource configuration for a private repo with an HTTPS proxy:

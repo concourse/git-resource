@@ -38,26 +38,23 @@ it_can_put_to_url_with_branch() {
   local repo2=$src/repo
   git clone $repo1 $repo2
 
-  local ref=$(make_commit $repo2)
+  local branch="branch-a"
+  local ref=$(make_commit_to_branch $repo2 $branch)
 
-  echo bogus > $src/branch-file
-
-  # create a tag to push
-  git -C $repo2 tag some-tag
+  echo $branch > $src/branch-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
 
   ! put_uri_with_branch $repo1 $src repo branch-file | jq -e "
-    .version == {ref: $(echo $ref | jq -R .)}
+    .version == {branch: $(echo $branch | jq -R .), ref: $(echo $ref | jq -R .)}
   "
 
-  # switch to bogus
-  git -C $repo1 checkout bogus
+  # switch to branch-a
+  git -C $repo1 checkout $branch
 
   test -e $repo1/some-file
-  ! test "$(git -C $repo1 rev-parse HEAD)" = $ref
-  test "$(git -C $repo1 rev-parse some-tag)" = $ref
+  test "$(git -C $repo1 rev-parse HEAD)" = $ref
 }
 
 it_returns_branch_in_metadata() {

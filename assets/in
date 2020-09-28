@@ -37,6 +37,7 @@ uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
+override_branch=$(jq -r '.version.branch // ""' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
@@ -52,7 +53,6 @@ clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
 timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' < $payload)
 describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' < $payload)
-disable_single_branch=$(jq -r '(.source.disable_single_branch // false)' < $payload)
 
 # If params not defined, get it from source
 if [ -z "$fetch_tags" ] || [ "$fetch_tags" == "null" ]  ; then
@@ -72,6 +72,11 @@ if [ -n "$branch" ]; then
   branchflag="--branch $branch"
 fi
 
+if [ -n "$override_branch" ]; then
+  echo "Override $branch with $override_branch"
+  branchflag="--branch $override_branch"
+fi
+
 depthflag=""
 if test "$depth" -gt 0 2> /dev/null; then
   depthflag="--depth $depth"
@@ -89,13 +94,7 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-singleflag="--single-branch"
-if [ "$disable_single_branch" == "true" ]; then
-  echo "Disable --single-branch git option"
-  singleflag=""
-fi
-
-git clone $singleflag $depthflag $uri $branchflag $destination $tagflag
+git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
 

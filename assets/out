@@ -86,9 +86,11 @@ if [ $force = "true" ]; then
   forceflag="--force"
 fi
 
+override_branch=""
 if [ -n "$branch_file" ]; then
-  branch="$(cat $branch_file)"
-  echo "Override branch with $branch"
+  override_branch="$(cat $branch_file)"
+  echo "Override $branch with $override_branch"
+  branch=$override_branch
 fi
 
 tag_name=""
@@ -214,7 +216,14 @@ else
   version_ref="$(git rev-parse HEAD | jq -R .)"
 fi
 
-jq -n "{
-  version: {ref: $version_ref},
-  metadata: $(git_metadata)
-}" >&3
+if [ -n "$override_branch" ]; then
+  jq -n "{
+    version: {branch: $(echo $override_branch | jq -R .), ref: $version_ref},
+    metadata: $(git_metadata)
+  }" >&3
+else
+  jq -n "{
+    version: {ref: $version_ref},
+    metadata: $(git_metadata)
+  }" >&3
+fi
