@@ -312,7 +312,6 @@ pushed regardless of the upstream state.
   `refs/notes/commits` ref. The value should be a path to a file containing the notes.
 
 * `branch`: *Optional.* The branch to push commits.
-  The value should be a path to a file containing the branch.
 
 ## Development
 

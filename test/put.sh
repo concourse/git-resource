@@ -41,12 +41,10 @@ it_can_put_to_url_with_branch() {
   local branch="branch-a"
   local ref=$(make_commit_to_branch $repo2 $branch)
 
-  echo $branch > $src/branch-file
-
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
 
-  ! put_uri_with_branch $repo1 $src repo branch-file | jq -e "
+  put_uri_with_branch $repo1 $src repo $branch | jq -e "
     .version == {branch: $(echo $branch | jq -R .), ref: $(echo $ref | jq -R .)}
   "
 
