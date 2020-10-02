@@ -628,6 +628,21 @@ get_uri_with_branch() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+get_uri_with_override_branch() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      short_ref_format: \"test-%s\"
+    },
+    version: {
+      branch: $(echo $2 | jq -R .),
+      ref: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$4" | tee /dev/stderr
+}
+
 get_uri_with_git_crypt_key() {
   local git_crypt_key_path=$(git_crypt_fixture_key_path)
   local git_crypt_key_base64_encoded=$(cat $git_crypt_key_path | base64)
@@ -893,6 +908,18 @@ put_uri() {
     },
     params: {
       repository: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_branch() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .)
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      branch: $(echo $4 | jq -R .),
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }

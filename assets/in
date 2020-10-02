@@ -37,6 +37,7 @@ uri=$(jq -r '.source.uri // ""' < $payload)
 branch=$(jq -r '.source.branch // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // "HEAD"' < $payload)
+override_branch=$(jq -r '.version.branch // ""' < $payload)
 depth=$(jq -r '(.params.depth // 0)' < $payload)
 fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
 submodules=$(jq -r '(.params.submodules // "all")' < $payload)
@@ -69,6 +70,11 @@ fi
 branchflag=""
 if [ -n "$branch" ]; then
   branchflag="--branch $branch"
+fi
+
+if [ -n "$override_branch" ]; then
+  echo "Override $branch with $override_branch"
+  branchflag="--branch $override_branch"
 fi
 
 depthflag=""

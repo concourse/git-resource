@@ -77,6 +77,20 @@ it_can_get_from_url_only_single_branch() {
   ! git -C $dest rev-parse origin/bogus
 }
 
+it_can_get_from_url_at_override_branch() {
+  local repo=$(init_repo)
+  local branch="branch-a"
+  local ref=$(make_commit_to_branch $repo $branch)
+  local dest=$TMPDIR/destination
+
+  get_uri_with_override_branch $repo $branch $ref $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref
+}
+
 it_omits_empty_branch_in_metadata() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
@@ -835,6 +849,7 @@ run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
+run it_can_get_from_url_at_override_branch
 run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata

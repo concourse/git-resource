@@ -40,6 +40,7 @@ force=$(jq -r '.params.force // false' < $payload)
 only_tag=$(jq -r '.params.only_tag // false' < $payload)
 annotation_file=$(jq -r '.params.annotate // ""' < $payload)
 notes_file=$(jq -r '.params.notes // ""' < $payload)
+override_branch=$(jq -r '.params.branch // ""' < $payload)
 
 configure_git_global "${git_config_payload}"
 
@@ -48,7 +49,7 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
-if [ -z "$branch" ] && [ "$only_tag" != "true" ]; then
+if [ -z "$branch" ] && [ "$only_tag" != "true" ] && [ -z "$override_branch" ]; then
   echo "invalid payload (missing branch)"
   exit 1
 fi
@@ -78,6 +79,11 @@ fi
 forceflag=""
 if [ $force = "true" ]; then
   forceflag="--force"
+fi
+
+if [ -n "$override_branch" ]; then
+  echo "Override $branch with $override_branch"
+  branch=$override_branch
 fi
 
 tag_name=""
@@ -203,7 +209,14 @@ else
   version_ref="$(git rev-parse HEAD | jq -R .)"
 fi
 
-jq -n "{
-  version: {ref: $version_ref},
-  metadata: $(git_metadata)
-}" >&3
+if [ -n "$override_branch" ]; then
+  jq -n "{
+    version: {branch: $(echo $override_branch | jq -R .), ref: $version_ref},
+    metadata: $(git_metadata)
+  }" >&3
+else
+  jq -n "{
+    version: {ref: $version_ref},
+    metadata: $(git_metadata)
+  }" >&3
+fi
