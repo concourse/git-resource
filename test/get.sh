@@ -596,6 +596,18 @@ it_can_get_signed_commit_via_tag() {
   test "$(git -C $dest rev-parse HEAD)" = $commit
 }
 
+it_can_get_signed_commit_via_tag_regex() {
+  local repo=$(gpg_fixture_repo_path)
+  local commit=$(fetch_head_ref $repo)
+  local ref=$(make_annotated_tag $repo 'test2-0.0.1' 'a message')
+  local dest=$TMPDIR/destination
+
+  get_uri_with_verification_key_and_tag_regex $repo $dest 'test2-.*' $ref
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $commit
+}
+
 it_cant_get_commit_signed_with_unknown_key() {
   local repo=$(gpg_fixture_repo_path)
   local ref=$(fetch_head_ref $repo)
@@ -869,6 +881,7 @@ run it_cant_get_signed_commit_when_using_keyserver_and_bogus_key
 run it_cant_get_signed_commit_when_using_keyserver_and_unknown_key_id
 run it_can_get_signed_commit_when_using_keyserver
 run it_can_get_signed_commit_via_tag
+run it_can_get_signed_commit_via_tag_regex
 run it_can_get_committer_email
 run it_can_get_returned_ref
 run it_can_get_commit_message

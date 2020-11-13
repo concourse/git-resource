@@ -51,6 +51,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
   compatible (as in, bash compatible).
 
+* `tag_regex`: *Optional.* If specified, the resource will only detect commits
+  that have a tag matching the expression that have been made against
+  the `branch`. Patterns are [grep](https://www.gnu.org/software/grep/manual/grep.html)
+  compatible (extended matching enabled, matches entire lines only). Ignored if
+  `tag_filter` is also specified.
+
 * `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
   all tags in the repository. If `false` no tags will be fetched.
 
@@ -257,7 +263,8 @@ the case.
  to notify the committer in an on_failure step.
 
 * `.git/ref`: Version reference detected and checked out. It will usually contain
- the commit SHA-1 ref, but also the detected tag name when using `tag_filter`.
+ the commit SHA-1 ref, but also the detected tag name when using `tag_filter` or
+ `tag_regex`.
 
 * `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
 
