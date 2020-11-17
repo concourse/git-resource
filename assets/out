@@ -185,7 +185,7 @@ elif [ "$rebase" = "true" ]; then
     echo "rebasing..."
 
     git fetch push-target "refs/notes/*:refs/notes/*"
-    git pull --rebase=preserve push-target $branch
+    git pull --rebase=merges push-target $branch
 
     result="0"
     push_with_result_check result
