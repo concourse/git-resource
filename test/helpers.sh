@@ -475,6 +475,17 @@ check_uri_with_tag_filter() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_tag_regex() {
+  local uri=$1
+  local tag_regex=$2
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_regex: $(echo $tag_regex | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_with_tag_filter_given_branch() {
   local uri=$1
   local tag_filter=$2
@@ -483,6 +494,19 @@ check_uri_with_tag_filter_given_branch() {
     source: {
       uri: $(echo $uri | jq -R .),
       tag_filter: $(echo $tag_filter | jq -R .),
+      branch: $(echo $branch | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_tag_regex_given_branch() {
+  local uri=$1
+  local tag_regex=$2
+  local branch=$3
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_regex: $(echo $tag_regex | jq -R .),
       branch: $(echo $branch | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
@@ -497,6 +521,22 @@ check_uri_with_tag_filter_from() {
     source: {
       uri: $(echo $uri | jq -R .),
       tag_filter: $(echo $tag_filter | jq -R .)
+    },
+    version: {
+      ref: $(echo $ref | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_tag_regex_from() {
+  local uri=$1
+  local tag_regex=$2
+  local ref=$3
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_regex: $(echo $tag_regex | jq -R .)
     },
     version: {
       ref: $(echo $ref | jq -R .)
@@ -817,6 +857,26 @@ get_uri_with_verification_key_and_tag_filter() {
       uri: $(echo $uri | jq -R .),
       commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"],
       tag_filter: $(echo $tag_filter | jq -R .)
+    },
+    version: {
+      ref: $(echo $version | jq -R .)
+    }
+  }" | ${resource_dir}/in "$dest" | tee /dev/stderr
+  exit_code=$?
+  delete_public_key
+  return ${exit_code}
+}
+
+get_uri_with_verification_key_and_tag_regex() {
+  local uri=$1
+  local dest=$2
+  local tag_regex=$3
+  local version=$4
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      commit_verification_keys: [\"$(cat ${test_dir}/gpg/public.key)\"],
+      tag_regex: $(echo $tag_regex | jq -R .)
     },
     version: {
       ref: $(echo $version | jq -R .)

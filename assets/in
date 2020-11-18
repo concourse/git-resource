@@ -46,6 +46,7 @@ submodule_remote=$(jq -r '(.params.submodule_remote // false)' < $payload)
 commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
 commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
+tag_regex=$(jq -r '.source.tag_regex // ""' < $payload)
 fetch_tags=$(jq -r '.params.fetch_tags' < $payload)
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://ipv4.pool.sks-keyservers.net/"' < $payload)
 disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
@@ -85,7 +86,7 @@ fi
 tagflag=""
 if [ "$fetch_tags" == "false" ] ; then
   tagflag="--no-tags"
-elif [ -n "$tag_filter" ] || [ "$fetch_tags" == "true" ] ; then
+elif [ -n "$tag_filter" ] || [ -n "$tag_regex" ] || [ "$fetch_tags" == "true" ] ; then
   tagflag="--tags"
 fi
 

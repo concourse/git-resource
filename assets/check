@@ -25,6 +25,7 @@ branch=$(jq -r '.source.branch // ""' < $payload)
 paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
+tag_regex=$(jq -r '.source.tag_regex // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
@@ -37,7 +38,7 @@ configure_git_global "${git_config_payload}"
 destination=$TMPDIR/git-resource-repo-cache
 
 tagflag=""
-if [ -n "$tag_filter" ] ; then
+if [ -n "$tag_filter" ] || [ -n "$tag_regex" ] ; then
   tagflag="--tags"
 else
   tagflag="--no-tags"
@@ -147,6 +148,23 @@ if [ -n "$tag_filter" ]; then
         branch_flag="--merged $branch"
       fi
       tag=$(git tag --list "$tag_filter" --sort=creatordate $branch_flag | tail -1)
+      get_commit $tag
+    fi
+  } | jq -s "map(.)" >&3
+elif [ -n "$tag_regex" ]; then
+  {
+    if [ -n "$ref" ] && [ -n "$branch" ]; then
+      tags=$(git tag --list --sort=creatordate --contains $ref --merged $branch | grep -Ex "$tag_regex")
+      get_commit $tags
+    elif [ -n "$ref" ]; then
+      tags=$(git tag --list --sort=creatordate | grep -Ex "$tag_regex" | lines_including_and_after $ref)
+      get_commit $tags
+    else
+      branch_flag=
+      if [ -n "$branch" ]; then
+        branch_flag="--merged $branch"
+      fi
+      tag=$(git tag --list --sort=creatordate $branch_flag | grep -Ex "$tag_regex" | tail -1)
       get_commit $tag
     fi
   } | jq -s "map(.)" >&3
