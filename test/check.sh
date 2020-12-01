@@ -62,6 +62,26 @@ it_skips_forward_agent_configuration() {
   ! grep "ForwardAgent" $HOME/.ssh/config
 }
 
+it_configures_private_key_user() {
+  local repo=$(init_repo)
+  local key=$TMPDIR/key-no-passphrase
+
+  ssh-keygen -f $key
+  check_uri_with_key_and_user $repo $key someuser
+
+  grep "User someuser" $HOME/.ssh/config
+}
+
+it_skips_private_key_user_configuration() {
+  local repo=$(init_repo)
+  local key=$TMPDIR/key-no-passphrase
+
+  ssh-keygen -f $key
+  check_uri_with_key $repo $key
+
+  ! grep "^User " $HOME/.ssh/config
+}
+
 it_can_check_with_credentials() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
