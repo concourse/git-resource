@@ -31,6 +31,7 @@ ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
 filter_whitelist=$(jq -r '.source.commit_filter.include // []' < $payload)
 filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' < $payload)
+version_depth=$(jq -r '.source.version_depth // 1' < $payload)
 reverse=false
 
 configure_git_global "${git_config_payload}"
@@ -126,7 +127,7 @@ get_commit(){
 #if no range is selected just grab the last commit that fits the filter
 if [ -z "$log_range" ]
 then
-    list_command+="| git rev-list --stdin --date-order --no-walk=unsorted -1"
+    list_command+="| git rev-list --stdin --date-order --no-walk=unsorted -$version_depth --reverse"
 fi
 
 if [ "$reverse" == "true" ]
@@ -147,7 +148,7 @@ if [ -n "$tag_filter" ]; then
       if [ -n "$branch" ]; then
         branch_flag="--merged $branch"
       fi
-      tag=$(git tag --list "$tag_filter" --sort=creatordate $branch_flag | tail -1)
+      tag=$(git tag --list "$tag_filter" --sort=creatordate $branch_flag | tail -$version_depth)
       get_commit $tag
     fi
   } | jq -s "map(.)" >&3
@@ -164,7 +165,7 @@ elif [ -n "$tag_regex" ]; then
       if [ -n "$branch" ]; then
         branch_flag="--merged $branch"
       fi
-      tag=$(git tag --list --sort=creatordate $branch_flag | grep -Ex "$tag_regex" | tail -1)
+      tag=$(git tag --list --sort=creatordate $branch_flag | grep -Ex "$tag_regex" | tail -$version_depth)
       get_commit $tag
     fi
   } | jq -s "map(.)" >&3

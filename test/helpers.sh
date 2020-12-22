@@ -377,6 +377,25 @@ check_uri_from() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_version_depth() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      version_depth: $(echo $2 | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_tag_filter_and_version_depth() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      version_depth: $(echo $2 | jq -R .),
+      tag_filter: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_from_ignoring() {
   local uri=$1
   local ref=$2
