@@ -1,4 +1,6 @@
-FROM ubuntu:bionic AS resource
+ARG base_image
+
+FROM ${base_image} AS resource
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
