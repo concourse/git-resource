@@ -985,3 +985,4 @@ run it_checks_lastest_commit
 run it_can_check_a_repo_having_multiple_root_commits
 run it_checks_with_version_depth
 run it_checks_uri_with_tag_filter_and_version_depth
+
