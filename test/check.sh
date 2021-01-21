@@ -902,6 +902,42 @@ it_can_check_a_repo_having_multiple_root_commits() {
   "
 }
 
+it_checks_with_version_depth() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_future $repo)
+  local ref2=$(make_commit $repo)
+  local ref3=$(make_commit $repo)
+  check_uri_with_version_depth $repo 2 | jq -e "
+    . == [
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref3 | jq -R .)}
+    ]
+  "
+}
+
+it_checks_uri_with_tag_filter_and_version_depth() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  make_annotated_tag $repo "test.tag.1" "tag ref1"
+  local ref2=$(make_commit $repo)
+  make_annotated_tag $repo "test.tag.2" "tag ref2"
+  local ref3=$(make_commit $repo)
+  make_annotated_tag $repo "test.badtag.3" "tag ref3"
+  local ref4=$(make_commit $repo)
+  make_annotated_tag $repo "test.tag.4" "tag ref4"
+  check_uri_with_tag_filter_and_version_depth $repo 2 "test.tag.*" | jq -e "
+    . ==   [
+      {
+        ref: \"test.tag.2\",
+        commit: $(echo $ref2 | jq -R .)
+      },
+      {
+        ref: \"test.tag.4\",
+        commit: $(echo $ref4 | jq -R .)
+      }
+    ]"
+}
+
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_first_commit_in_repo
@@ -947,3 +983,6 @@ run it_can_check_with_tag_filter_given_branch_first_ref
 run it_can_check_with_tag_regex_given_branch_first_ref
 run it_checks_lastest_commit
 run it_can_check_a_repo_having_multiple_root_commits
+run it_checks_with_version_depth
+run it_checks_uri_with_tag_filter_and_version_depth
+

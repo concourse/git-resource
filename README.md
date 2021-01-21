@@ -117,6 +117,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     *MUST* be included in commit messages for the commit to not be
     skipped
 
+* `version_depth`: *Optional.* The number of versions to return when performing a check
+
 ### Example
 
 Resource configuration for a private repo with an HTTPS proxy:
