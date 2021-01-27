@@ -26,6 +26,7 @@ paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are importa
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
 tag_regex=$(jq -r '.source.tag_regex // ""' < $payload)
+tag_regex_invert=$(jq -r '.source.tag_regex_invert // ""' < $payload)
 git_config_payload=$(jq -r '.source.git_config // []' < $payload)
 ref=$(jq -r '.version.ref // ""' < $payload)
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
@@ -154,18 +155,22 @@ if [ -n "$tag_filter" ]; then
   } | jq -s "map(.)" >&3
 elif [ -n "$tag_regex" ]; then
   {
+    grep_options="-Ex"
+    if [ "$tag_regex_invert" = "true"  ]; then
+      grep_options="-Exv"
+    fi
     if [ -n "$ref" ] && [ -n "$branch" ]; then
-      tags=$(git tag --list --sort=creatordate --contains $ref --merged $branch | grep -Ex "$tag_regex")
+      tags=$(git tag --list --sort=creatordate --contains $ref --merged $branch | grep $grep_options "$tag_regex")
       get_commit $tags
     elif [ -n "$ref" ]; then
-      tags=$(git tag --list --sort=creatordate | grep -Ex "$tag_regex" | lines_including_and_after $ref)
+      tags=$(git tag --list --sort=creatordate | grep $grep_options "$tag_regex" | lines_including_and_after $ref)
       get_commit $tags
     else
       branch_flag=
       if [ -n "$branch" ]; then
         branch_flag="--merged $branch"
       fi
-      tag=$(git tag --list --sort=creatordate $branch_flag | grep -Ex "$tag_regex" | tail -$version_depth)
+      tag=$(git tag --list --sort=creatordate $branch_flag | grep $grep_options "$tag_regex" | tail -$version_depth)
       get_commit $tag
     fi
   } | jq -s "map(.)" >&3

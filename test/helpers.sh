@@ -505,6 +505,19 @@ check_uri_with_tag_regex() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_tag_regex_invert() {
+  local uri=$1
+  local tag_regex=$2
+  local tag_regex_invert=$3
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_regex: $(echo $tag_regex | jq -R .),
+      tag_regex_invert: $(echo $tag_regex_invert | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_with_tag_filter_given_branch() {
   local uri=$1
   local tag_filter=$2
@@ -526,6 +539,21 @@ check_uri_with_tag_regex_given_branch() {
     source: {
       uri: $(echo $uri | jq -R .),
       tag_regex: $(echo $tag_regex | jq -R .),
+      branch: $(echo $branch | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_tag_regex_invert_given_branch() {
+  local uri=$1
+  local tag_regex=$2
+  local tag_regex_invert=$3
+  local branch=$4
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_regex: $(echo $tag_regex | jq -R .),
+      tag_regex_invert: $(echo $tag_regex_invert | jq -R .),
       branch: $(echo $branch | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
@@ -556,6 +584,24 @@ check_uri_with_tag_regex_from() {
     source: {
       uri: $(echo $uri | jq -R .),
       tag_regex: $(echo $tag_regex | jq -R .)
+    },
+    version: {
+      ref: $(echo $ref | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_with_tag_regex_invert_from() {
+  local uri=$1
+  local tag_regex=$2
+  local tag_regex_invert=$3
+  local ref=$4
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_regex: $(echo $tag_regex | jq -R .),
+      tag_regex_invert: $(echo $tag_regex_invert | jq -R .)
     },
     version: {
       ref: $(echo $ref | jq -R .)

@@ -608,6 +608,42 @@ it_can_check_with_tag_regex() {
   "
 }
 
+it_can_check_with_tag_regex_invert_true() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "tag 1")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "tag 2")
+  local ref5=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref6=$(make_commit $repo)
+  local ref7=$(make_annotated_tag $repo "2.0-staging" "tag 5")
+  local ref8=$(make_commit $repo)
+  local ref9=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref10=$(make_commit $repo)
+
+  check_uri_with_tag_regex_invert $repo ".*-staging" true | jq -e "
+    . == [{ref: \"2.0-production\", commit: \"$ref8\"}]
+  "
+}
+
+it_can_check_with_tag_regex_invert_false() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "tag 1")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "tag 2")
+  local ref5=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref6=$(make_commit $repo)
+  local ref7=$(make_annotated_tag $repo "2.0-staging" "tag 5")
+  local ref8=$(make_commit $repo)
+  local ref9=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref10=$(make_commit $repo)
+
+  check_uri_with_tag_regex_invert $repo ".*-staging" false | jq -e "
+    . == [{ref: \"2.0-staging\", commit: \"$ref6\"}]
+  "
+}
+
 it_can_check_with_tag_filter_with_cursor() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -652,6 +688,50 @@ it_can_check_with_tag_regex_with_cursor() {
   "
 }
 
+it_can_check_with_tag_regex_invert_true_with_cursor() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
+  local ref5=$(make_commit $repo)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit $repo)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit $repo)
+  local ref10=$(make_annotated_tag $repo "3.0-staging" "tag 5")
+  local ref11=$(make_commit $repo)
+  local ref12=$(make_annotated_tag $repo "3.0-production" "tag 6")
+  local ref13=$(make_commit $repo)
+
+  x=$(check_uri_with_tag_regex_invert_from $repo ".*-staging" true "2.0-staging")
+  check_uri_with_tag_regex_invert_from $repo ".*-staging" true "2.0-staging" | jq -e "
+    . == []
+  "
+}
+
+it_can_check_with_tag_regex_invert_false_with_cursor() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
+  local ref5=$(make_commit $repo)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit $repo)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit $repo)
+  local ref10=$(make_annotated_tag $repo "3.0-staging" "tag 5")
+  local ref11=$(make_commit $repo)
+  local ref12=$(make_annotated_tag $repo "3.0-production" "tag 6")
+  local ref13=$(make_commit $repo)
+
+  x=$(check_uri_with_tag_regex_invert_from $repo ".*-staging" false "2.0-staging")
+  check_uri_with_tag_regex_invert_from $repo ".*-staging" false "2.0-staging" | jq -e "
+    . == [{ref: \"2.0-staging\", commit: \"$ref5\"}, {ref: \"3.0-staging\", commit: \"$ref9\"}]
+  "
+}
+
 it_can_check_with_tag_filter_over_all_branches() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
@@ -690,6 +770,48 @@ it_can_check_with_tag_regex_over_all_branches() {
   local ref13=$(make_commit_to_branch $repo branch-a)
 
   check_uri_with_tag_regex $repo ".*-staging" | jq -e "
+    . == [{ref: \"3.0-staging\", commit: \"$ref9\"}]
+  "
+}
+
+it_can_check_with_tag_regex_invert_true_over_all_branches() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
+  local ref5=$(make_commit_to_branch $repo branch-a)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit_to_branch $repo branch-a)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit_to_branch $repo branch-a)
+  local ref10=$(make_annotated_tag $repo "3.0-staging" "tag 5")
+  local ref11=$(make_commit_to_branch $repo branch-a)
+  local ref12=$(make_annotated_tag $repo "3.0-production" "tag 6")
+  local ref13=$(make_commit_to_branch $repo branch-a)
+
+  check_uri_with_tag_regex_invert $repo ".*-staging" true | jq -e "
+    . == [{ref: \"3.0-production\", commit: \"$ref11\"}]
+  "
+}
+
+it_can_check_with_tag_regex_invert_false_over_all_branches() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
+  local ref5=$(make_commit_to_branch $repo branch-a)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit_to_branch $repo branch-a)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit_to_branch $repo branch-a)
+  local ref10=$(make_annotated_tag $repo "3.0-staging" "tag 5")
+  local ref11=$(make_commit_to_branch $repo branch-a)
+  local ref12=$(make_annotated_tag $repo "3.0-production" "tag 6")
+  local ref13=$(make_commit_to_branch $repo branch-a)
+
+  check_uri_with_tag_regex_invert $repo ".*-staging" false | jq -e "
     . == [{ref: \"3.0-staging\", commit: \"$ref9\"}]
   "
 }
@@ -738,6 +860,50 @@ it_can_check_with_tag_regex_over_all_branches_with_cursor() {
   "
 }
 
+it_can_check_with_tag_regex_invert_true_over_all_branches_with_cursor() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
+  local ref5=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref6=$(make_commit_to_branch $repo branch-a)
+  local ref7=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref8=$(make_commit_to_branch $repo branch-a)
+  local ref9=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref10=$(make_commit_to_branch $repo branch-a)
+  local ref11=$(make_annotated_tag $repo "3.0-staging" "tag 5")
+  local ref12=$(make_commit_to_branch $repo branch-a)
+  local ref13=$(make_annotated_tag $repo "3.0-production" "tag 6")
+  local ref14=$(make_commit_to_branch $repo branch-a)
+
+  check_uri_with_tag_regex_invert_from $repo ".*-staging" true "2.0-staging" | jq -e "
+    . == []
+  "
+}
+
+it_can_check_with_tag_regex_invert_false_over_all_branches_with_cursor() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "a tag")
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "another tag")
+  local ref5=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref6=$(make_commit_to_branch $repo branch-a)
+  local ref7=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref8=$(make_commit_to_branch $repo branch-a)
+  local ref9=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref10=$(make_commit_to_branch $repo branch-a)
+  local ref11=$(make_annotated_tag $repo "3.0-staging" "tag 5")
+  local ref12=$(make_commit_to_branch $repo branch-a)
+  local ref13=$(make_annotated_tag $repo "3.0-production" "tag 6")
+  local ref14=$(make_commit_to_branch $repo branch-a)
+
+  check_uri_with_tag_regex_invert_from $repo ".*-staging" false "2.0-staging" | jq -e "
+    . == [{ref: \"2.0-staging\", commit: \"$ref6\"}, {ref: \"3.0-staging\", commit: \"$ref10\"}]
+  "
+}
+
 it_can_check_with_tag_filter_with_bogus_ref() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -768,8 +934,41 @@ it_can_check_with_tag_regex_with_bogus_ref() {
   local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
   local ref9=$(make_commit $repo)
 
-
   check_uri_with_tag_regex_from $repo ".*-staging" "bogus-ref" | jq -e "
+    . == [{ref: \"2.0-staging\", commit: \"$ref5\"}]
+  "
+}
+
+it_can_check_with_tag_regex_invert_true_with_bogus_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "tag 1")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "tag 2")
+  local ref5=$(make_commit $repo)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit $repo)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit $repo)
+
+  check_uri_with_tag_regex_invert_from $repo ".*-staging" true "bogus-ref" | jq -e "
+    . == [{ref: \"2.0-production\", commit: \"$ref7\"}]
+  "
+}
+
+it_can_check_with_tag_regex_invert_false_with_bogus_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "tag 1")
+  local ref3=$(make_commit $repo)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "tag 2")
+  local ref5=$(make_commit $repo)
+  local ref6=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref7=$(make_commit $repo)
+  local ref8=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref9=$(make_commit $repo)
+
+  check_uri_with_tag_regex_invert_from $repo ".*-staging" false "bogus-ref" | jq -e "
     . == [{ref: \"2.0-staging\", commit: \"$ref5\"}]
   "
 }
@@ -810,6 +1009,42 @@ it_can_check_with_tag_regex_with_replaced_tags() {
   "
 }
 
+it_can_check_with_tag_regex_invert_true_with_replaced_tags() {
+
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "staging" "tag branch-a")
+  # see that the tag is initially ref1
+  check_uri_with_tag_regex $repo "staging" | jq -e "
+    . == [{ref: \"staging\", commit: \"$ref1\"}]
+  "
+
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_annotated_tag $repo "staging" "tag branch-a")
+
+  check_uri_with_tag_regex_invert $repo "staging" true | jq -e "
+    . == []
+  "
+}
+
+it_can_check_with_tag_regex_invert_false_with_replaced_tags() {
+
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "staging" "tag branch-a")
+  # see that the tag is initially ref1
+  check_uri_with_tag_regex $repo "staging" | jq -e "
+    . == [{ref: \"staging\", commit: \"$ref1\"}]
+  "
+
+  local ref3=$(make_commit_to_branch $repo branch-a)
+  local ref4=$(make_annotated_tag $repo "staging" "tag branch-a")
+
+  check_uri_with_tag_regex_invert $repo "staging" false | jq -e "
+    . == [{ref: \"staging\", commit: \"$ref3\"}]
+  "
+}
+
 it_can_check_with_tag_filter_given_branch_first_ref() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
@@ -842,6 +1077,42 @@ it_can_check_with_tag_regex_given_branch_first_ref() {
   local ref4=$(make_annotated_tag $repo "test.tag.2" "tag branch-a")
 
   check_uri_with_tag_regex_given_branch $repo "test.tag\..*" "master" | jq -e "
+    . == [{ref: \"test.tag.2\", commit: \"$ref3\"}]
+  "
+}
+
+it_can_check_with_tag_regex_invert_true_given_branch_first_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "test.tag.1" "tag branch-a")
+  # see that the tag on non-master branch doesn't get picked up
+  check_uri_with_tag_regex_given_branch $repo "test.tag\..*" "master" | jq -e "
+    . == []
+  "
+
+  # make a new tag on master, ensure it gets picked up
+  local ref3=$(make_commit_to_branch $repo master)
+  local ref4=$(make_annotated_tag $repo "test.tag.2" "tag branch-a")
+
+  check_uri_with_tag_regex_invert_given_branch $repo "test.tag\..*" true "master" | jq -e "
+    . == []
+  "
+}
+
+it_can_check_with_tag_regex_invert_false_given_branch_first_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_annotated_tag $repo "test.tag.1" "tag branch-a")
+  # see that the tag on non-master branch doesn't get picked up
+  check_uri_with_tag_regex_given_branch $repo "test.tag\..*" "master" | jq -e "
+    . == []
+  "
+
+  # make a new tag on master, ensure it gets picked up
+  local ref3=$(make_commit_to_branch $repo master)
+  local ref4=$(make_annotated_tag $repo "test.tag.2" "tag branch-a")
+
+  check_uri_with_tag_regex_invert_given_branch $repo "test.tag\..*" false "master" | jq -e "
     . == [{ref: \"test.tag.2\", commit: \"$ref3\"}]
   "
 }
@@ -965,22 +1236,36 @@ run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
 run it_can_check_with_tag_regex
+run it_can_check_with_tag_regex_invert_true
+run it_can_check_with_tag_regex_invert_false
 run it_can_check_with_tag_filter_with_cursor
 run it_can_check_with_tag_regex_with_cursor
+run it_can_check_with_tag_regex_invert_true_with_cursor
+run it_can_check_with_tag_regex_invert_false_with_cursor
 run it_can_check_with_tag_filter_over_all_branches
 run it_can_check_with_tag_regex_over_all_branches
+run it_can_check_with_tag_regex_invert_true_over_all_branches
+run it_can_check_with_tag_regex_invert_false_over_all_branches
 run it_can_check_with_tag_filter_over_all_branches_with_cursor
 run it_can_check_with_tag_regex_over_all_branches_with_cursor
+run it_can_check_with_tag_regex_invert_true_over_all_branches_with_cursor
+run it_can_check_with_tag_regex_invert_false_over_all_branches_with_cursor
 run it_can_check_with_tag_filter_with_bogus_ref
 run it_can_check_with_tag_regex_with_bogus_ref
+run it_can_check_with_tag_regex_invert_true_with_bogus_ref
+run it_can_check_with_tag_regex_invert_false_with_bogus_ref
 run it_can_check_with_tag_filter_with_replaced_tags
 run it_can_check_with_tag_regex_with_replaced_tags
+run it_can_check_with_tag_regex_invert_true_with_replaced_tags
+run it_can_check_with_tag_regex_invert_false_with_replaced_tags
 run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
 run it_can_check_from_a_ref_with_paths_merged_in
 run it_can_check_with_tag_filter_given_branch_first_ref
 run it_can_check_with_tag_regex_given_branch_first_ref
+run it_can_check_with_tag_regex_invert_true_given_branch_first_ref
+run it_can_check_with_tag_regex_invert_false_given_branch_first_ref
 run it_checks_lastest_commit
 run it_can_check_a_repo_having_multiple_root_commits
 run it_checks_with_version_depth

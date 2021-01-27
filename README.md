@@ -59,6 +59,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   compatible (extended matching enabled, matches entire lines only). Ignored if
   `tag_filter` is also specified.
 
+* `tag_regex_invert`: *Optional.* If `true`, the used `tag_regex` will be used inverted. 
+  This means that all tags are found that don't match the `tag_regex`.
+
 * `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
   all tags in the repository. If `false` no tags will be fetched.
 
