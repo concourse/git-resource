@@ -21,7 +21,9 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       -----END RSA PRIVATE KEY-----
     ```
 
-* `private_key_user`: *Optional.* Enables setting User in the ssh config
+* `private_key_user`: *Optional.* Enables setting User in the ssh config.
+
+* `private_key_passphrase`: *Optional.* To unlock `private_key` if it is protected by a passphrase.
 
 * `forward_agent`: *Optional* Enables ForwardAgent SSH option when set to true. Useful when using proxy/jump hosts. Defaults to false.
 

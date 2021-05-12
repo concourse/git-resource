@@ -26,7 +26,7 @@ it_can_check_from_head_only_fetching_single_branch() {
   ! git -C $cachedir rev-parse origin/bogus
 }
 
-it_fails_if_key_has_password() {
+it_fails_if_key_has_password_not_provided() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
 
@@ -39,8 +39,21 @@ it_fails_if_key_has_password() {
     return 1
   fi
 
-  grep "Private keys with passphrases are not supported." $failed_output
+  grep "Private key has a passphrase but private_key_passphrase has not been set." $failed_output
 }
+
+it_can_unlock_key_with_password() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local passphrase='some passphrase with spaces!'
+
+  local key=$TMPDIR/key-with-passphrase
+  ssh-keygen -f $key -N "$passphrase"
+
+  local failed_output=$TMPDIR/failed-output
+  check_uri_with_key_and_passphrase $repo $key "$passphrase" 2>$failed_output
+}
+
 
 it_configures_forward_agent() {
   local repo=$(init_repo)
@@ -956,7 +969,8 @@ run it_skips_excluded_commits_conventional
 run it_skips_non_included_commits
 run it_skips_non_included_and_excluded_commits
 run it_does_not_skip_marked_commits_when_disable_skip_configured
-run it_fails_if_key_has_password
+run it_fails_if_key_has_password_not_provided
+run it_can_unlock_key_with_password
 run it_configures_forward_agent
 run it_skips_forward_agent_configuration
 run it_can_check_with_credentials

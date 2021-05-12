@@ -298,6 +298,16 @@ check_uri_with_key() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_key_and_passphrase() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      private_key: $(cat $2 | jq -s -R .),
+      private_key_passphrase: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_with_credentials() {
   jq -n "{
     source: {
