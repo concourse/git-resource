@@ -5,6 +5,7 @@ load_pubkey() {
   local private_key_path=$TMPDIR/git-resource-private-key
   local private_key_user=$(jq -r '.source.private_key_user // empty' < $1)
   local forward_agent=$(jq -r '.source.forward_agent // false' < $1)
+  local passphrase="$(jq -r '.source.private_key_passphrase // empty' < $1)"
 
   (jq -r '.source.private_key // empty' < $1) > $private_key_path
 
@@ -13,8 +14,7 @@ load_pubkey() {
 
     eval $(ssh-agent) >/dev/null 2>&1
     trap "kill $SSH_AGENT_PID" EXIT
-
-    SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh DISPLAY= ssh-add $private_key_path >/dev/null
+    SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh GIT_SSH_PRIVATE_KEY_PASS="$passphrase" DISPLAY= ssh-add $private_key_path >/dev/null
 
     mkdir -p ~/.ssh
     cat > ~/.ssh/config <<EOF
