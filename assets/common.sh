@@ -60,6 +60,19 @@ EOF
   fi
 }
 
+configure_proxy() {
+  proxy=$(jq -r '.source.proxy // empty' < $1)
+
+  if [ ! -z "$proxy" ]; then
+    http_proxy=$(echo "$proxy" | jq -r '.http_proxy // empty')
+    https_proxy=$(echo "$proxy" | jq -r '.https_proxy // empty')
+    no_proxy=$(echo "$proxy" | jq -r '.no_proxy // empty')
+    [ -n "$http_proxy" ] && export http_proxy="$http_proxy"
+    [ -n "$https_proxy" ] && export https_proxy="$https_proxy"
+    [ -n "$no_proxy" ] && export no_proxy="$no_proxy"
+  fi
+}
+
 configure_git_global() {
   local git_config_payload="$1"
   eval $(echo "$git_config_payload" | \

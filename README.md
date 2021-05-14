@@ -112,6 +112,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   * `proxy_password`: *Optional.* If the proxy requires authenticate,
       use this password
 
+* `proxy`: *Optional.* Information about proxy to be used for communicating
+  Has the following sub-properties:
+  * `http_proxy`: *Optional.* Proxy for HTTP communication, for example `http://proxy.example:8080/`
+  * `https_proxy`: *Optional.* Proxy for HTTPS communication for example `socks://user:secr3t@proxy.example:3128/`
+  * `no_proxy`: *Optional.* Hosts to be communicated directly, for example `localhost,.mydomain.com`
+
 * `commit_filter`: *Optional.* Object containing commit message filters
   * `commit_filter.exclude`: *Optional.* Array containing strings that should
     cause a commit to be skipped
