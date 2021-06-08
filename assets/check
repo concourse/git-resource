@@ -11,27 +11,25 @@ source $(dirname $0)/common.sh
 # for jq
 PATH=/usr/local/bin:$PATH
 
-payload=$TMPDIR/git-resource-request
+payload="$(cat <&0)"
 
-cat > $payload <&0
+load_pubkey "$payload"
+configure_https_tunnel "$payload"
+configure_git_ssl_verification "$payload"
+configure_credentials "$payload"
 
-load_pubkey $payload
-configure_https_tunnel $payload
-configure_git_ssl_verification $payload
-configure_credentials $payload
-
-uri=$(jq -r '.source.uri // ""' < $payload)
-branch=$(jq -r '.source.branch // ""' < $payload)
-paths="$(jq -r '(.source.paths // ["."])[]' < $payload)" # those "'s are important
-ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' < $payload)" # these ones too
-tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
-tag_regex=$(jq -r '.source.tag_regex // ""' < $payload)
-git_config_payload=$(jq -r '.source.git_config // []' < $payload)
-ref=$(jq -r '.version.ref // ""' < $payload)
-skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' < $payload)
-filter_whitelist=$(jq -r '.source.commit_filter.include // []' < $payload)
-filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' < $payload)
-version_depth=$(jq -r '.source.version_depth // 1' < $payload)
+uri=$(jq -r '.source.uri // ""' <<< "$payload")
+branch=$(jq -r '.source.branch // ""' <<< "$payload")
+paths="$(jq -r '(.source.paths // ["."])[]' <<< "$payload")" # those "'s are important
+ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' <<< "$payload")" # these ones too
+tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
+tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
+git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
+ref=$(jq -r '.version.ref // ""' <<< "$payload")
+skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
+filter_whitelist=$(jq -r '.source.commit_filter.include // []' <<< "$payload")
+filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' <<< "$payload")
+version_depth=$(jq -r '.source.version_depth // 1' <<< "$payload")
 reverse=false
 
 configure_git_global "${git_config_payload}"

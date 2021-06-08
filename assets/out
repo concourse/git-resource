@@ -18,29 +18,27 @@ fi
 # for jq
 PATH=/usr/local/bin:$PATH
 
-payload=$(mktemp $TMPDIR/git-resource-request.XXXXXX)
+payload="$(cat <&0)"
 
-cat > $payload <&0
+load_pubkey "$payload"
+configure_https_tunnel "$payload"
+configure_git_ssl_verification "$payload"
+configure_credentials "$payload"
 
-load_pubkey $payload
-configure_https_tunnel $payload
-configure_git_ssl_verification $payload
-configure_credentials $payload
-
-uri=$(jq -r '.source.uri // ""' < $payload)
-branch=$(jq -r '.source.branch // ""' < $payload)
-git_config_payload=$(jq -r '.source.git_config // []' < $payload)
-repository=$(jq -r '.params.repository // ""' < $payload)
-tag=$(jq -r '.params.tag // ""' < $payload)
-tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
-rebase=$(jq -r '.params.rebase // false' < $payload)
-merge=$(jq -r '.params.merge // false' < $payload)
-returning=$(jq -r '.params.returning // "merged"' < $payload)
-force=$(jq -r '.params.force // false' < $payload)
-only_tag=$(jq -r '.params.only_tag // false' < $payload)
-annotation_file=$(jq -r '.params.annotate // ""' < $payload)
-notes_file=$(jq -r '.params.notes // ""' < $payload)
-override_branch=$(jq -r '.params.branch // ""' < $payload)
+uri=$(jq -r '.source.uri // ""' <<< "$payload")
+branch=$(jq -r '.source.branch // ""' <<< "$payload")
+git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
+repository=$(jq -r '.params.repository // ""' <<< "$payload")
+tag=$(jq -r '.params.tag // ""' <<< "$payload")
+tag_prefix=$(jq -r '.params.tag_prefix // ""' <<< "$payload")
+rebase=$(jq -r '.params.rebase // false' <<< "$payload")
+merge=$(jq -r '.params.merge // false' <<< "$payload")
+returning=$(jq -r '.params.returning // "merged"' <<< "$payload")
+force=$(jq -r '.params.force // false' <<< "$payload")
+only_tag=$(jq -r '.params.only_tag // false' <<< "$payload")
+annotation_file=$(jq -r '.params.annotate // ""' <<< "$payload")
+notes_file=$(jq -r '.params.notes // ""' <<< "$payload")
+override_branch=$(jq -r '.params.branch // ""' <<< "$payload")
 
 configure_git_global "${git_config_payload}"
 

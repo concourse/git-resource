@@ -3,11 +3,11 @@ export GIT_CRYPT_KEY_PATH=~/git-crypt.key
 
 load_pubkey() {
   local private_key_path=$TMPDIR/git-resource-private-key
-  local private_key_user=$(jq -r '.source.private_key_user // empty' < $1)
-  local forward_agent=$(jq -r '.source.forward_agent // false' < $1)
-  local passphrase="$(jq -r '.source.private_key_passphrase // empty' < $1)"
+  local private_key_user=$(jq -r '.source.private_key_user // empty' <<< "$1")
+  local forward_agent=$(jq -r '.source.forward_agent // false' <<< "$1")
+  local passphrase="$(jq -r '.source.private_key_passphrase // empty' <<< "$1")"
 
-  (jq -r '.source.private_key // empty' < $1) > $private_key_path
+  (jq -r '.source.private_key // empty' <<< "$1") > $private_key_path
 
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path
@@ -36,7 +36,7 @@ EOF
 }
 
 configure_https_tunnel() {
-  tunnel=$(jq -r '.source.https_tunnel // empty' < $1)
+  tunnel=$(jq -r '.source.https_tunnel // empty' <<< "$1")
 
   if [ ! -z "$tunnel" ]; then
     host=$(echo "$tunnel" | jq -r '.proxy_host // empty')
@@ -67,7 +67,7 @@ configure_git_global() {
 }
 
 configure_git_ssl_verification() {
-  skip_ssl_verification=$(jq -r '.source.skip_ssl_verification // false' < $1)
+  skip_ssl_verification=$(jq -r '.source.skip_ssl_verification // false' <<< "$1")
   if [ "$skip_ssl_verification" = "true" ]; then
     export GIT_SSL_NO_VERIFY=true
   fi
@@ -187,14 +187,14 @@ git_metadata() {
 configure_submodule_credentials() {
   local username
   local password
-  if [[ "$(jq -r '.source.submodule_credentials // ""' < "$1")" == "" ]]; then
+  if [[ "$(jq -r '.source.submodule_credentials // ""' <<< "$1")" == "" ]]; then
     return
   fi
 
-  for k in $(jq -r '.source.submodule_credentials | keys | .[]' < "$1"); do
-    host=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].host // ""' < "$1")
-    username=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].username // ""' < "$1")
-    password=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].password // ""' < "$1")
+  for k in $(jq -r '.source.submodule_credentials | keys | .[]' <<< "$1"); do
+    host=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].host // ""' <<< "$1")
+    username=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].username // ""' <<< "$1")
+    password=$(jq -r --argjson k "$k" '.source.submodule_credentials[$k].password // ""' <<< "$1")
     if [ "$username" != "" -a "$password" != "" -a "$host" != "" ]; then
       echo "machine $host login $username password $password" >> "${HOME}/.netrc"
     fi
@@ -202,8 +202,8 @@ configure_submodule_credentials() {
 }
 
 configure_credentials() {
-  local username=$(jq -r '.source.username // ""' < $1)
-  local password=$(jq -r '.source.password // ""' < $1)
+  local username=$(jq -r '.source.username // ""' <<< "$1")
+  local password=$(jq -r '.source.password // ""' <<< "$1")
 
   rm -f $HOME/.netrc
   configure_submodule_credentials "$1"
@@ -216,7 +216,7 @@ configure_credentials() {
 load_git_crypt_key() {
   local git_crypt_tmp_key_path=$TMPDIR/git-resource-git-crypt-key
 
-  (jq -r '.source.git_crypt_key // empty' < $1) > $git_crypt_tmp_key_path
+  (jq -r '.source.git_crypt_key // empty' <<< "$1") > $git_crypt_tmp_key_path
 
   if [ -s $git_crypt_tmp_key_path ]; then
       cat $git_crypt_tmp_key_path | tr ' ' '\n' | base64 -d > $GIT_CRYPT_KEY_PATH
