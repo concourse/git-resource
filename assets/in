@@ -23,41 +23,39 @@ if [ "${bin_dir#/}" == "$bin_dir" ]; then
   bin_dir="$PWD/$bin_dir"
 fi
 
-payload=$(mktemp $TMPDIR/git-resource-request.XXXXXX)
+payload="$(cat <&0)"
 
-cat > $payload <&0
+load_pubkey "$payload"
+load_git_crypt_key "$payload"
+configure_https_tunnel "$payload"
+configure_git_ssl_verification "$payload"
+configure_credentials "$payload"
 
-load_pubkey $payload
-load_git_crypt_key $payload
-configure_https_tunnel $payload
-configure_git_ssl_verification $payload
-configure_credentials $payload
-
-uri=$(jq -r '.source.uri // ""' < $payload)
-branch=$(jq -r '.source.branch // ""' < $payload)
-git_config_payload=$(jq -r '.source.git_config // []' < $payload)
-ref=$(jq -r '.version.ref // "HEAD"' < $payload)
-override_branch=$(jq -r '.version.branch // ""' < $payload)
-depth=$(jq -r '(.params.depth // 0)' < $payload)
-fetch=$(jq -r '(.params.fetch // [])[]' < $payload)
-submodules=$(jq -r '(.params.submodules // "all")' < $payload)
-submodule_recursive=$(jq -r '(.params.submodule_recursive // true)' < $payload)
-submodule_remote=$(jq -r '(.params.submodule_remote // false)' < $payload)
-commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' < $payload)
-commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' < $payload)
-tag_filter=$(jq -r '.source.tag_filter // ""' < $payload)
-tag_regex=$(jq -r '.source.tag_regex // ""' < $payload)
-fetch_tags=$(jq -r '.params.fetch_tags' < $payload)
+uri=$(jq -r '.source.uri // ""' <<< "$payload")
+branch=$(jq -r '.source.branch // ""' <<< "$payload")
+git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
+ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
+override_branch=$(jq -r '.version.branch // ""' <<< "$payload")
+depth=$(jq -r '(.params.depth // 0)' <<< "$payload")
+fetch=$(jq -r '(.params.fetch // [])[]' <<< "$payload")
+submodules=$(jq -r '(.params.submodules // "all")' <<< "$payload")
+submodule_recursive=$(jq -r '(.params.submodule_recursive // true)' <<< "$payload")
+submodule_remote=$(jq -r '(.params.submodule_remote // false)' <<< "$payload")
+commit_verification_key_ids=$(jq -r '(.source.commit_verification_key_ids // [])[]' <<< "$payload")
+commit_verification_keys=$(jq -r '(.source.commit_verification_keys // [])[]' <<< "$payload")
+tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
+tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
+fetch_tags=$(jq -r '.params.fetch_tags' <<< "$payload")
 gpg_keyserver=$(jq -r '.source.gpg_keyserver // "hkp://keyserver.ubuntu.com/"' <<< "$payload")
-disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' < $payload)
-clean_tags=$(jq -r '(.params.clean_tags // false)' < $payload)
-short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' < $payload)
-timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' < $payload)
-describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' < $payload)
+disable_git_lfs=$(jq -r '(.params.disable_git_lfs // false)' <<< "$payload")
+clean_tags=$(jq -r '(.params.clean_tags // false)' <<< "$payload")
+short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' <<< "$payload")
+timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' <<< "$payload")
+describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' <<< "$payload")
 
 # If params not defined, get it from source
 if [ -z "$fetch_tags" ] || [ "$fetch_tags" == "null" ]  ; then
-  fetch_tags=$(jq -r '.source.fetch_tags' < $payload)
+  fetch_tags=$(jq -r '.source.fetch_tags' <<< "$payload")
 fi
 
 configure_git_global "${git_config_payload}"
