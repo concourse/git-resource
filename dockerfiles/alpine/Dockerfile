@@ -11,8 +11,7 @@ RUN apk --no-cache add \
   gnupg \
   gzip \
   jq \
-  libressl \
-  libressl-dev \
+  openssl-dev \
   make \
   g++ \
   openssh \
