@@ -21,14 +21,8 @@ RUN apt-add-repository ppa:git-core/ppa \
   && apt-get install -y git \
   && rm -rf /var/lib/apt/lists/*
 
-RUN curl -s https://api.github.com/repos/git-lfs/git-lfs/releases/latest \
-    | grep "browser_download_url.*linux-amd64" \
-    | cut -d : -f 2,3 \
-    | xargs curl -L --output git-lfs.tar.gz && \
-    mkdir git-lfs && tar -xzf git-lfs.tar.gz -C git-lfs && \
-    ./git-lfs/install.sh && \
-    rm -rf git-lfs*
-RUN git lfs -v
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+RUN apt-get install -y git-lfs
 
 WORKDIR /root
 RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
