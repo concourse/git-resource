@@ -34,7 +34,7 @@ configure_credentials "$payload"
 uri=$(jq -r '.source.uri // ""' <<< "$payload")
 branch=$(jq -r '.source.branch // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
-ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
+commit_ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
 override_branch=$(jq -r '.version.branch // ""' <<< "$payload")
 depth=$(jq -r '(.params.depth // 0)' <<< "$payload")
 fetch=$(jq -r '(.params.fetch // [])[]' <<< "$payload")
@@ -100,9 +100,9 @@ cd $destination
 git fetch origin refs/notes/*:refs/notes/* $tagflag
 
 if [ "$depth" -gt 0 ]; then
-  "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref" "$tagflag"
+  "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$commit_ref" "$tagflag"
 else
-  git checkout -q "$ref"
+  git checkout -q "$commit_ref"
 fi
 
 invalid_key() {
@@ -111,7 +111,7 @@ invalid_key() {
 }
 
 commit_not_signed() {
-  commit_id=$(git rev-parse ${ref})
+  commit_id=$(git rev-parse ${commit_ref})
   echo "The commit ${commit_id} is not signed"
   exit 1
 }
@@ -124,7 +124,7 @@ if [ ! -z "${commit_verification_keys}" ] || [ ! -z "${commit_verification_key_i
     echo "${commit_verification_key_ids}" | \
       xargs --no-run-if-empty -n1 gpg --batch --keyserver $gpg_keyserver --recv-keys
   fi
-  git verify-commit $(git rev-list -n 1 $ref) || commit_not_signed
+  git verify-commit $(git rev-list -n 1 $commit_ref) || commit_not_signed
 fi
 
 git log -1 --oneline
@@ -179,10 +179,10 @@ for branch in $fetch; do
   git branch $branch FETCH_HEAD
 done
 
-if [ "$ref" == "HEAD" ]; then
+if [ "$commit_ref" == "HEAD" ]; then
   return_ref=$(git rev-parse HEAD)
 else
-  return_ref=$ref
+  return_ref=$commit_ref
 fi
 
 # Store committer email in .git/committer. Can be used to send email to last committer on failed build

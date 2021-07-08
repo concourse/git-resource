@@ -25,7 +25,7 @@ ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' <<< "$payload")" #
 tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
 tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
-ref=$(jq -r '.version.ref // ""' <<< "$payload")
+commit_ref=$(jq -r '.version.ref // ""' <<< "$payload")
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
 filter_whitelist=$(jq -r '.source.commit_filter.include // []' <<< "$payload")
 filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' <<< "$payload")
@@ -60,18 +60,18 @@ else
   cd $destination
 fi
 
-if [ -n "$ref" ] && git cat-file -e "$ref"; then
+if [ -n "$commit_ref" ] && git cat-file -e "$commit_ref"; then
   init_commit=$(git rev-list --max-parents=0 HEAD | tail -n 1)
-  if [ "${ref}" = "${init_commit}" ]; then
+  if [ "${commit_ref}" = "${init_commit}" ]; then
     reverse=true
     log_range="HEAD"
   else
     reverse=true
-    log_range="${ref}~1..HEAD"
+    log_range="${commit_ref}~1..HEAD"
   fi
 else
   log_range=""
-  ref=""
+  commit_ref=""
 fi
 
 if [ "$paths" = "." ] && [ -z "$ignore_paths" ]; then
@@ -135,11 +135,11 @@ fi
 
 if [ -n "$tag_filter" ]; then
   {
-    if [ -n "$ref" ] && [ -n "$branch" ]; then
-      tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref --merged $branch)
+    if [ -n "$commit_ref" ] && [ -n "$branch" ]; then
+      tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $commit_ref --merged $branch)
       get_commit $tags
-    elif [ -n "$ref" ]; then
-      tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
+    elif [ -n "$commit_ref" ]; then
+      tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $commit_ref)
       get_commit $tags
     else
       branch_flag=
@@ -152,11 +152,11 @@ if [ -n "$tag_filter" ]; then
   } | jq -s "map(.)" >&3
 elif [ -n "$tag_regex" ]; then
   {
-    if [ -n "$ref" ] && [ -n "$branch" ]; then
-      tags=$(git tag --list --sort=creatordate --contains $ref --merged $branch | grep -Ex "$tag_regex")
+    if [ -n "$commit_ref" ] && [ -n "$branch" ]; then
+      tags=$(git tag --list --sort=creatordate --contains $commit_ref --merged $branch | grep -Ex "$tag_regex")
       get_commit $tags
-    elif [ -n "$ref" ]; then
-      tags=$(git tag --list --sort=creatordate | grep -Ex "$tag_regex" | lines_including_and_after $ref)
+    elif [ -n "$commit_ref" ]; then
+      tags=$(git tag --list --sort=creatordate | grep -Ex "$tag_regex" | lines_including_and_after $commit_ref)
       get_commit $tags
     else
       branch_flag=
