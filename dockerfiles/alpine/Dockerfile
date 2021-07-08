@@ -7,7 +7,6 @@ RUN apk --no-cache add \
   curl \
   git \
   git-daemon \
-  git-lfs \
   gnupg \
   gzip \
   jq \
@@ -19,6 +18,15 @@ RUN apk --no-cache add \
   tar \
   libstdc++ \
   coreutils
+
+RUN curl -s https://api.github.com/repos/git-lfs/git-lfs/releases/latest \
+    | grep "browser_download_url.*linux-amd64" \
+    | cut -d : -f 2,3 \
+    | xargs curl -L --output git-lfs.tar.gz && \
+    mkdir git-lfs && tar -xzf git-lfs.tar.gz -C git-lfs && \
+    ./git-lfs/install.sh && \
+    rm -rf git-lfs*
+RUN git lfs -v
 
 WORKDIR /root
 RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
