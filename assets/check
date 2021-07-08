@@ -25,6 +25,7 @@ ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' <<< "$payload")" #
 tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
 tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
+fetch_ref=$(jq -r '.source.ref // ""' <<< "$payload")
 commit_ref=$(jq -r '.version.ref // ""' <<< "$payload")
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
 filter_whitelist=$(jq -r '.source.commit_filter.include // []' <<< "$payload")
@@ -48,16 +49,30 @@ export GIT_LFS_SKIP_SMUDGE=1
 
 if [ -d $destination ]; then
   cd $destination
-  git fetch $tagflag -f
+  if [ -n "$fetch_ref" ]; then
+    git fetch origin "$fetch_ref" $tagflag -f
+  else
+    git fetch $tagflag -f
+  fi
   git reset --hard FETCH_HEAD
 else
-  branchflag=""
-  if [ -n "$branch" ]; then
-    branchflag="--branch $branch"
-  fi
+  if [ -n "$fetch_ref" ]; then
+    mkdir $destination
+    cd $destination
 
-  git clone --single-branch $uri $branchflag $destination $tagflag
-  cd $destination
+    git init -b main
+    git remote add origin $uri
+    git fetch origin "$fetch_ref" $tagflag
+    git reset --hard FETCH_HEAD
+  else
+    branchflag=""
+    if [ -n "$branch" ]; then
+      branchflag="--branch $branch"
+    fi
+
+    git clone --single-branch $uri $branchflag $destination $tagflag
+    cd $destination
+  fi
 fi
 
 if [ -n "$commit_ref" ] && git cat-file -e "$commit_ref"; then

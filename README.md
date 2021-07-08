@@ -6,8 +6,21 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `uri`: *Required.* The location of the repository.
 
-* `branch`: The branch to track. This is *optional* if the resource is
-   only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
+* `branch`: The branch to track. This is *optional* if the resource is only
+  used in `get` steps; however, it is *required* when used in a `put` step. If
+  both `branch` and `ref` are unset, the repository's default branch is used for
+  `get`; this is usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
+
+   If `branch` is set, then `ref` must not be set.
+
+* `ref`: The git ref to track. This will typically be a named ref. For
+  instance, to track a GitHub pull request, you can configure `ref` as:
+
+   ```yaml
+   ref: pull/123/head
+   ```
+
+   If `ref` is set, then `branch` must not be set.
 
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:

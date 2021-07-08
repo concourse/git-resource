@@ -34,6 +34,7 @@ configure_credentials "$payload"
 uri=$(jq -r '.source.uri // ""' <<< "$payload")
 branch=$(jq -r '.source.branch // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
+fetch_ref=$(jq -r '.source.ref // ""' <<< "$payload")
 commit_ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
 override_branch=$(jq -r '.version.branch // ""' <<< "$payload")
 depth=$(jq -r '(.params.depth // 0)' <<< "$payload")
@@ -93,10 +94,18 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
+if [ -n "$fetch_ref" ]; then
+  mkdir -p $destination
+  cd $destination
 
-cd $destination
-
+  git init -b main
+  git remote add origin $uri
+  git fetch origin "$fetch_ref" $depthflag $tagflag
+  git reset --hard FETCH_HEAD
+else
+  git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
+  cd $destination
+fi
 git fetch origin refs/notes/*:refs/notes/* $tagflag
 
 if [ "$depth" -gt 0 ]; then

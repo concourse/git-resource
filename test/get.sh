@@ -65,12 +65,48 @@ it_can_get_from_url_at_branch() {
   test "$(git -C $dest rev-parse HEAD)" = $ref2
 }
 
+it_can_get_from_url_with_source_ref() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_commit_to_branch $repo branch-b)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_with_source_ref $repo "$ref1" $dest | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref1
+
+  rm -rf $dest
+
+  get_uri_with_source_ref $repo "$ref2" $dest | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref2
+}
+
 it_can_get_from_url_only_single_branch() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
   local dest=$TMPDIR/destination
 
   get_uri_with_branch $repo "master" $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  ! git -C $dest rev-parse origin/bogus
+}
+
+it_can_get_from_url_only_single_ref() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  get_uri_with_source_ref $repo "$ref" $dest | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
   "
 
@@ -860,7 +896,9 @@ run it_honors_the_parameter_flags_for_submodules
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
+run it_can_get_from_url_at_ref
 run it_can_get_from_url_only_single_branch
+run it_can_get_from_url_only_single_ref
 run it_can_get_from_url_at_override_branch
 run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata

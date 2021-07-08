@@ -26,6 +26,19 @@ it_can_check_from_head_only_fetching_single_branch() {
   ! git -C $cachedir rev-parse origin/bogus
 }
 
+it_can_check_from_head_only_fetching_single_ref() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+
+  local cachedir="$TMPDIR/git-resource-repo-cache"
+
+  check_uri_with_source_ref $repo $ref | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+
+  ! git -C $cachedir rev-parse origin/bogus
+}
+
 it_fails_if_key_has_password_not_provided() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -990,6 +1003,7 @@ run it_can_check_with_tag_regex_with_bogus_ref
 run it_can_check_with_tag_filter_with_replaced_tags
 run it_can_check_with_tag_regex_with_replaced_tags
 run it_can_check_from_head_only_fetching_single_branch
+run it_can_check_from_head_only_fetching_single_ref
 run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
 run it_can_check_from_a_ref_with_paths_merged_in

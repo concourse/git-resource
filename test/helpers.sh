@@ -283,6 +283,15 @@ check_uri_with_branch() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_source_ref() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      ref: $(echo $2 | jq -R .)
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 get_initial_ref() {
   local repo=$1
 
@@ -823,6 +832,15 @@ get_uri_at_ref() {
     },
     params: {
       short_ref_format: \"test-%s\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
+get_uri_with_source_ref() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      ref: $(echo $2 | jq -R .)
     }
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
