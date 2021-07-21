@@ -2,7 +2,7 @@ ARG base_image
 
 FROM ${base_image} AS resource
 
-RUN apt update && apt upgrade -y
+RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
 RUN apt install -y --no-install-recommends \
     curl \
     gnupg \
