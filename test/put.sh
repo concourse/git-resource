@@ -585,6 +585,29 @@ it_will_fail_put_with_conflicting_tag_and_not_force_push() {
   test "$(git -C $repo1 rev-parse some-only-tag)" = $expected_ref
 }
 
+it_can_put_with_refs_prefix() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+  set -x
+  put_uri_with_refs_prefix $repo1 $src repo refs/for | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout refs/for/master
+
+  test -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $ref
+}
+
 run it_can_put_to_url
 run it_can_put_to_url_with_branch
 run it_returns_branch_in_metadata
@@ -605,3 +628,4 @@ run it_will_fail_put_if_conflicts_and_not_force_push
 run it_can_put_and_force_the_push
 run it_can_put_to_url_with_only_tag_and_force_the_push
 run it_will_fail_put_with_conflicting_tag_and_not_force_push
+run it_can_put_with_refs_prefix

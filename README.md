@@ -330,6 +330,8 @@ pushed regardless of the upstream state.
   even if the `branch` differs from the `branch` specified in the source.
   To avoid this, you should use two resources of read-only and write-only.
 
+* `refs_prefix`: *Optional.* Allows pushing to refs other than heads. Defaults to `refs/heads`.
+
 ## Development
 
 ### Prerequisites
