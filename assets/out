@@ -39,6 +39,8 @@ only_tag=$(jq -r '.params.only_tag // false' <<< "$payload")
 annotation_file=$(jq -r '.params.annotate // ""' <<< "$payload")
 notes_file=$(jq -r '.params.notes // ""' <<< "$payload")
 override_branch=$(jq -r '.params.branch // ""' <<< "$payload")
+# useful for pushing to special ref types like refs/for in gerrit.
+refs_prefix=$(jq -r '.params.refs_prefix // "refs/heads"' <<< "$payload")
 
 configure_git_global "${git_config_payload}"
 
@@ -103,7 +105,7 @@ tag() {
 }
 
 push_src_and_tags() {
-  git push --tags push-target HEAD:refs/heads/$branch $forceflag
+  git push --tags push-target HEAD:$refs_prefix/$branch $forceflag
 }
 
 push_tags() {
