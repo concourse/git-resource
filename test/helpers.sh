@@ -860,6 +860,31 @@ get_uri_at_branch_with_fetch_tags() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+get_uri_at_branch_with_ref() {
+    jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .)
+    },
+    version: {
+      ref: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$4" | tee /dev/stderr
+}
+
+get_uri_at_branch_with_search_remote_refs() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .),
+      search_remote_refs: true
+    },
+    version: {
+      ref: $(echo $3 | jq -R .)
+    }
+  }" | ${resource_dir}/in "$4" | tee /dev/stderr
+}
+
 get_uri_with_config() {
   jq -n "{
     source: {
