@@ -2,6 +2,7 @@ ARG base_image=alpine:latest
 
 FROM ${base_image} AS resource
 
+RUN apk update && apk upgrade
 RUN apk --no-cache add \
   bash \
   curl \
@@ -11,8 +12,7 @@ RUN apk --no-cache add \
   gnupg \
   gzip \
   jq \
-  libressl \
-  libressl-dev \
+  openssl-dev \
   make \
   g++ \
   openssh \

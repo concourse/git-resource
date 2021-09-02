@@ -97,7 +97,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   `gpg_keyserver`. The ids can be short id, long id or fingerprint.
 
 * `gpg_keyserver`: *Optional.* GPG keyserver to download the public keys from.
-  Defaults to `hkp:///keys.gnupg.net/`.
+  Defaults to `hkp://keyserver.ubuntu.com/`.
 
 * `git_crypt_key`: *Optional.* Base64 encoded
   [git-crypt](https://github.com/AGWA/git-crypt) key. Setting this will

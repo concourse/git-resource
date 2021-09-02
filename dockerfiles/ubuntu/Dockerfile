@@ -2,8 +2,8 @@ ARG base_image
 
 FROM ${base_image} AS resource
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
+RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
+RUN apt install -y --no-install-recommends \
     curl \
     gnupg \
     gzip \
@@ -17,12 +17,12 @@ RUN apt-get update \
     software-properties-common
 
 RUN apt-add-repository ppa:git-core/ppa \
-  && apt-get update \
-  && apt-get install -y git \
+  && apt update \
+  && apt install -y git \
   && rm -rf /var/lib/apt/lists/*
 
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-RUN apt-get install -y git-lfs
+RUN apt install -y git-lfs
 
 WORKDIR /root
 RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
@@ -193,7 +193,7 @@ ADD test/ /tests
 RUN /tests/all.sh
 
 FROM resource AS integrationtests
-RUN apt-get update && apt-get install -y squid
+RUN apt update && apt install -y squid
 ADD test/ /tests/test
 ADD integration-tests /tests/integration-tests
 RUN /tests/integration-tests/integration.sh
