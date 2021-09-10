@@ -850,6 +850,38 @@ it_returns_list_of_all_tags_in_metadata() {
   "
 }
 
+it_can_get_from_url_at_branch_with_search_remote_refs() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_commit_to_branch $repo branch-a)
+  git -C $repo update-ref refs/heads/branch-a $ref1
+  git -C $repo update-ref refs/changes/1 $ref2
+  git -C $repo log --all --oneline
+  git -C $repo branch -v
+  local dest=$TMPDIR/destination
+
+  # use file:// repo to force the regular git transport instead of local copying
+  set +e
+  output=$(get_uri_at_branch_with_ref file://$repo "branch-a" $ref2 $dest 2>&1)
+  exit_code=$?
+  set -e
+
+  echo $output $exit_code
+  test "${exit_code}" = 128
+  echo "$output" | grep "fatal: reference is not a tree: "
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" != $ref2
+
+  rm -rf $dest
+
+  get_uri_at_branch_with_search_remote_refs file://$repo "branch-a" $ref2 $dest | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+
+  test -e $dest/some-file
+  test "$(git -C $dest rev-parse HEAD)" = $ref2
+}
+
 run it_can_use_submodules_with_missing_paths
 run it_can_use_submodules_with_names_that_arent_paths
 run it_can_use_submodules_without_perl_warning
@@ -892,3 +924,4 @@ run it_retains_tags_by_default
 run it_retains_tags_with_clean_tags_param
 run it_returns_list_without_tags_in_metadata
 run it_returns_list_of_all_tags_in_metadata
+run it_can_get_from_url_at_branch_with_search_remote_refs

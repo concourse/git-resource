@@ -121,6 +121,12 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `version_depth`: *Optional.* The number of versions to return when performing a check
 
+* `search_remote_refs`: *Optional.* True to search remote refs for the input version when checking out during the get step.
+    This can be useful during the `get` step after a `put` step for unconventional workflows. One example workflow is the
+    `refs/for/<branch>` workflow used by gerrit which 'magically' creates a `refs/changes/nnn` reference instead
+    of the straight forward `refs/for/<branch>` reference that a git remote would usually create.
+    See also `out params.refs_prefix`.
+
 ### Example
 
 Resource configuration for a private repo with an HTTPS proxy:
@@ -331,6 +337,9 @@ pushed regardless of the upstream state.
   To avoid this, you should use two resources of read-only and write-only.
 
 * `refs_prefix`: *Optional.* Allows pushing to refs other than heads. Defaults to `refs/heads`.
+
+  Useful when paired with `source.search_remote_refs` in cases where the git remote
+  renames the ref you pushed.
 
 ## Development
 

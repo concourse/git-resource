@@ -52,6 +52,7 @@ clean_tags=$(jq -r '(.params.clean_tags // false)' <<< "$payload")
 short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' <<< "$payload")
 timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' <<< "$payload")
 describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' <<< "$payload")
+search_remote_refs_flag=$(jq -r '(.source.search_remote_refs // false)' <<< "$payload")
 
 # If params not defined, get it from source
 if [ -z "$fetch_tags" ] || [ "$fetch_tags" == "null" ]  ; then
@@ -102,6 +103,15 @@ git fetch origin refs/notes/*:refs/notes/* $tagflag
 if [ "$depth" -gt 0 ]; then
   "$bin_dir"/deepen_shallow_clone_until_ref_is_found_then_check_out "$depth" "$ref" "$tagflag"
 else
+  if [ "$search_remote_refs_flag" == "true" ] && ! [ -z "$branchflag" ] && ! git rev-list -1 $ref 2> /dev/null > /dev/null; then
+    change_ref=$(git ls-remote origin | grep $ref | cut -f2)
+    if ! [ -z "$change_ref" ]; then
+      echo "$ref not found locally, but search_remote_refs is enabled. Attempting to fetch $change_ref first."
+      git fetch origin $change_ref
+    else
+      echo "WARNING: couldn't find a ref for $ref listed on the remote"
+    fi
+  fi
   git checkout -q "$ref"
 fi
 
