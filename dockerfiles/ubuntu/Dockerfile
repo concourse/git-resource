@@ -1,4 +1,4 @@
-ARG base_image
+ARG base_image=ubuntu:bionic
 
 FROM ${base_image} AS resource
 
@@ -34,6 +34,7 @@ RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
 
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
+RUN git config --global pull.rebase "false"
 
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
