@@ -176,7 +176,7 @@ if [ "$submodules" != "none" ]; then
       continue
     fi
 
-    git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
+    git submodule update --init --no-fetch --no-recommend-shallow $depthflag $submodule_parameters "$submodule_path"
 
     if [ "$depth" -gt 0 ]; then
       git config --unset "submodule.${submodule_name}.update"
