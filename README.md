@@ -113,11 +113,19 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
       use this password
 
 * `commit_filter`: *Optional.* Object containing commit message filters
-  * `commit_filter.exclude`: *Optional.* Array containing strings that should
+  * `exclude`: *Optional.* Array containing strings that should
     cause a commit to be skipped
-  * `commit_filter.include`: *Optional.* Array continuing strings that
+  * `include`: *Optional.* Array containing strings that
     *MUST* be included in commit messages for the commit to not be
     skipped
+
+  **Note**: *You must escape any regex sensitive characters, since the string is used as a regex filter.*  
+  For example, using `[skip deploy]` or `[deploy skip]` to skip non-deployment related commits in a deployment pipeline:
+
+  ```yaml
+  commit_filter:
+    exclude: ["\\[skip deploy\\]", "\\[deploy skip\\]"]
+  ```
 
 * `version_depth`: *Optional.* The number of versions to return when performing a check
 
