@@ -176,7 +176,52 @@ if [ "$submodules" != "none" ]; then
       continue
     fi
 
-    git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
+    set +e
+    git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path" 2> /dev/null
+    code=$?
+    set -e
+
+    if [[ ${code} -ne 0 ]]; then
+      echo "Could not read from remote submodule repository. Retry with submodule credentials"
+
+      credentials=$(jq '.source.submodule_credentials // [] | [.[] | select(has("private_key"))]' <<< ${payload})
+      credentials_length=$(jq 'length' <<< ${credentials})
+
+      for ((i = 0 ; i < ${credentials_length} ; i++)); do
+
+        creds=$(jq --argjson i $i '.[$i]' <<< ${credentials})
+        private_key=$(jq -r '.private_key' <<< ${creds})
+        passphrase=$(jq -r '.private_key_passphrase // empty' <<< ${creds})
+
+        private_key_path="${TMPDIR}/git-resource-submodule-private-key-$i"
+        echo "${private_key}" > ${private_key_path}
+        chmod 0600 ${private_key_path}
+
+        # short-lived ssh-agent
+        eval $(ssh-agent) >/dev/null 2>&1
+        trap "kill $SSH_AGENT_PID" EXIT
+        SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh GIT_SSH_PRIVATE_KEY_PASS="$passphrase" DISPLAY= ssh-add $private_key_path > /dev/null
+
+        set +e
+        git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path" 2> /dev/null
+        code=$?
+        set -e
+
+        # kill short-lived ssh-agent
+        ssh-agent -k > /dev/null || true
+        trap - EXIT
+
+        if [[ ${code} -eq 0 ]]; then
+          break;
+        fi
+
+      done
+
+      if [[ ${code} -ne 0 ]]; then
+        echo $'\e[31m'"warning: failed to clone submodule: $submodule_path"$'\e[0m'
+      fi
+
+    fi
 
     if [ "$depth" -gt 0 ]; then
       git config --unset "submodule.${submodule_name}.update"
