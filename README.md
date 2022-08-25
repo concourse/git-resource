@@ -64,18 +64,31 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
   all tags in the repository. If `false` no tags will be fetched.
 
-* `submodule_credentials`: *Optional.* List of credentials for HTTP(s) auth when pulling/pushing private git submodules which are not stored in the same git server as the container repository.
-    Example:
+* `submodule_credentials`: *Optional.* List of credentials for HTTP(s) or SSH auth when pulling git submodules which are not stored in the same git server as the container repository.
+  * http(s) credentials
+    * `host` : The host to connect too. Note that `host` is specified with no protocol extensions.
+    * `username` : Username for HTTP(S) auth when pulling submodule.
+    * `password` : Password for HTTP(S) auth when pulling submodule.
+  * ssh credentials
+    * `private_key` : Private key for SSH auth when pulling submodule.
+    * `private_key_passphrase` : *Optional.* To unlock `private_key` if it is protected by a passphrase.
 
-    ```
+    ```yaml
     submodule_credentials:
+    # http(s) credentials
     - host: github.com
       username: git-user
       password: git-password
+    # ssh credentials
+    - private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
+        <Lots more text>
+        DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+        -----END RSA PRIVATE KEY-----
+      private_key_passphrase: ssh-passphrase # (optionnal)
     - <another-configuration>
     ```
-
-    Note that `host` is specified with no protocol extensions.
 
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
   it will configure git global options, setting each name with each value.
