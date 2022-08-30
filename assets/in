@@ -166,6 +166,7 @@ if [ "$submodules" != "none" ]; then
       sed -e 's/^submodule\.\(.\+\)\.path$/\1/'
   } | while read submodule_name; do
     submodule_path="$(git config --file .gitmodules --get "submodule.${submodule_name}.path")"
+    submodule_url="$(git config --file .gitmodules --get "submodule.${submodule_name}.url")"
 
     if [ "$depth" -gt 0 ]; then
       git config "submodule.${submodule_name}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
@@ -176,66 +177,34 @@ if [ "$submodules" != "none" ]; then
       continue
     fi
 
-    set +e
-    git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
-    code=$?
-    set -e
+    # check for ssh submodule_credentials
+    submodule_cred=$(jq --arg submodule_url "${submodule_url}" '.source.submodule_credentials // [] | [.[] | select(.url==$submodule_url)] | first // empty' <<< ${payload})
 
-    if [[ ${code} -eq 1 ]]; then
+    if [[ -z ${submodule_cred} ]]; then
 
-      credentials=$(jq '.source.submodule_credentials // [] | [.[] | select(has("private_key"))]' <<< ${payload})
-      credentials_length=$(jq 'length' <<< ${credentials})
+      # update normally
+      git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
 
-      if [[ ${credentials_length} -gt 0 ]]; then
+    else
 
-        echo "Could not read from remote submodule repository with current credentials. Retry with submodule ssh credentials."
+      # create or re-initialize ssh-agent
+      init_ssh_agent
 
-        # kill main ssh-agent (if exist)
-        kill $SSH_AGENT_PID > /dev/null || true
-        trap - EXIT
-        
-        for ((i = 0 ; i < ${credentials_length} ; i++)); do
+      private_key=$(jq -r '.private_key' <<< ${submodule_cred})
+      passphrase=$(jq -r '.private_key_passphrase // empty' <<< ${submodule_cred})
 
-          creds=$(jq --argjson i $i '.[$i]' <<< ${credentials})
-          private_key=$(jq -r '.private_key' <<< ${creds})
-          passphrase=$(jq -r '.private_key_passphrase // empty' <<< ${creds})
+      private_key_path=$(mktemp -t git-resource-submodule-private-key.XXXXXX)
+      echo "${private_key}" > ${private_key_path}
+      chmod 0600 ${private_key_path}
 
-          private_key_path="${TMPDIR}/git-resource-submodule-private-key-$i"
-          echo "${private_key}" > ${private_key_path}
-          chmod 0600 ${private_key_path}
+      # add submodule private_key identity
+      SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh GIT_SSH_PRIVATE_KEY_PASS="$passphrase" DISPLAY= ssh-add $private_key_path > /dev/null
 
-          # short-lived ssh-agent
-          eval $(ssh-agent) >/dev/null 2>&1
-          trap "kill $SSH_AGENT_PID" EXIT
-          SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh GIT_SSH_PRIVATE_KEY_PASS="$passphrase" DISPLAY= ssh-add $private_key_path > /dev/null
+      git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
 
-          set +e
-          git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path" 2> /dev/null
-          code=$?
-          set -e
+      # restore main ssh-agent (if needed)
+      load_pubkey "${payload}"
 
-          # kill short-lived ssh-agent
-          ssh-agent -k > /dev/null || true
-          trap - EXIT
-
-          if [[ ${code} -eq 0 ]]; then
-            break;
-          fi
-
-        done
-
-        # restore main ssh-agent (if needed)
-        load_pubkey "${git_config_payloadd}"
-
-      fi
-
-      if [[ ${code} -ne 0 ]]; then
-        echo $'\e[31m'"warning: failed to clone submodule: $submodule_path"$'\e[0m'
-        exit ${code}
-      fi
-
-    elif [[ ${code} -ne 0 ]]; then
-      exit ${code}
     fi
 
     if [ "$depth" -gt 0 ]; then

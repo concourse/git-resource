@@ -65,29 +65,39 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   all tags in the repository. If `false` no tags will be fetched.
 
 * `submodule_credentials`: *Optional.* List of credentials for HTTP(s) or SSH auth when pulling git submodules which are not stored in the same git server as the container repository or are protected by a different private key.
-  * http(s) credentials
+  * http(s) credentials:
     * `host` : The host to connect too. Note that `host` is specified with no protocol extensions.
     * `username` : Username for HTTP(S) auth when pulling submodule.
     * `password` : Password for HTTP(S) auth when pulling submodule.
-  * ssh credentials
+  * ssh credentials:
+    * `url` : Submodule url, as specified in the `.gitmodule` file. Support full or relative ssh url.
     * `private_key` : Private key for SSH auth when pulling submodule.
     * `private_key_passphrase` : *Optional.* To unlock `private_key` if it is protected by a passphrase.
-
+  * exemple:
     ```yaml
     submodule_credentials:
-    # http(s) credentials
+      # http(s) credentials
     - host: github.com
       username: git-user
       password: git-password
-    # ssh credentials
-    - private_key: |
+      # ssh credentials
+    - url: git@github.com:org-name/repo-name.git
+      private_key: |
         -----BEGIN RSA PRIVATE KEY-----
         MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
         <Lots more text>
         DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
         -----END RSA PRIVATE KEY-----
       private_key_passphrase: ssh-passphrase # (optionnal)
-    - <another-configuration>
+      # ssh credentials with relative url
+    - url: ../org-name/repo-name.git
+      private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
+        <Lots more text>
+        DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+        -----END RSA PRIVATE KEY-----
+      private_key_passphrase: ssh-passphrase # (optionnal)
     ```
 
 * `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
@@ -303,7 +313,7 @@ the case.
 
 * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
- * `.git/commit_timestamp`: For tagging builds with a timestamp.
+* `.git/commit_timestamp`: For tagging builds with a timestamp.
 
 * `.git/describe_ref`: Version reference detected and checked out. Can be templated with `describe_ref_options` parameter.
  By default, it will contain the `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`).
