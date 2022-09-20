@@ -513,6 +513,21 @@ it_skips_non_included_commits() {
   "
 }
 
+it_skips_all_non_included_commits() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit_to_future $repo "not skipped commit")
+  local ref3=$(make_commit $repo "not skipped commit 2")
+  local ref4=$(make_commit $repo "should skip this commit")
+  local ref5=$(make_commit $repo)
+
+  check_uri_with_filter $repo $ref1 "include" "[\"not\",\"skipped\", \"2\"]" "true"| jq -e "
+    . == [
+      {ref: $(echo $ref3 | jq -R .)}
+    ]
+  "
+}
+
 it_skips_excluded_commits_conventional() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)

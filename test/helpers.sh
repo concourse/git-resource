@@ -636,6 +636,7 @@ check_uri_with_filter() {
   local ref=$2
   local type=$3
   local value=$4
+  local all_match=${5:-"false"}
 
   jq -n "{
     source: {
@@ -643,7 +644,9 @@ check_uri_with_filter() {
       commit_filter: {
         $(echo $type | jq -R .): [
             $(echo $value | jq -R .)
-        ]
+        ],
+        $(echo $type"_all_match" | jq -R .): $(echo $all_match | jq -R .)
+
       }
     },
     version: {

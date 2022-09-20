@@ -28,9 +28,9 @@ git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // ""' <<< "$payload")
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
 filter_whitelist=$(jq -r '.source.commit_filter.include // []' <<< "$payload")
-filter_whitelist_match_all=$(jq -r '.source.commit_filter.include_match_all // false' <<< "$payload")
+filter_whitelist_match_all=$(jq -r '.source.commit_filter.include_all_match // false' <<< "$payload")
 filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' <<< "$payload")
-filter_blacklist_match_all=$(jq -r '.source.commit_filter.exclude_match_all // false' <<< "$payload")
+filter_blacklist_match_all=$(jq -r '.source.commit_filter.exclude_all_match // false' <<< "$payload")
 version_depth=$(jq -r '.source.version_depth // 1' <<< "$payload")
 reverse=false
 
@@ -87,7 +87,7 @@ if [ `echo $filter_whitelist | jq -r '. | length'` -gt 0 ]
 then
     list_command+=" | git rev-list --stdin --date-order  --first-parent --no-walk=unsorted "
     if [ "$filter_whitelist_match_all" = "true" ]; then
-      list_command+="--match-all"
+      list_command+="--all-match"
     fi
     whitelist_items=$(echo $filter_whitelist | jq -r -c '.[]')
     for wli in "$whitelist_items"
@@ -100,7 +100,7 @@ if [ `echo $filter_blacklist | jq -r '. | length'` -gt 0 ]
 then
     list_command+=" | git rev-list --stdin --date-order  --invert-grep --first-parent --no-walk=unsorted "
     if [ "$filter_blacklist_match_all" = "true" ]; then
-      list_command+="--match-all"
+      list_command+="--all-match"
     fi
     blacklist_items=$(echo $filter_blacklist | jq -r -c '.[]')
     for bli in "$blacklist_items"
