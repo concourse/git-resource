@@ -115,9 +115,11 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `commit_filter`: *Optional.* Object containing commit message filters
   * `exclude`: *Optional.* Array containing strings that should
     cause a commit to be skipped
+  * `exclude_match_all`: *Optional.* Boolean wheater it should match all the exclude filters "AND", default: false
   * `include`: *Optional.* Array containing strings that
     *MUST* be included in commit messages for the commit to not be
     skipped
+  * `include_match_all`: *Optional.* Boolean wheater it should match all the include filters "AND", default: false
 
   **Note**: *You must escape any regex sensitive characters, since the string is used as a regex filter.*  
   For example, using `[skip deploy]` or `[deploy skip]` to skip non-deployment related commits in a deployment pipeline:
