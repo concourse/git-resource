@@ -642,9 +642,7 @@ check_uri_with_filter() {
     source: {
       uri: $(echo $uri| jq -R .),
       commit_filter: {
-        $(echo $type | jq -R .): [
-            $(echo $value | jq -R .)
-        ],
+        $(echo $type | jq -R .): $(echo -en $value | jq -sR 'split("\n") | if type=="string" then [.]  else . end' ),
         $(echo $type"_all_match" | jq -R .): $(echo $all_match | jq -R .)
 
       }
