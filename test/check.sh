@@ -521,7 +521,7 @@ it_skips_all_non_included_commits() {
   local ref4=$(make_commit $repo "should skip this commit")
   local ref5=$(make_commit $repo)
 
-  check_uri_with_filter $repo $ref1 "include" "[\"not\",\"skipped\", \"2\"]" "true"| jq -e "
+  check_uri_with_filter $repo $ref1 "include" 'not\nskipped\n2' "true"| jq -e "
     . == [
       {ref: $(echo $ref3 | jq -R .)}
     ]
