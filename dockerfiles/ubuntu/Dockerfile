@@ -35,6 +35,7 @@ RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
 RUN git config --global pull.rebase "false"
+RUN git config --global protocol.file.allow "always"
 
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
