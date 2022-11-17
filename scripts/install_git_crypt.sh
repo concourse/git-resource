@@ -9,7 +9,7 @@ _main() {
   cd "$tmpdir"
   git clone https://github.com/AGWA/git-crypt.git
   cd git-crypt
-  git checkout tags/0.6.0
+  git checkout tags/0.7.0
   make
   make install
   cd ../..
