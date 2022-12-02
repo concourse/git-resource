@@ -267,6 +267,10 @@ correct key is provided set in `git_crypt_key`.
 
 * `describe_ref_options`: *Optional.* When populating `.git/describe_ref` use this options to call [`git describe`](https://git-scm.com/docs/git-describe). Defaults to `--always --dirty --broken`.
 
+* `all_branches`: *Optional.* If `true` the flag `--single-branch` will be excluded
+  and all branches will be fetched from the repository. If `false` or not specified,
+  only a single branch (either `source.branch` or the default branch) will be fetched.
+
 #### GPG signature verification
 
 If `commit_verification_keys` or `commit_verification_key_ids` is specified in

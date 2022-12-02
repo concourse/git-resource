@@ -726,6 +726,18 @@ get_uri_with_override_branch() {
   }" | ${resource_dir}/in "$4" | tee /dev/stderr
 }
 
+get_uri_with_all_branches() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .),
+    },
+    params: {
+      all_branches: \"true\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
 get_uri_with_git_crypt_key() {
   local git_crypt_key_path=$(git_crypt_fixture_key_path)
   local git_crypt_key_base64_encoded=$(cat $git_crypt_key_path | base64)
