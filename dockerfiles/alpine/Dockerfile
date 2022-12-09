@@ -170,16 +170,13 @@ RUN             rm -f \
 
 WORKDIR         /usr/bin
 RUN             rm -f \
-                    git \
                     git-cvsserver \
                     git-shell \
                     git-receive-pack \
                     git-upload-pack \
                     git-upload-archive &&\
-                ln -s ../libexec/git-core/git git &&\
-                ln -s ../libexec/git-core/git-shell git-shell &&\
-                ln -s ../libexec/git-core/git git-upload-archive &&\
-                ln -s ../libexec/git-core/git-upload-pack git-upload-pack
+                ln -s git git-upload-archive &&\
+                ln -s git git-crypt
 
 WORKDIR         /usr/libexec/git-core
 RUN             ln -s git git-merge
