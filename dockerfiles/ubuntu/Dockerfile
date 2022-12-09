@@ -1,10 +1,12 @@
-ARG base_image=ubuntu:bionic
+ARG base_image
 
 FROM ${base_image} AS resource
 
 RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
 RUN apt install -y --no-install-recommends \
     curl \
+    git \
+    git-lfs \
     gnupg \
     gzip \
     jq \
@@ -15,14 +17,6 @@ RUN apt install -y --no-install-recommends \
     openssh-client \
     libstdc++6 \
     software-properties-common
-
-RUN apt-add-repository ppa:git-core/ppa \
-  && apt update \
-  && apt install -y git \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-RUN apt install -y git-lfs
 
 WORKDIR /root
 RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
