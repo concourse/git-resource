@@ -82,6 +82,10 @@ if [ $force = "true" ]; then
 fi
 
 if [ -n "$override_branch" ]; then
+  if [ $(echo $override_branch | grep -c /) -gt 0 ] && [ -f $override_branch ]; then
+    echo "Override $branch with the content of file $override_branch" 
+    override_branch=$(cat $override_branch)
+  fi
   echo "Override $branch with $override_branch"
   branch=$override_branch
 fi
