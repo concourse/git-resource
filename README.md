@@ -119,7 +119,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     *MUST* be included in commit messages for the commit to not be
     skipped
 
-  **Note**: *You must escape any regex sensitive characters, since the string is used as a regex filter.*  
+  **Note**: *You must escape any regex sensitive characters, since the string is used as a regex filter.*
   For example, using `[skip deploy]` or `[deploy skip]` to skip non-deployment related commits in a deployment pipeline:
 
   ```yaml
@@ -312,6 +312,9 @@ and the `rebase` parameter is not provided, the push will fail.
 * `merge`: *Optional.* If pushing fails with non-fast-forward, continuously
   attempt to merge remote to local before pushing. Only one of `merge` or
   `rebase` can be provided, but not both.
+
+* `retries`: *Optional.* Limit the number of retries for `rebase` and `merge`.
+  Defaults to 10
 
 * `returning`: *Optional.* When passing the `merge` flag, specify whether the
   merge commit or the original, unmerged commit should be passed as the output

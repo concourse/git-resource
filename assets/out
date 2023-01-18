@@ -33,6 +33,7 @@ tag=$(jq -r '.params.tag // ""' <<< "$payload")
 tag_prefix=$(jq -r '.params.tag_prefix // ""' <<< "$payload")
 rebase=$(jq -r '.params.rebase // false' <<< "$payload")
 merge=$(jq -r '.params.merge // false' <<< "$payload")
+retries=$(jq -r '.params.retries // 10' <<< "$payload")
 returning=$(jq -r '.params.returning // "merged"' <<< "$payload")
 force=$(jq -r '.params.force // false' <<< "$payload")
 only_tag=$(jq -r '.params.only_tag // false' <<< "$payload")
@@ -162,7 +163,7 @@ if [ "$only_tag" = "true" ]; then
   tag
   push_tags
 elif [ "$merge" = "true" ]; then
-  while true; do
+  while [ $retries -gt 0 ]; do
     echo "merging..."
 
     git reset --hard $commit_to_push
@@ -179,9 +180,10 @@ elif [ "$merge" = "true" ]; then
     fi
 
     echo "merging and trying again..."
+    (( retries-=1 ))
   done
 elif [ "$rebase" = "true" ]; then
-  while true; do
+  while [ $retries -gt 0 ]; do
     echo "rebasing..."
 
     git fetch push-target "refs/notes/*:refs/notes/*"
@@ -196,6 +198,7 @@ elif [ "$rebase" = "true" ]; then
     fi
 
     echo "rebasing and trying again..."
+    (( retries-=1 ))
   done
 else
   tag
