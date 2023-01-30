@@ -322,6 +322,9 @@ and the `rebase` parameter is not provided, the push will fail.
 
 * `only_tag`: *Optional.* When set to 'true' push only the tags of a repo.
 
+* `options`: *Optional.* When not null, add it to the
+  [`--push-options`](https://git-scm.com/docs/git-push#Documentation/git-push.txt---push-optionltoptiongt).
+
 * `tag_prefix`: *Optional.* If specified, the tag read from the file will be
 prepended with this string. This is useful for adding `v` in front of
 version numbers.

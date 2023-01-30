@@ -36,6 +36,7 @@ merge=$(jq -r '.params.merge // false' <<< "$payload")
 returning=$(jq -r '.params.returning // "merged"' <<< "$payload")
 force=$(jq -r '.params.force // false' <<< "$payload")
 only_tag=$(jq -r '.params.only_tag // false' <<< "$payload")
+options=$(jq -r '.params.options // ""' <<< "$payload")
 annotation_file=$(jq -r '.params.annotate // ""' <<< "$payload")
 notes_file=$(jq -r '.params.notes // ""' <<< "$payload")
 override_branch=$(jq -r '.params.branch // ""' <<< "$payload")
@@ -105,17 +106,17 @@ tag() {
 }
 
 push_src_and_tags() {
-  git push --tags push-target HEAD:$refs_prefix/$branch $forceflag
+  git push ${options:+--push-options=${options}} --tags push-target HEAD:$refs_prefix/$branch $forceflag
 }
 
 push_tags() {
-  git push --tags push-target $forceflag
+  git push ${options:+--push-options=${options}} --tags push-target $forceflag
 }
 
 add_and_push_notes() {
   if [ -n "$notes_file" ]; then
     git notes add -F "../${notes_file}"
-    git push push-target refs/notes/*
+    git push ${options:+--push-options=${options}} push-target refs/notes/*
   fi
 }
 
