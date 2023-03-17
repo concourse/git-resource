@@ -20,6 +20,7 @@ configure_credentials "$payload"
 
 uri=$(jq -r '.source.uri // ""' <<< "$payload")
 branch=$(jq -r '.source.branch // ""' <<< "$payload")
+branch_pattern=$(jq -r '.source.branch_pattern // ""' <<< "$payload")
 paths="$(jq -r '(.source.paths // ["."])[]' <<< "$payload")" # those "'s are important
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' <<< "$payload")" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
@@ -44,7 +45,7 @@ else
 fi
 
 # We're just checking for commits; we don't ever need to fetch LFS files here!
-export GIT_LFS_SKIP_SMUDGE=1
+# export GIT_LFS_SKIP_SMUDGE=1
 
 if [ -d $destination ]; then
   cd $destination
@@ -53,10 +54,10 @@ if [ -d $destination ]; then
 else
   branchflag=""
   if [ -n "$branch" ]; then
-    branchflag="--branch $branch"
+    branchflag="--single-branch --branch $branch"
   fi
-
-  git clone --single-branch $uri $branchflag $destination $tagflag
+  
+  git clone $uri $branchflag $destination $tagflag
   cd $destination
 fi
 
@@ -167,6 +168,12 @@ elif [ -n "$tag_regex" ]; then
       get_commit $tag
     fi
   } | jq -s "map(.)" >&3
+elif [ -n "$branch_pattern" ]; then
+  git fetch --all
+  git branch --all \
+    | grep "$branch_pattern" \
+    | xargs -n 1 git rev-parse \
+    | jq -R '.' | jq -s "map({ref: .})" >&3
 else
   {
     set -f
