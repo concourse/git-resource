@@ -27,8 +27,8 @@ tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // ""' <<< "$payload")
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
-filter_whitelist=$(jq -r '.source.commit_filter.include // []' <<< "$payload")
-filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' <<< "$payload")
+filter_whitelist=$(jq '.source.commit_filter.include // []' <<< "$payload")
+filter_blacklist=$(jq '.source.commit_filter.exclude // []' <<< "$payload")
 version_depth=$(jq -r '.source.version_depth // 1' <<< "$payload")
 reverse=false
 
@@ -42,6 +42,16 @@ if [ -n "$tag_filter" ] || [ -n "$tag_regex" ] ; then
 else
   tagflag="--no-tags"
 fi
+
+for filter in "$filter_whitelist" "$filter_blacklist"
+do
+  if jq -e 'type != "array"' <<<"$filter"
+  then
+    echo 'invalid commit filter (expected array of strings)'
+    echo "$filter"
+    exit 1
+  fi
+done
 
 # We're just checking for commits; we don't ever need to fetch LFS files here!
 export GIT_LFS_SKIP_SMUDGE=1
@@ -81,7 +91,7 @@ else
 fi
 
 list_command="git rev-list --all --first-parent $log_range $paths_search"
-if [ `echo $filter_whitelist | jq -r '. | length'` -gt 0 ]
+if jq -e 'length > 0' <<<"$filter_whitelist"
 then
     list_command+=" | git rev-list --stdin --date-order  --first-parent --no-walk=unsorted "
     whitelist_items=$(echo $filter_whitelist | jq -r -c '.[]')
@@ -91,7 +101,7 @@ then
     done
 fi
 
-if [ `echo $filter_blacklist | jq -r '. | length'` -gt 0 ]
+if jq -e 'length > 0' <<<"$filter_blacklist"
 then
     list_command+=" | git rev-list --stdin --date-order  --invert-grep --first-parent --no-walk=unsorted "
     blacklist_items=$(echo $filter_blacklist | jq -r -c '.[]')
