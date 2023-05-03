@@ -27,8 +27,8 @@ tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // ""' <<< "$payload")
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
-filter_whitelist=$(jq '.source.commit_filter.include // []' <<< "$payload")
-filter_blacklist=$(jq '.source.commit_filter.exclude // []' <<< "$payload")
+filter_include=$(jq '.source.commit_filter.include // []' <<< "$payload")
+filter_exclude=$(jq '.source.commit_filter.exclude // []' <<< "$payload")
 version_depth=$(jq -r '.source.version_depth // 1' <<< "$payload")
 reverse=false
 
@@ -43,7 +43,7 @@ else
   tagflag="--no-tags"
 fi
 
-for filter in "$filter_whitelist" "$filter_blacklist"
+for filter in "$filter_include" "$filter_exclude"
 do
   if jq -e 'type != "array"' <<<"$filter"
   then
@@ -91,20 +91,20 @@ else
 fi
 
 list_command="git rev-list --all --first-parent $log_range $paths_search"
-if jq -e 'length > 0' <<<"$filter_whitelist"
+if jq -e 'length > 0' <<<"$filter_include"
 then
     list_command+=" | git rev-list --stdin --date-order  --first-parent --no-walk=unsorted "
-    whitelist_items=$(echo $filter_whitelist | jq -r -c '.[]')
+    whitelist_items=$(echo $filter_include | jq -r -c '.[]')
     for wli in "$whitelist_items"
     do
         list_command+=" --grep=\"$wli\""
     done
 fi
 
-if jq -e 'length > 0' <<<"$filter_blacklist"
+if jq -e 'length > 0' <<<"$filter_exclude"
 then
     list_command+=" | git rev-list --stdin --date-order  --invert-grep --first-parent --no-walk=unsorted "
-    blacklist_items=$(echo $filter_blacklist | jq -r -c '.[]')
+    blacklist_items=$(echo $filter_exclude | jq -r -c '.[]')
     for bli in "$blacklist_items"
     do
         list_command+=" --grep=\"$bli\""
