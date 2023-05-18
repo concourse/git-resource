@@ -158,8 +158,10 @@ add_git_metadata_url() {
 
     local url=""
     case $host in
-      *github* | *gitlab* | *gogs* )
+      *github* | *gogs* )
         url="https://${host}/${repo_path}/commit/${commit}" ;;
+      *gitlab*  )
+        url="https://${host}/${repo_path}/-/commit/${commit}" ;;
       *bitbucket* )
         url="https://${host}/${repo_path}/commits/${commit}";;
     esac

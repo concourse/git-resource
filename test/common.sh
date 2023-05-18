@@ -93,7 +93,7 @@ it_has_url_in_metadata_when_remote_is_likely_github_enterprise() {
 it_has_url_in_metadata_when_remote_is_gitlab() {
     local repo=$(init_repo)
     local ref=$(make_commit $repo "")
-    local expectedUrl="https://gitlab.com/myorg/mygroup/myrepo/commit/$ref"
+    local expectedUrl="https://gitlab.com/myorg/mygroup/myrepo/-/commit/$ref"
 
     # set a gitlab origin with nested groups
     cd $repo
