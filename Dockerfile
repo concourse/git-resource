@@ -191,7 +191,7 @@ ADD test/ /tests
 RUN /tests/all.sh
 
 FROM resource AS integrationtests
-RUN apt update && apt install -y squid
+RUN apt update && apt install -y net-tools squid
 ADD test/ /tests/test
 ADD integration-tests /tests/integration-tests
 RUN /tests/integration-tests/integration.sh
