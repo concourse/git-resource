@@ -365,11 +365,10 @@ environment is consistent across any `docker` enabled platform. When the docker
 image builds, the test are run inside the docker container, on failure they
 will stop the build.
 
-Run the tests with the following commands for both `alpine` and `ubuntu` images:
+Run the tests with the following command:
 
 ```sh
-docker build -t git-resource --target tests -f dockerfiles/alpine/Dockerfile .
-docker build -t registry-image-resource --target tests -f dockerfiles/ubuntu/Dockerfile --build-arg base_image=ubuntu:latest .
+docker build -t registry-image-resource --target tests --build-arg base_image=paketobuildpacks/run-jammy-base:latest .
 
 ```
 
