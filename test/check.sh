@@ -513,6 +513,21 @@ it_skips_non_included_commits() {
   "
 }
 
+it_skips_all_non_included_commits() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit_to_future $repo "not skipped commit")
+  local ref3=$(make_commit $repo "not skipped commit 2")
+  local ref4=$(make_commit $repo "should skip this commit")
+  local ref5=$(make_commit $repo)
+
+  check_uri_with_filter $repo $ref1 "include" 'not\nskipped\n2' "true"| jq -e "
+    . == [
+      {ref: $(echo $ref3 | jq -R .)}
+    ]
+  "
+}
+
 it_skips_excluded_commits_conventional() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -968,6 +983,7 @@ run it_skips_excluded_commits
 run it_skips_excluded_commits_conventional
 run it_skips_non_included_commits
 run it_skips_non_included_and_excluded_commits
+run it_skips_all_non_included_commits
 run it_does_not_skip_marked_commits_when_disable_skip_configured
 run it_fails_if_key_has_password_not_provided
 run it_can_unlock_key_with_password
@@ -999,4 +1015,3 @@ run it_checks_lastest_commit
 run it_can_check_a_repo_having_multiple_root_commits
 run it_checks_with_version_depth
 run it_checks_uri_with_tag_filter_and_version_depth
-
