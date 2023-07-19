@@ -313,6 +313,12 @@ and the `rebase` parameter is not provided, the push will fail.
   attempt to merge remote to local before pushing. Only one of `merge` or
   `rebase` can be provided, but not both.
 
+* `quiet`: *Optional.* supress push errors. Whether a push succeeds or not,
+  the `put` step in the concourse pipeline will always succeed. Mainly
+  intended to allow pushing repos in which you are not sure if a change
+  occured or not, as a consequence of operations performed by previous tasks,
+  without causing the job to break when there's nothing to push.
+
 * `returning`: *Optional.* When passing the `merge` flag, specify whether the
   merge commit or the original, unmerged commit should be passed as the output
   ref. Options are `merged` and `unmerged`. Defaults to `merged`.
