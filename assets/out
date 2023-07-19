@@ -41,6 +41,7 @@ notes_file=$(jq -r '.params.notes // ""' <<< "$payload")
 override_branch=$(jq -r '.params.branch // ""' <<< "$payload")
 # useful for pushing to special ref types like refs/for in gerrit.
 refs_prefix=$(jq -r '.params.refs_prefix // "refs/heads"' <<< "$payload")
+quiet=$(jq -r '.params.quiet // false' <<< "$payload")
 
 configure_git_global "${git_config_payload}"
 
@@ -175,7 +176,9 @@ elif [ "$merge" = "true" ]; then
     if [ "$result" = "0" ]; then
       break
     elif [ "$result" = "1" ]; then
-      exit 1
+      if [ "$quiet" != "true" ]; then
+        exit 1
+      fi
     fi
 
     echo "merging and trying again..."
@@ -192,7 +195,9 @@ elif [ "$rebase" = "true" ]; then
     if [ "$result" = "0" ]; then
       break
     elif [ "$result" = "1" ]; then
-      exit 1
+      if [ "$quiet" != "true" ]; then
+        exit 1
+      fi
     fi
 
     echo "rebasing and trying again..."
