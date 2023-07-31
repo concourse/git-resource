@@ -268,7 +268,7 @@ it_can_put_to_url_with_merge_commit() {
   local repo2=$src/repo
   git clone $repo1 $repo2
 
-  # make a commit that will require rebasing
+  # make a commit that will require merging
   local baseref=$(make_commit_to_file $repo1 some-other-file)
 
   local ref=$(make_commit $repo2)
@@ -296,6 +296,11 @@ it_can_put_to_url_with_merge_commit() {
   local latest_merge_ref=$(git -C $repo1 log -n 1 --merges --pretty=format:"%H")
 
   test $latest_merge_ref = $merged_ref
+
+  # confirm first parent correctly matches commit prior to merge
+  local first_parent_ref=$(git -C $repo1 log -n 1 HEAD^1 --pretty=format:"%H")
+
+  test $first_parent_ref = $baseref
 }
 
 it_chooses_the_unmerged_commit_ref() {

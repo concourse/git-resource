@@ -165,10 +165,10 @@ elif [ "$merge" = "true" ]; then
   while true; do
     echo "merging..."
 
-    git reset --hard $commit_to_push
+    git fetch push-target "refs/notes/*:refs/notes/*" $branch
 
-    git fetch push-target "refs/notes/*:refs/notes/*"
-    git pull --no-edit push-target $branch
+    git checkout push-target/$branch
+    git merge $commit_to_push
 
     result="0"
     push_with_result_check result
