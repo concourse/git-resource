@@ -55,8 +55,10 @@ else
   if [ -n "$branch" ]; then
     branchflag="--branch $branch"
   fi
-  logInfo "BEGIN opendoor/git-resource assets/check ... about to call clone"
-  git clone --single-branch $uri $branchflag $destination $tagflag
+	
+  depth=1
+  logInfo "BEGIN opendoor/git-resource assets/check ... about to call clone with depth : $depth"
+  git clone --depth=$depth --single-branch $uri $branchflag $destination $tagflag
   logInfo "AFTER opendoor/git-resource assets/check ... clone done"
   cd $destination
 fi

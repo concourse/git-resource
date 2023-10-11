@@ -36,7 +36,7 @@ branch=$(jq -r '.source.branch // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
 override_branch=$(jq -r '.version.branch // ""' <<< "$payload")
-depth=$(jq -r '(.params.depth // 0)' <<< "$payload")
+depth=$(jq -r '(.params.depth // 1)' <<< "$payload")
 fetch=$(jq -r '(.params.fetch // [])[]' <<< "$payload")
 submodules=$(jq -r '(.params.submodules // "all")' <<< "$payload")
 submodule_recursive=$(jq -r '(.params.submodule_recursive // true)' <<< "$payload")
@@ -94,8 +94,9 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-echo "Start cloning... with depthflag : $depthflag"
+logInfo "BEGIN opendoor/git-resource assets/in ... about to call clone with depth : $depth"
 git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
+logInfo "AFTER opendoor/git-resource assets/in ... clone done"
 
 cd $destination
 
