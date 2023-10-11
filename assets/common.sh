@@ -224,3 +224,8 @@ load_git_crypt_key() {
       cat $git_crypt_tmp_key_path | tr ' ' '\n' | base64 -d > $GIT_CRYPT_KEY_PATH
   fi
 }
+
+logInfo() {
+  message=$@
+  echo "<B>opendoor/git-resource INFO:</B> $message"
+}
