@@ -94,6 +94,7 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
+echo "Start cloning... with depthflag : $depthflag"
 git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
 
 cd $destination
