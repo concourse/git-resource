@@ -167,6 +167,7 @@ add_git_metadata_url() {
     esac
 
     if [ -n "$url" ]; then
+      url=$(echo $url | sed "s#https://.*\@#https://#")
       jq ". + [
         {name: \"url\", value: \"${url}\"}
       ]"
