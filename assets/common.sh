@@ -227,10 +227,18 @@ load_git_crypt_key() {
 
 logInfo() {
   GREEN='\033[0;32m'
-  RED='\033[0;31m'
   NC='\033[0m' # No Color
 
   message=$@
   printf "${GREEN}opendoor/git-resource INFO:${NC} $message\n"
 }
+
+logError() {
+  RED='\033[0;31m'
+  NC='\033[0m' # No Color
+
+  message=$@
+  printf "${GREEN}opendoor/git-resource ERROR:${NC} $message\n"
+}
+ 
  
