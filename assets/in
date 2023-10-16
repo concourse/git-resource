@@ -96,7 +96,7 @@ fi
 
 USE_GITHUBAPP=$(jq -r '.source.githubApp // ""' <<< $payload)
 export TOKEN
-if [ ! -z "$USE_GITHUBAPP" ]; then
+if [ -n "$USE_GITHUBAPP" ]; then
 	# https://josh-ops.com/posts/github-apps/
 	TOKEN=$(bash $(dirname $0)/getToken.sh <<< $payload)
 	uri=$(echo $uri | sed "s#https://#https://x-access-token:$TOKEN@#")
