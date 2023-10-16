@@ -36,7 +36,7 @@ branch=$(jq -r '.source.branch // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
 override_branch=$(jq -r '.version.branch // ""' <<< "$payload")
-depth=$(jq -r '(.params.depth // 0)' <<< "$payload")
+depth=$(jq -r '(.params.depth // 1)' <<< "$payload")
 fetch=$(jq -r '(.params.fetch // [])[]' <<< "$payload")
 submodules=$(jq -r '(.params.submodules // "all")' <<< "$payload")
 submodule_recursive=$(jq -r '(.params.submodule_recursive // true)' <<< "$payload")
@@ -94,7 +94,23 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
+USE_GITHUBAPP=$(jq -r '.source.githubApp // ""' <<< $payload)
+export TOKEN
+if [ -n "$USE_GITHUBAPP" ]; then
+	# https://josh-ops.com/posts/github-apps/
+	TOKEN=$(bash $(dirname $0)/getToken.sh <<< $payload)
+	uri=$(echo $uri | sed "s#https://#https://x-access-token:$TOKEN@#")
+fi
+
+logInfo "BEGIN opendoor/git-resource assets/in ... about to call clone with depth : $depth"
 git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
+logInfo "AFTER opendoor/git-resource assets/in ... clone done"
+
+# remaining rate limit
+if [ ! -z "$USE_GITHUBAPP" ]; then
+	rate_limit_json=$(curl https://api.github.com/rate_limit -H "Authorization: token $TOKEN" --silent)
+	logInfo rate limit remaining : $(echo $rate_limit_json | jq -r '.rate.remaining')
+fi
 
 cd $destination
 
@@ -232,3 +248,10 @@ jq -n "{
   version: {ref: $(echo $return_ref | jq -R .)},
   metadata: $metadata
 }" >&3
+
+# for debugging (i.e. fly intercept )
+#while [ true ];
+#do
+#	sleep 1000
+#done
+logInfo "Thanks for using opendoor's https://github.com/opendoor-labs/git-resource"

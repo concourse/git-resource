@@ -167,6 +167,7 @@ add_git_metadata_url() {
     esac
 
     if [ -n "$url" ]; then
+      url=$(echo $url | sed "s#https://.*\@#https://#")
       jq ". + [
         {name: \"url\", value: \"${url}\"}
       ]"
@@ -224,3 +225,21 @@ load_git_crypt_key() {
       cat $git_crypt_tmp_key_path | tr ' ' '\n' | base64 -d > $GIT_CRYPT_KEY_PATH
   fi
 }
+
+logInfo() {
+  GREEN='\033[0;32m'
+  NC='\033[0m' # No Color
+
+  message=$@
+  printf "${GREEN}opendoor/git-resource INFO:${NC} $message\n"
+}
+
+logError() {
+  RED='\033[0;31m'
+  NC='\033[0m' # No Color
+
+  message=$@
+  printf "${GREEN}opendoor/git-resource ERROR:${NC} $message\n"
+}
+ 
+ 

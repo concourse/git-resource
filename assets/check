@@ -55,8 +55,22 @@ else
   if [ -n "$branch" ]; then
     branchflag="--branch $branch"
   fi
-
-  git clone --single-branch $uri $branchflag $destination $tagflag
+	
+  depth=1
+  USE_GITHUBAPP=$(jq -r '.source.githubApp // ""' <<< $payload)
+  if [ ! -z "$USE_GITHUBAPP" ]; then
+    # https://josh-ops.com/posts/github-apps/
+    TOKEN=$(bash $(dirname $0)/getToken.sh <<< $payload)
+    uri=$(echo $uri | sed "s#https://#https://x-access-token:$TOKEN@#")
+  fi
+  logInfo "BEGIN opendoor/git-resource assets/check ... about to call clone with depth : $depth"
+  git clone --depth=$depth --single-branch $uri $branchflag $destination $tagflag
+  logInfo "AFTER opendoor/git-resource assets/check ... clone done"
+  # remaining rate limit
+  if [ ! -z "$USE_GITHUBAPP" ]; then
+    rate_limit_json=$(curl https://api.github.com/rate_limit -H "Authorization: token $TOKEN" --silent)
+    logInfo rate limit remaining : $(echo $rate_limit_json | jq -r '.rate.remaining')
+  fi
   cd $destination
 fi
 
@@ -174,3 +188,5 @@ else
     set +f
   } | jq -R '.' | jq -s "map({ref: .})" >&3
 fi
+
+logInfo "Thanks for using opendoor's https://github.com/opendoor-labs/git-resource"

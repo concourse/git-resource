@@ -17,7 +17,15 @@ RUN apt install -y --no-install-recommends \
     g++ \
     openssh-client \
     libstdc++6 \
-    software-properties-common
+    software-properties-common \
+    wget \
+    ca-certificates \
+    vim
+
+# From : https://github.com/totegamma/githubapps-content-resource/blob/master/Dockerfile
+RUN wget https://github.com/mike-engel/jwt-cli/releases/download/5.0.3/jwt-linux.tar.gz \
+ && tar -zxvf jwt-linux.tar.gz \
+ && mv jwt /usr/local/bin
 
 WORKDIR /root
 RUN git clone https://github.com/proxytunnel/proxytunnel.git && \
