@@ -30,6 +30,21 @@ skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
 filter_whitelist=$(jq -r '.source.commit_filter.include // []' <<< "$payload")
 filter_blacklist=$(jq -r '.source.commit_filter.exclude // []' <<< "$payload")
 version_depth=$(jq -r '.source.version_depth // 1' <<< "$payload")
+debug=$(jq -r '.source.od_advanced.debug // false' <<< "$payload")
+access_token_additional="$(jq -r '(.source.od_advanced.access_token_additional // ["."])[]' <<< "$payload")"
+# BEGIN NOT used ... just a placeholder for od_advanced
+min_remaining_threshold_before_using_access_token_additional="$(jq -r '(.source.od_advanced.min_remaining_threshold_before_using_access_token_additional // 200)' <<< "$payload")"
+datadog_api_key="$(jq -r '(.source.od_advanced.datadog_api_key // "")' <<< "$payload")"
+datadog_app_key="$(jq -r '(.source.od_advanced.datadog_app_key // "")' <<< "$payload")"
+# END NOT used
+
+# od_advanced
+logDebug $debug "payload :" $payload
+TOKEN="$(jq -r '(.source.od_advanced.access_token_additional[0] // "TOKEN_NOT_FOUND")' <<< "$payload")"
+logInfo "TOKEN : $(echo $TOKEN | cut -c -10)_REDACTED"
+# example of x-access-token : https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
+uri=$(addTokenToUri $uri $TOKEN)
+
 reverse=false
 
 configure_git_global "${git_config_payload}"
@@ -57,20 +72,13 @@ else
   fi
 	
   depth=1
-  USE_GITHUBAPP=$(jq -r '.source.githubApp // ""' <<< $payload)
-  if [ ! -z "$USE_GITHUBAPP" ]; then
-    # https://josh-ops.com/posts/github-apps/
-    TOKEN=$(bash $(dirname $0)/getToken.sh <<< $payload)
-    uri=$(echo $uri | sed "s#https://#https://x-access-token:$TOKEN@#")
-  fi
+
   logInfo "BEGIN opendoor/git-resource assets/check ... about to call clone with depth : $depth"
   git clone --depth=$depth --single-branch $uri $branchflag $destination $tagflag
   logInfo "AFTER opendoor/git-resource assets/check ... clone done"
   # remaining rate limit
-  if [ ! -z "$USE_GITHUBAPP" ]; then
-    rate_limit_json=$(curl https://api.github.com/rate_limit -H "Authorization: token $TOKEN" --silent)
-    logInfo rate limit remaining : $(echo $rate_limit_json | jq -r '.rate.remaining')
-  fi
+  rate_limit_json=$(curl https://api.github.com/rate_limit -H "Authorization: token $TOKEN" --silent)
+  logInfo rate limit remaining : $(echo $rate_limit_json | jq -r '.rate.remaining')
   cd $destination
 fi
 
