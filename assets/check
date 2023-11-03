@@ -48,16 +48,20 @@ export GIT_LFS_SKIP_SMUDGE=1
 
 if [ -d $destination ]; then
   cd $destination
-  git fetch $tagflag -f
-  git reset --hard FETCH_HEAD
+  git fetch origin $tagflag $branch -f
+  git reset --soft FETCH_HEAD
 else
   branchflag=""
   if [ -n "$branch" ]; then
     branchflag="--branch $branch"
   fi
 
-  git clone --single-branch $uri $branchflag $destination $tagflag
+  git clone --bare --single-branch $uri $branchflag $destination $tagflag
   cd $destination
+  # bare clones don't configure the refspec
+  if [ -n "$branch" ]; then
+    git remote set-branches --add origin $branch
+  fi
 fi
 
 if [ -n "$ref" ] && git cat-file -e "$ref"; then
