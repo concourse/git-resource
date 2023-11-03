@@ -56,7 +56,7 @@ else
     branchflag="--branch $branch"
   fi
 
-  git clone --bare --single-branch $uri $branchflag $destination $tagflag
+  git clone --bare --filter=blob:none --single-branch $uri $branchflag $destination $tagflag
   cd $destination
   # bare clones don't configure the refspec
   if [ -n "$branch" ]; then
