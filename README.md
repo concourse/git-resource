@@ -7,7 +7,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `uri`: *Required.* The location of the repository.
 
 * `branch`: The branch to track. This is *optional* if the resource is
-   only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
+   only used in `get` steps; however, it is *required* either here, or in the `put` step, when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
 
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
@@ -302,6 +302,19 @@ Push the checked-out reference to the source's URI and branch. All tags are
 also pushed to the source. If a fast-forward for the branch is not possible
 and the `rebase` parameter is not provided, the push will fail.
 
+#### Important note
+
+Due to the way [resources are cached in Concourse](https://medium.com/concourse-ci/concourse-resource-volume-caching-7f4eb73be1a6),
+any commits produced by the `put` step will appear in _ALL_ git resources with the
+_exact_ same `source` configuration across _ALL_ pipelines, across _ALL_ teams in the
+Concourse instance, even if the branch name in `put` step is different from the one
+specified `source.branch`.
+
+Therefore, it is recommended to use a separate git resource to use in the `put`
+steps, such that its configuration is different from all the git resources used
+in `get` steps. E.g. set `source.commit_filter.exclude` to something like
+`[ "this resource is used for pushing new changes" ]`.
+
 #### Parameters
 
 * `repository`: *Required.* The path of the repository to push to the source.
@@ -342,7 +355,8 @@ pushed regardless of the upstream state.
 
   Note that the version produced by the `put` step will be picked up by subsequent `get` steps
   even if the `branch` differs from the `branch` specified in the source.
-  To avoid this, you should use two resources of read-only and write-only.
+  To avoid this, you should use two resources of read-only and write-only with differing `source`
+  configurations. See [this note](#important-note) for further details.
 
 * `refs_prefix`: *Optional.* Allows pushing to refs other than heads. Defaults to `refs/heads`.
 
