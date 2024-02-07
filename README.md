@@ -6,8 +6,10 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 * `uri`: *Required.* The location of the repository.
 
-* `branch`: The branch to track. This is *optional* if the resource is
-   only used in `get` steps; however, it is *required* when used in a `put` step. If unset for `get`, the repository's default branch is used; usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
+* `branch`: The branch to track. This is *optional* if the resource is only
+   used in `get` steps; however, it is *required* when used in a `put` step.
+   If unset, `get` steps will checkout the repository's default branch;
+   usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
 
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
