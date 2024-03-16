@@ -166,6 +166,7 @@ if [ "$submodules" != "none" ]; then
       sed -e 's/^submodule\.\(.\+\)\.path$/\1/'
   } | while read submodule_name; do
     submodule_path="$(git config --file .gitmodules --get "submodule.${submodule_name}.path")"
+    submodule_url="$(git config --file .gitmodules --get "submodule.${submodule_name}.url")"
 
     if [ "$depth" -gt 0 ]; then
       git config "submodule.${submodule_name}.update" "!$bin_dir/deepen_shallow_clone_until_ref_is_found_then_check_out $depth"
@@ -176,7 +177,35 @@ if [ "$submodules" != "none" ]; then
       continue
     fi
 
-    git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
+    # check for ssh submodule_credentials
+    submodule_cred=$(jq --arg submodule_url "${submodule_url}" '.source.submodule_credentials // [] | [.[] | select(.url==$submodule_url)] | first // empty' <<< ${payload})
+
+    if [[ -z ${submodule_cred} ]]; then
+
+      # update normally
+      git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
+
+    else
+
+      # create or re-initialize ssh-agent
+      init_ssh_agent
+
+      private_key=$(jq -r '.private_key' <<< ${submodule_cred})
+      passphrase=$(jq -r '.private_key_passphrase // empty' <<< ${submodule_cred})
+
+      private_key_path=$(mktemp -t git-resource-submodule-private-key.XXXXXX)
+      echo "${private_key}" > ${private_key_path}
+      chmod 0600 ${private_key_path}
+
+      # add submodule private_key identity
+      SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh GIT_SSH_PRIVATE_KEY_PASS="$passphrase" DISPLAY= ssh-add $private_key_path > /dev/null
+
+      git submodule update --init --no-fetch $depthflag $submodule_parameters "$submodule_path"
+
+      # restore main ssh-agent (if needed)
+      load_pubkey "${payload}"
+
+    fi
 
     if [ "$depth" -gt 0 ]; then
       git config --unset "submodule.${submodule_name}.update"

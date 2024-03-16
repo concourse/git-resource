@@ -12,9 +12,10 @@ load_pubkey() {
   if [ -s $private_key_path ]; then
     chmod 0600 $private_key_path
 
-    eval $(ssh-agent) >/dev/null 2>&1
-    trap "kill $SSH_AGENT_PID" EXIT
-    SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh GIT_SSH_PRIVATE_KEY_PASS="$passphrase" DISPLAY= ssh-add $private_key_path >/dev/null
+    # create or re-initialize ssh-agent
+    init_ssh_agent
+
+    SSH_ASKPASS_REQUIRE=force SSH_ASKPASS=$(dirname $0)/askpass.sh GIT_SSH_PRIVATE_KEY_PASS="$passphrase" DISPLAY= ssh-add $private_key_path > /dev/null
 
     mkdir -p ~/.ssh
     cat > ~/.ssh/config <<EOF
@@ -33,6 +34,25 @@ EOF
     fi
     chmod 0600 ~/.ssh/config
   fi
+}
+
+init_ssh_agent() {
+
+  # validate if ssh-agent exist
+  set +e
+  ssh-add -l &> /dev/null
+  exit_code=$?
+  set -e
+  
+  if [[ ${exit_code} -eq 2 ]]; then
+    # ssh-agent does not exist, create ssh-agent
+    eval $(ssh-agent) > /dev/null 2>&1
+    trap "kill $SSH_AGENT_PID" EXIT
+  else
+    # ssh-agent exist, remove all identities
+    ssh-add -D &> /dev/null
+  fi
+
 }
 
 configure_https_tunnel() {
