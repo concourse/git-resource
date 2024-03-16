@@ -532,7 +532,7 @@ it_skips_excluded_commits_conventional() {
 }
 
 it_skips_non_included_and_excluded_commits() {
-local repo=$(init_repo)
+  local repo=$(init_repo)
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit $repo "not skipped commit")
   local ref3=$(make_commit $repo "not skipped sometimes")
@@ -543,6 +543,32 @@ local repo=$(init_repo)
       {ref: $(echo $ref2 | jq -R .)}
     ]
   "
+}
+
+it_rejects_filter_with_incorrect_format() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+
+  set +e
+  output=$(
+    jq --arg uri "$(init_repo)" \
+      --arg ref "$(make_commit "$repo")" \
+      -n '{
+      source: {
+        $uri,
+        commit_filter: {
+          include: "a string, not an array",
+        }
+      },
+      version: {
+        $ref
+      }
+    }' | ${resource_dir}/check | tee /dev/stderr
+  )
+  exit_code=$?
+  set -e
+
+  test $exit_code -ne 0
 }
 
 it_does_not_skip_marked_commits_when_disable_skip_configured() {
@@ -968,6 +994,7 @@ run it_skips_excluded_commits
 run it_skips_excluded_commits_conventional
 run it_skips_non_included_commits
 run it_skips_non_included_and_excluded_commits
+run it_rejects_filter_with_incorrect_format
 run it_does_not_skip_marked_commits_when_disable_skip_configured
 run it_fails_if_key_has_password_not_provided
 run it_can_unlock_key_with_password
@@ -999,4 +1026,3 @@ run it_checks_lastest_commit
 run it_can_check_a_repo_having_multiple_root_commits
 run it_checks_with_version_depth
 run it_checks_uri_with_tag_filter_and_version_depth
-

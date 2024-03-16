@@ -139,10 +139,7 @@ __run() {
   set +e
   attempts=10
   while (( attempts )); do
-    ( netstat -an | grep LISTEN | grep 3128 ) >/dev/null 2>&1
-    rc=$?
-
-    if [[ $rc == 0 ]]; then
+    if ss -ltn | grep -q 3128; then
       break
     else
       echo "Waiting for proxy to finish reconfiguring..."
