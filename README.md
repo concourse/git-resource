@@ -311,6 +311,8 @@ the case.
  the commit SHA-1 ref, but also the detected tag name when using `tag_filter` or
  `tag_regex`.
 
+* `.git/branch`: Name of the original branch that was cloned.
+
 * `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
 
 * `.git/commit_message`: For publishing the Git commit message on successful builds.

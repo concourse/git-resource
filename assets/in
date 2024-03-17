@@ -234,6 +234,9 @@ git --no-pager log -1 --pretty=format:"%an" > .git/committer_name
 # pulled ref in following tasks and resources.
 echo "${return_ref}" > .git/ref
 
+# Store original cloned branch in .git/branch
+git name-rev --name-only HEAD > .git/branch
+
 # Store short ref with templating. Useful to build Docker images with
 # a custom tag
 echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }" > .git/short_ref
