@@ -36,6 +36,32 @@ configure_git_global "${git_config_payload}"
 
 destination=$TMPDIR/git-resource-repo-cache
 
+# Optimization when last commit only is checked and skip ci is disabled
+# Get the commit id with git ls-remote instead of downloading the whole repo
+if [ "$skip_ci_disabled" = "true" ] && \
+   [ "$version_depth" = "1" ] && \
+   [ "$paths" = "." ] && \
+   [ -z "$ignore_paths" ] && \
+   [ -z "$tag_filter" ] && \
+   [ -z "$tag_regex" ] && \
+   jq -e 'length == 0' <<<"$filter_include" && \
+   jq -e 'length == 0' <<<"$filter_exclude"
+then
+  branchflag="HEAD"
+  if [ -n "$branch" ]; then
+    branchflag="$branch"
+  fi
+  commit=$(git ls-remote $uri $branchflag | awk 'NR<=1{print $1}')
+  if [ -z "$commit" ]; then
+    echo "No commit returned. Invalid branch?"
+    exit 1
+  fi
+  if [ -z "$ref" ] || [ "$ref" = "$commit" ]; then
+    echo $commit | jq -R '.' | jq -s "map({ref: .})" >&3
+    exit 0
+  fi
+fi
+
 tagflag=""
 if [ -n "$tag_filter" ] || [ -n "$tag_regex" ] ; then
   tagflag="--tags"
