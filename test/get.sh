@@ -729,6 +729,28 @@ it_can_get_returned_ref() {
     ( echo ".git/describe_ref does not match. Expected '${expected_describe_ref}', got '$(cat $dest/.git/describe_ref)'"; return 1 )
 }
 
+it_can_get_commit_branch() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo branch-a)
+  local ref2=$(make_commit $repo)
+
+  local dest=$TMPDIR/destination
+
+  get_uri $repo $dest
+
+  test -e $dest/.git/branch || ( echo ".git/branch does not exist."; return 1 )
+  test "$(cat $dest/.git/branch)" = "master" || \
+    ( echo ".git/branch does not match. Expected 'master', got '$(cat $dest/.git/branch)'"; return 1 )
+
+  rm -rf $dest
+
+  get_uri_at_branch $repo branch-a $dest
+
+  test -e $dest/.git/branch || ( echo ".git/branch does not exist."; return 1 )
+  test "$(cat $dest/.git/branch)" = "branch-a" || \
+    ( echo ".git/branch does not match. Expected 'branch-a', got '$(cat $dest/.git/branch)'"; return 1 )
+}
+
 it_can_get_commit_message() {
   local repo=$(init_repo)
   local commit_message='Awesome-commit-message'
@@ -916,6 +938,7 @@ run it_can_get_signed_commit_via_tag
 run it_can_get_signed_commit_via_tag_regex
 run it_can_get_committer_email
 run it_can_get_returned_ref
+run it_can_get_commit_branch
 run it_can_get_commit_message
 run it_can_get_commit_timestamps
 run it_decrypts_git_crypted_files
