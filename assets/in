@@ -32,7 +32,7 @@ configure_git_ssl_verification "$payload"
 configure_credentials "$payload"
 
 uri=$(jq -r '.source.uri // ""' <<< "$payload")
-branch=$(jq -r '.source.branch // ""' <<< "$payload")
+branch=$(jq -r '.params.branch // .source.branch // ""' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
 override_branch=$(jq -r '.version.branch // ""' <<< "$payload")
