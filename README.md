@@ -395,7 +395,7 @@ will stop the build.
 Run the tests with the following command:
 
 ```sh
-docker build -t registry-image-resource --target tests --build-arg base_image=paketobuildpacks/run-jammy-base:latest .
+docker build -t git-resource --target tests --build-arg base_image=paketobuildpacks/run-jammy-base:latest .
 
 ```
 
