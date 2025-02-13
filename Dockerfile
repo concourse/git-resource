@@ -32,9 +32,6 @@ RUN git config --global user.name "git"
 RUN git config --global pull.rebase "false"
 RUN git config --global protocol.file.allow "always"
 
-ADD assets/ /opt/resource/
-RUN chmod +x /opt/resource/*
-
 ENV CXXFLAGS -DOPENSSL_API_COMPAT=0x30000000L
 ADD scripts/install_git_crypt.sh install_git_crypt.sh
 RUN ./install_git_crypt.sh && rm ./install_git_crypt.sh
@@ -185,6 +182,9 @@ RUN             rm -rf \
 WORKDIR         /usr/lib
 RUN             rm -rf \
                     perl
+
+ADD assets/ /opt/resource/
+RUN chmod +x /opt/resource/*
 
 FROM resource AS tests
 ADD test/ /tests

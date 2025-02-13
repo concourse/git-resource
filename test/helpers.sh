@@ -636,14 +636,15 @@ check_uri_with_filter() {
   local ref=$2
   local type=$3
   local value=$4
+  local all_match=${5:-"false"}
 
   jq -n "{
     source: {
       uri: $(echo $uri| jq -R .),
       commit_filter: {
-        $(echo $type | jq -R .): [
-            $(echo $value | jq -R .)
-        ]
+        $(echo $type | jq -R .): $(echo -en $value | jq -sR 'split("\n") | if type=="string" then [.]  else . end' ),
+        $(echo $type"_all_match" | jq -R .): $(echo $all_match | jq -R .)
+
       }
     },
     version: {
