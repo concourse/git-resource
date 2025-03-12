@@ -75,7 +75,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     * `url` : Submodule url, as specified in the `.gitmodule` file. Support full or relative ssh url.
     * `private_key` : Private key for SSH auth when pulling submodule.
     * `private_key_passphrase` : *Optional.* To unlock `private_key` if it is protected by a passphrase.
-  * exemple:
+  * example:
     ```yaml
     submodule_credentials:
       # http(s) credentials
