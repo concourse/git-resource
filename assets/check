@@ -122,7 +122,6 @@ else
   paths_search=`echo "-- $paths $ignore_paths" | tr "\n\r" " "`
 fi
 
-set -x
 list_command="git rev-list --all --first-parent $log_range $paths_search"
 if jq -e 'length > 0' <<<"$filter_include"
 then
