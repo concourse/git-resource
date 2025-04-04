@@ -65,7 +65,10 @@ then
 fi
 
 tagflag=""
-if [ -n "$tag_filter" ] || [ -n "$tag_regex" ] ; then
+if [ -n "$tag_filter" ] && [ -n "$tag_regex" ] ; then
+  echo "Cannot provide both tag_filter and tag_regex"
+  exit 1
+elif [ -n "$tag_filter" ] || [ -n "$tag_regex" ] ; then
   tagflag="--tags"
 else
   tagflag="--no-tags"
@@ -174,44 +177,34 @@ then
     list_command+="| git rev-list --stdin --date-order  --first-parent --no-walk=unsorted --reverse"
 fi
 
-# If we are filtering by tags, build a list of tags that match the filter and store in a variable
-# "tags". We will later ensure we only output commits with those tags.
-if [ -n "$tag_filter" ]; then
-  if [ -n "$ref" ] && [ -n "$branch" ]; then
-    tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref --merged $branch)
-  elif [ -n "$ref" ]; then
-    tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
-  else
-    branch_flag=
-    if [ -n "$branch" ]; then
-      branch_flag="--merged $branch"
-    fi
-    tags=$(git tag --list "$tag_filter" --sort=creatordate $branch_flag | tail -$version_depth)
-  fi
-elif [ -n "$tag_regex" ]; then
-  if [ -n "$ref" ] && [ -n "$branch" ]; then
-    tags=$(git tag --list --sort=creatordate --contains $ref --merged $branch | grep -Ex "$tag_regex")
-  elif [ -n "$ref" ]; then
-    tags=$(git tag --list --sort=creatordate | grep -Ex "$tag_regex" | lines_including_and_after $ref)
-  else
-    branch_flag=
-    if [ -n "$branch" ]; then
-      branch_flag="--merged $branch"
-    fi
-    tags=$(git tag --list --sort=creatordate $branch_flag | grep -Ex "$tag_regex" | tail -$version_depth)
-  fi
-fi
-
 if [ -n "$tag_filter" ] || [ -n "$tag_regex" ]; then
-  # If we are filtering by tags, then only proceed if we actually found any tags earlier - if we
-  # didn't find any tags, there's nothing to output
+  # Create a suffix to "git tag" that will apply the tag filter
+  if [ -n "$tag_filter" ]; then
+    tag_filter_cmd="--list \"$tag_filter\""
+  elif [ -n "$tag_regex" ]; then
+    tag_filter_cmd="| grep -Ex \"$tag_regex\""
+  fi
+
+  # Build a list of tags refs (e.g. v1.0.0) that match the filter
+  if [ -n "$ref" ] && [ -n "$branch" ]; then
+    tags=$(git tag --sort=creatordate --contains $ref --merged $branch $tag_filter_cmd)
+  elif [ -n "$ref" ]; then
+    tags=$(git tag --sort=creatordate $tag_filter_cmd | lines_including_and_after $ref)
+  else
+    branch_flag=
+    if [ -n "$branch" ]; then
+      branch_flag="--merged $branch"
+    fi
+    tags=$(git tag --sort=creatordate $branch_flag $tag_filter_cmd | tail -$version_depth)
+  fi
+
+  # Only proceed if we actually found any tags
   if [ -n "$tags" ]; then
     for tag in "$tags"; do
-      # For each tag we found, check it is present in the output of list_command
-      # If it isn't, it doesn't pass one of the other filters and shouldn't be outputted
-
       # We turn the tag ref (e.g. v1.0.0) into the object name
       # (e.g. 1a410efbd13591db07496601ebc7a059dd55cfe9) and use grep to check it is in the output
+      # of list_command - if it isn't, it doesn't pass one of the other filters and shouldn't be
+      # outputted.
       commit=$(git rev-list -n 1 $tag)
       list_command+=" | grep -Fx \"$commit\""
       list_output=$(set -f; eval "$list_command"; set +f)
