@@ -103,14 +103,8 @@ else
 fi
 
 if [ -n "$ref" ] && git cat-file -e "$ref"; then
-  init_commit=$(git rev-list --max-parents=0 HEAD | tail -n 1)
-  if [ "${ref}" = "${init_commit}" ]; then
-    reverse=true
-    log_range="HEAD"
-  else
-    reverse=true
-    log_range="${ref}~1..HEAD"
-  fi
+  reverse=true
+  log_range="${ref}..HEAD"
 else
   log_range=""
   ref=""
@@ -180,6 +174,9 @@ if [ "$reverse" == "true" ]
 then
     list_command+="| git rev-list --stdin --date-order  --first-parent --no-walk=unsorted --reverse"
 fi
+
+#always include the ref in the output, but not more than once
+list_command+="| grep -v \"${ref}\" ; echo \"${ref}\""
 
 if [ -n "$tag_filter" ]; then
   {
