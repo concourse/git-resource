@@ -174,6 +174,8 @@ then
     list_command+="| git rev-list --stdin --date-order  --first-parent --no-walk=unsorted --reverse"
 fi
 
+# If we are filtering by tags, build a list of tags that match the filter and store in a variable
+# "tags". We will later ensure we only output commits with those tags.
 if [ -n "$tag_filter" ]; then
   if [ -n "$ref" ] && [ -n "$branch" ]; then
     tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref --merged $branch)
@@ -201,10 +203,16 @@ elif [ -n "$tag_regex" ]; then
 fi
 
 if [ -n "$tag_filter" ] || [ -n "$tag_regex" ]; then
+  # If we are filtering by tags, then only proceed if we actually found any tags earlier - if we
+  # didn't find any tags, there's nothing to output
   if [ -n "$tags" ]; then
     for tag in "$tags"; do
-      commit=$(git rev-list -n 1 $tag)
+      # For each tag we found, check it is present in the output of list_command
+      # If it isn't, it doesn't pass one of the other filters and shouldn't be outputted
 
+      # We turn the tag ref (e.g. v1.0.0) into the object name
+      # (e.g. 1a410efbd13591db07496601ebc7a059dd55cfe9) and use grep to check it is in the output
+      commit=$(git rev-list -n 1 $tag)
       list_command+=" | grep -Fx \"$commit\""
       list_output=$(set -f; eval "$list_command"; set +f)
       list_output_lines=$(echo "$list_output" | wc -l)
