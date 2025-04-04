@@ -504,6 +504,21 @@ check_uri_with_tag_filter() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_tag_and_path_filter() {
+  local uri=$1
+  local tag_filter=$2
+
+  shift 2
+
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .),
+      tag_filter: $(echo $tag_filter | jq -R .),
+      paths: $(echo "$@" | jq -R '. | split(" ")')
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_with_tag_regex() {
   local uri=$1
   local tag_regex=$2

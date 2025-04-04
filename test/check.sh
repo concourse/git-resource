@@ -644,6 +644,56 @@ it_can_check_with_tag_filter() {
   "
 }
 
+it_can_check_with_tag_and_path_filter() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_file $repo file-a)
+  local ref2=$(make_annotated_tag $repo "1.0-staging" "tag 1")
+  local ref3=$(make_commit_to_file $repo file-b)
+  local ref4=$(make_annotated_tag $repo "1.0-production" "tag 2")
+  local ref5=$(make_annotated_tag $repo "2.0-staging" "tag 3")
+  local ref6=$(make_commit_to_file $repo file-c)
+  local ref7=$(make_annotated_tag $repo "2.0-staging" "tag 5")
+  local ref8=$(make_commit_to_file $repo file-b)
+  local ref9=$(make_annotated_tag $repo "2.0-production" "tag 4")
+  local ref10=$(make_commit_to_file $repo file-c)
+
+  check_uri_with_tag_and_path_filter $repo "*-staging" file-c | jq -e "
+    . == [{ref: \"2.0-staging\", commit: \"$ref6\"}]
+  "
+
+  check_uri_with_tag_and_path_filter $repo "2.0-*" file-c | jq -e "
+    . == [{ref: \"2.0-staging\", commit: \"$ref6\"}]
+  "
+
+  check_uri_with_tag_and_path_filter $repo "*-staging" file-b | jq -e "
+    . == [{ref: \"2.0-staging\", commit: \"$ref3\"}]
+  "
+
+  check_uri_with_tag_and_path_filter $repo "*" file-b | jq -e "
+    . == [
+      {ref: \"1.0-production\", commit: \"$ref3\"},
+      {ref: \"2.0-staging\", commit: \"$ref3\"}
+    ]
+  "
+
+  check_uri_with_tag_and_path_filter $repo "*" file-b file-c | jq -e "
+    . == [
+      {ref: \"1.0-production\", commit: \"$ref3\"},
+      {ref: \"2.0-staging\", commit: \"$ref3\"},
+      {ref: \"2.0-staging\", commit: \"$ref6\"},
+      {ref: \"$ref10\"}
+    ]
+  "
+
+  check_uri_with_tag_and_path_filter $repo "*" file-f | jq -e "
+    . == []
+  "
+
+  check_uri_with_tag_and_path_filter $repo "4.0-*" file-c | jq -e "
+    . == []
+  "
+}
+
 it_can_check_with_tag_regex() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
@@ -1032,6 +1082,7 @@ run it_can_check_with_tag_filter_with_bogus_ref
 run it_can_check_with_tag_regex_with_bogus_ref
 run it_can_check_with_tag_filter_with_replaced_tags
 run it_can_check_with_tag_regex_with_replaced_tags
+run it_can_check_with_tag_and_path_filter
 run it_can_check_from_head_only_fetching_single_branch
 run it_can_check_and_set_git_config
 run it_can_check_from_a_ref_and_only_show_merge_commit
