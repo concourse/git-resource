@@ -103,14 +103,18 @@ else
 fi
 
 if [ -n "$ref" ] && git cat-file -e "$ref"; then
-  init_commit=$(git rev-list --max-parents=0 HEAD | tail -n 1)
-  if [ "${ref}" = "${init_commit}" ]; then
-    reverse=true
-    log_range="HEAD"
-  else
-    reverse=true
-    log_range="${ref}~1..HEAD"
-  fi
+  reverse=true
+  log_range="${ref}~1..HEAD"
+
+  # if ${ref} does not have parents, ${ref}~1 raises the error: "unknown revision or path not in the working tree"
+  # the initial commit in a branch will never have parents, but rarely, subsequent commits can also be parentless
+  orphan_commits=$(git rev-list --max-parents=0 HEAD)
+  for orphan_commit in ${orphan_commits}; do
+    if [ "${ref}" = "${orphan_commit}" ]; then
+      log_range="HEAD"
+      break
+    fi
+  done
 else
   log_range=""
   ref=""
