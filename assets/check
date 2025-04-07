@@ -238,15 +238,15 @@ if [ -n "$tag_filter" ] || [ -n "$tag_regex" ]; then
 
   # Build a list of tag refs (e.g. v1.0.0) that match the filter
   if [ -n "$ref" ] && [ -n "$branch" ]; then
-    tags=$(eval "git tag --sort=creatordate --contains $ref --merged $branch $tag_filter_cmd")
+    tags=$(set -f; eval "git tag --sort=creatordate --contains $ref --merged $branch $tag_filter_cmd"; set +f)
   elif [ -n "$ref" ]; then
-    tags=$(eval "git tag --sort=creatordate $tag_filter_cmd | lines_including_and_after $ref")
+    tags=$(set -f; eval "git tag --sort=creatordate $tag_filter_cmd | lines_including_and_after $ref"; set +f)
   else
     branch_flag=
     if [ -n "$branch" ]; then
       branch_flag="--merged $branch"
     fi
-    tags=$(eval "git tag --sort=creatordate $branch_flag $tag_filter_cmd")
+    tags=$(set -f; eval "git tag --sort=creatordate $branch_flag $tag_filter_cmd"; set +f)
   fi
 
   # Only proceed if we actually found any tags
