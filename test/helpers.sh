@@ -267,7 +267,7 @@ make_annotated_tag() {
   git -C $repo describe --tags --abbrev=0
 
   if [ "$wait" == true ]; then
-    # Ensure creation date difference between tags
+    # Ensure creation date difference between tags - git does not sort with sub-second accuracy.
     sleep 1
   fi
 }
