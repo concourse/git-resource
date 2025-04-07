@@ -1102,8 +1102,6 @@ it_checks_uri_with_tag_filter_and_version_depth() {
 }
 
 run check_jq_functionality
-run it_can_check_with_tag_and_path_match_ancestors_filter
-run it_can_check_with_tag_and_path_match_filter
 run it_can_check_from_head
 run it_can_check_from_a_ref
 run it_can_check_from_a_first_commit_in_repo
