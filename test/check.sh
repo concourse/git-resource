@@ -708,31 +708,26 @@ it_can_check_with_tag_and_path_match_ancestors_filter() {
   local ref9=$(make_annotated_tag $repo "2.0-production" "tag 4" true)
   local ref10=$(make_commit_to_file $repo file-c)
 
-  echo "========1"
   # ref10 is the most recent to modify file-c, but the latest 2* tag is before it. Therefore ref6 matches.
   check_uri_with_tag_and_path_filter $repo "2*" "match_tag_ancestors" file-c | jq -e "
     . == [{ref: \"$ref6\"}]
   "
 
-  echo "========2"
   # ref3 is the most recent commit to modify file-b, and following commits have -staging tags
   check_uri_with_tag_and_path_filter $repo "*-staging" "match_tag_ancestors" file-b | jq -e "
     . == [{ref: \"$ref3\"}]
   "
 
-  echo "========3"
   # although no 2.* tagged commits modified file-a, they follow on from commits that did
   check_uri_with_tag_and_path_filter $repo "2.*" "match_tag_ancestors" file-a | jq -e "
     . == [{ref: \"$ref1\"}]
   "
 
-  echo "========4"
   # no commits creating file-c are followed by 1.* tags
   check_uri_with_tag_and_path_filter $repo "1.*" "match_tag_ancestors" file-c | jq -e "
     . == []
   "
 
-  echo "========5"
   # Although multiple tagged commits modify the files, ref8 is the latest (and version_depth is default 1)
   check_uri_with_tag_and_path_filter $repo "*" "match_tag_ancestors" file-b file-c | jq -e "
     . == [
@@ -740,13 +735,11 @@ it_can_check_with_tag_and_path_match_ancestors_filter() {
     ]
   "
 
-  echo "========6"
   # file-f was never created
   check_uri_with_tag_and_path_filter $repo "*" "match_tag_ancestors" file-f | jq -e "
     . == []
   "
 
-  echo "========7"
   # no tags matching 4.0-*
   check_uri_with_tag_and_path_filter $repo "4.0-*" "match_tag_ancestors" file-c | jq -e "
     . == []
