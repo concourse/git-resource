@@ -568,11 +568,13 @@ check_uri_with_tag_filter_from() {
   local uri=$1
   local tag_filter=$2
   local ref=$3
+  local version_depth=${4:-1}
 
   jq -n "{
     source: {
       uri: $(echo $uri | jq -R .),
-      tag_filter: $(echo $tag_filter | jq -R .)
+      tag_filter: $(echo $tag_filter | jq -R .),
+      version_depth: $(echo $version_depth | jq -R .)
     },
     version: {
       ref: $(echo $ref | jq -R .)
@@ -584,11 +586,13 @@ check_uri_with_tag_regex_from() {
   local uri=$1
   local tag_regex=$2
   local ref=$3
+  local version_depth=${4:-1}
 
   jq -n "{
     source: {
       uri: $(echo $uri | jq -R .),
-      tag_regex: $(echo $tag_regex | jq -R .)
+      tag_regex: $(echo $tag_regex | jq -R .),
+      version_depth: $(echo $version_depth | jq -R )
     },
     version: {
       ref: $(echo $ref | jq -R .)

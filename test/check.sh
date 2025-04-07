@@ -788,7 +788,7 @@ it_can_check_with_tag_filter_with_cursor() {
   local ref13=$(make_commit $repo)
 
   x=$(check_uri_with_tag_filter_from $repo "*-staging" "2.0-staging")
-  check_uri_with_tag_filter_from $repo "*-staging" "2.0-staging" | jq -e "
+  check_uri_with_tag_filter_from $repo "*-staging" "2.0-staging" 2 | jq -e "
     . == [{ref: \"2.0-staging\", commit: \"$ref5\"}, {ref: \"3.0-staging\", commit: \"$ref9\"}]
   "
 }
@@ -810,7 +810,7 @@ it_can_check_with_tag_regex_with_cursor() {
   local ref13=$(make_commit $repo)
 
   x=$(check_uri_with_tag_regex_from $repo ".*-staging" "2.0-staging")
-  check_uri_with_tag_regex_from $repo ".*-staging" "2.0-staging" | jq -e "
+  check_uri_with_tag_regex_from $repo ".*-staging" "2.0-staging" 2 | jq -e "
     . == [{ref: \"2.0-staging\", commit: \"$ref5\"}, {ref: \"3.0-staging\", commit: \"$ref9\"}]
   "
 }
@@ -874,7 +874,7 @@ it_can_check_with_tag_filter_over_all_branches_with_cursor() {
   local ref13=$(make_annotated_tag $repo "3.0-production" "tag 6")
   local ref14=$(make_commit_to_branch $repo branch-a)
 
-  check_uri_with_tag_filter_from $repo "*-staging" "2.0-staging" | jq -e "
+  check_uri_with_tag_filter_from $repo "*-staging" "2.0-staging" 2 | jq -e "
     . == [{ref: \"2.0-staging\", commit: \"$ref6\"}, {ref: \"3.0-staging\", commit: \"$ref10\"}]
   "
 }
@@ -896,7 +896,7 @@ it_can_check_with_tag_regex_over_all_branches_with_cursor() {
   local ref13=$(make_annotated_tag $repo "3.0-production" "tag 6")
   local ref14=$(make_commit_to_branch $repo branch-a)
 
-  check_uri_with_tag_regex_from $repo ".*-staging" "2.0-staging" | jq -e "
+  check_uri_with_tag_regex_from $repo ".*-staging" "2.0-staging" 2 | jq -e "
     . == [{ref: \"2.0-staging\", commit: \"$ref6\"}, {ref: \"3.0-staging\", commit: \"$ref10\"}]
   "
 }
