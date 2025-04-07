@@ -501,7 +501,7 @@ it_skips_non_included_commits() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit_to_future $repo "not skipped commit")
-  local ref3=$(make_commit $repo "not skipped commit 2")
+  local ref3=$(make_commit $repo "not skipped commit number_two")
   local ref4=$(make_commit $repo "should skip this commit")
   local ref5=$(make_commit $repo)
 
@@ -517,11 +517,11 @@ it_skips_all_non_included_commits() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit_to_future $repo "not skipped commit")
-  local ref3=$(make_commit $repo "not skipped commit 2")
+  local ref3=$(make_commit $repo "not skipped commit number_two")
   local ref4=$(make_commit $repo "should skip this commit")
   local ref5=$(make_commit $repo)
 
-  check_uri_with_filter $repo $ref1 "include" 'not\nskipped\n2' "true"| jq -e "
+  check_uri_with_filter $repo $ref1 "include" 'not\nskipped\nnumber_two' "true"| jq -e "
     . == [
       {ref: $(echo $ref3 | jq -R .)}
     ]
