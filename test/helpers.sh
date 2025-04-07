@@ -260,10 +260,16 @@ make_annotated_tag() {
   local repo=$1
   local tag=$2
   local msg=$3
+  local wait=${4:-false}
 
   git -C $repo tag -f -a "$tag" -m "$msg"
 
   git -C $repo describe --tags --abbrev=0
+
+  if [ "$wait" == true ]; then
+    # Ensure creation date difference between tags
+    sleep 1
+  fi
 }
 
 check_uri() {
@@ -499,7 +505,7 @@ check_uri_with_tag_filter() {
   jq -n "{
     source: {
       uri: $(echo $uri | jq -R .),
-      tag_filter: $(echo $tag_filter | jq -R .)
+      tag_filter: $(echo "$tag_filter" | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
 }
@@ -507,13 +513,15 @@ check_uri_with_tag_filter() {
 check_uri_with_tag_and_path_filter() {
   local uri=$1
   local tag_filter=$2
+  local tag_behaviour=$3
 
-  shift 2
+  shift 3
 
   jq -n "{
     source: {
       uri: $(echo $uri | jq -R .),
-      tag_filter: $(echo $tag_filter | jq -R .),
+      tag_filter: $(echo "$tag_filter" | jq -R .),
+      tag_behaviour: $(echo "$tag_behaviour" | jq -R .),
       paths: $(echo "$@" | jq -R '. | split(" ")')
     }
   }" | ${resource_dir}/check | tee /dev/stderr

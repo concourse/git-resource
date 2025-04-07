@@ -24,6 +24,7 @@ paths="$(jq -r '(.source.paths // ["."])[]' <<< "$payload")" # those "'s are imp
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' <<< "$payload")" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
 tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
+tag_behaviour=$(jq -r '.source.tag_behaviour // "match_tagged"' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // ""' <<< "$payload")
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
@@ -74,6 +75,11 @@ else
   tagflag="--no-tags"
 fi
 
+if [ "$tag_behaviour" != "match_tagged" ] && [ "$tag_behaviour" != "match_tag_ancestors" ]; then
+  echo "Invalid tag_behaviour"
+  exit 1
+fi
+
 for filter in "$filter_include" "$filter_exclude"
 do
   if jq -e 'type != "array"' <<<"$filter"
@@ -83,6 +89,11 @@ do
     exit 1
   fi
 done
+
+if [ "$version_depth" -le 0 ]; then
+  echo "Invalid version_depth"
+  exit 1
+fi
 
 # We're just checking for commits; we don't ever need to fetch LFS files here!
 export GIT_LFS_SKIP_SMUDGE=1
@@ -177,6 +188,46 @@ then
     list_command+="| git rev-list --stdin --date-order  --first-parent --no-walk=unsorted --reverse"
 fi
 
+get_tags_matching_filter() {
+  local list_command=$1
+  local tags=$2
+  for tag in $tags; do
+    # We turn the tag ref (e.g. v1.0.0) into the object name
+    # (e.g. 1a410efbd13591db07496601ebc7a059dd55cfe9) and use grep to check it is in the output
+    # of list_command - if it isn't, it doesn't pass one of the other filters and shouldn't be
+    # outputted.
+    local commit=$(git rev-list -n 1 $tag)
+    local this_list_command="$list_command | grep -cFx \"$commit\""
+    local list_output="$(set -f; eval "$this_list_command"; set +f)"
+    if [ "$list_output" -ge 1 ]; then
+      jq -cn '{ref: $tag, commit: $commit}' --arg tag $tag --arg commit $commit
+    fi
+  done
+}
+
+get_tags_match_ancestors_filter() {
+  local list_command=$1
+  local tags=$2
+
+  # Sort commits so that we look at the oldest commits first
+  local this_list_command="$list_command | git rev-list --stdin --date-order --first-parent --no-walk=unsorted --reverse"
+  local list_output="$(set -f; eval "$this_list_command"; set +f)"
+  for commit in $list_output; do
+    # Output the commit if it is an ancestor of any of the matching tags
+    local is_ancestor=false
+    for tag in $tags; do
+      tag_commit=$(git rev-list -n 1 $tag)
+      if [ "$tag_commit" == "$commit" ] || git merge-base --is-ancestor "$commit" "$tag_commit"; then
+        is_ancestor=true
+        break
+      fi
+    done
+    if [ "$is_ancestor" = true ]; then
+      jq -cn '{ref: $commit}' --arg commit $commit
+    fi
+  done
+}
+
 if [ -n "$tag_filter" ] || [ -n "$tag_regex" ]; then
   # Create a suffix to "git tag" that will apply the tag filter
   if [ -n "$tag_filter" ]; then
@@ -185,34 +236,28 @@ if [ -n "$tag_filter" ] || [ -n "$tag_regex" ]; then
     tag_filter_cmd="| grep -Ex \"$tag_regex\""
   fi
 
-  # Build a list of tags refs (e.g. v1.0.0) that match the filter
+  # Build a list of tag refs (e.g. v1.0.0) that match the filter
   if [ -n "$ref" ] && [ -n "$branch" ]; then
-    tags=$(git tag --sort=creatordate --contains $ref --merged $branch $tag_filter_cmd)
+    tags=$(eval "git tag --sort=creatordate --contains $ref --merged $branch $tag_filter_cmd")
   elif [ -n "$ref" ]; then
-    tags=$(git tag --sort=creatordate $tag_filter_cmd | lines_including_and_after $ref)
+    tags=$(eval "git tag --sort=creatordate $tag_filter_cmd | lines_including_and_after $ref")
   else
     branch_flag=
     if [ -n "$branch" ]; then
       branch_flag="--merged $branch"
     fi
-    tags=$(git tag --sort=creatordate $branch_flag $tag_filter_cmd | tail -$version_depth)
+    tags=$(eval "git tag --sort=creatordate $branch_flag $tag_filter_cmd")
   fi
 
   # Only proceed if we actually found any tags
   if [ -n "$tags" ]; then
-    for tag in "$tags"; do
-      # We turn the tag ref (e.g. v1.0.0) into the object name
-      # (e.g. 1a410efbd13591db07496601ebc7a059dd55cfe9) and use grep to check it is in the output
-      # of list_command - if it isn't, it doesn't pass one of the other filters and shouldn't be
-      # outputted.
-      commit=$(git rev-list -n 1 $tag)
-      list_command+=" | grep -Fx \"$commit\""
-      list_output=$(set -f; eval "$list_command"; set +f)
-      list_output_lines=$(echo "$list_output" | wc -l)
-      if [ $list_output_lines -eq 1 ]; then
-        jq -n '{ref: $tag, commit: $commit}' --arg tag $tag --arg commit $commit
-      fi
-    done
+    if [ "$tag_behaviour" == "match_tagged" ]; then
+      get_tags_matching_filter "$list_command" "$tags" | tail "-$version_depth" | jq -s "map(.)" >&3
+    else
+      get_tags_match_ancestors_filter "$list_command" "$tags" | tail "-$version_depth" | jq -s "map(.)" >&3
+    fi
+  else
+    jq -n "[]" >&3
   fi
 else
   {
