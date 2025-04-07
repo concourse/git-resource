@@ -956,6 +956,28 @@ it_can_check_a_repo_having_multiple_root_commits() {
   "
 }
 
+it_can_check_a_repo_having_multiple_root_commits_from_the_orphan_commit() {
+  local repo=$(init_repo)
+  local ref1=$(get_initial_ref $repo)
+  local ref2=$(make_commit $repo)
+
+  # Same as above, but where the current version is the orphan commit.
+  git -C $repo checkout --orphan temp $ref2
+  git -C $repo commit -m "second root" --allow-empty
+  git -C $repo checkout master
+  git -C $repo merge temp --allow-unrelated-histories -m "merge commit"
+  second_root=$(git -C $repo rev-parse HEAD^2)
+  ref3=$(git -C $repo rev-parse HEAD)
+
+  check_uri_from $repo $second_root | jq -e "
+    . == [
+      {ref: $(echo $ref1 | jq -R .)},
+      {ref: $(echo $ref2 | jq -R .)},
+      {ref: $(echo $ref3 | jq -R .)}
+    ]
+  "
+}
+
 it_checks_with_version_depth() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_future $repo)
@@ -1040,5 +1062,6 @@ run it_can_check_with_tag_filter_given_branch_first_ref
 run it_can_check_with_tag_regex_given_branch_first_ref
 run it_checks_lastest_commit
 run it_can_check_a_repo_having_multiple_root_commits
+run it_can_check_a_repo_having_multiple_root_commits_from_the_orphan_commit
 run it_checks_with_version_depth
 run it_checks_uri_with_tag_filter_and_version_depth
