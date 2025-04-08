@@ -46,8 +46,8 @@ if [ "$skip_ci_disabled" = "true" ] && \
    [ -z "$ignore_paths" ] && \
    [ -z "$tag_filter" ] && \
    [ -z "$tag_regex" ] && \
-   jq -e 'length == 0' <<<"$filter_include" && \
-   jq -e 'length == 0' <<<"$filter_exclude"
+   jq -e 'length == 0' <<<"$filter_include" &>/dev/null && \
+   jq -e 'length == 0' <<<"$filter_exclude" &>/dev/null
 then
   branchflag="HEAD"
   if [ -n "$branch" ]; then
@@ -73,7 +73,7 @@ fi
 
 for filter in "$filter_include" "$filter_exclude"
 do
-  if jq -e 'type != "array"' <<<"$filter"
+  if jq -e 'type != "array"' <<<"$filter" &>/dev/null
   then
     echo 'invalid commit filter (expected array of strings)'
     echo "$filter"
@@ -127,7 +127,7 @@ else
 fi
 
 list_command="git rev-list --all --first-parent $log_range $paths_search"
-if jq -e 'length > 0' <<<"$filter_include"
+if jq -e 'length > 0' <<<"$filter_include" &>/dev/null
 then
     list_command+=" | git rev-list --stdin --date-order  --first-parent --no-walk=unsorted "
     include_items=$(echo $filter_include | jq -r -c '.[]')
@@ -140,7 +140,7 @@ then
     fi
 fi
 
-if jq -e 'length > 0' <<<"$filter_exclude"
+if jq -e 'length > 0' <<<"$filter_exclude" &>/dev/null
 then
     list_command+=" | git rev-list --stdin --date-order --invert-grep --first-parent --no-walk=unsorted "
     exclude_items=$(echo $filter_exclude | jq -r -c '.[]')
