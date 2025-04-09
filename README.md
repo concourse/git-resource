@@ -63,6 +63,8 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
   compatible (extended matching enabled, matches entire lines only). Ignored if
   `tag_filter` is also specified.
 
+* `tag_behaviour`: *Optional.* If `match_tagged` (the default), then the resource will only detect commits that are tagged with a tag matching `tag_regex` and `tag_filter`, and match all other filters. If `match_tag_ancestors`, then the resource will only detect commits matching all other filters and that are ancestors of a commit that are tagged with a tag matching `tag_regex` and `tag_filter`.
+
 * `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
   all tags in the repository. If `false` no tags will be fetched.
 
@@ -146,7 +148,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     skipped
   * `include_all_match`: *Optional.* Boolean wheater it should match all the include filters "AND", default: false
 
-  **Note**: *You must escape any regex sensitive characters, since the string is used as a regex filter.*  
+  **Note**: *You must escape any regex sensitive characters, since the string is used as a regex filter.*
   For example, using `[skip deploy]` or `[deploy skip]` to skip non-deployment related commits in a deployment pipeline:
 
   ```yaml
@@ -397,7 +399,7 @@ will stop the build.
 Run the tests with the following command:
 
 ```sh
-docker build -t git-resource --target tests --build-arg base_image=paketobuildpacks/run-jammy-base:latest .
+docker build -t git-resource --target tests --build-arg base_image=paketobuildpacks/run-noble-base:latest .
 
 ```
 
