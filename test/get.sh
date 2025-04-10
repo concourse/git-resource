@@ -295,7 +295,7 @@ it_does_not_enter_an_infinite_loop_if_the_ref_cannot_be_found_and_depth_is_set()
   echo $output $exit_code
   test "${exit_code}" = 128
   echo "${output}" | grep "Reached max depth of the origin repo while deepening the shallow clone, it's a deep clone now"
-  echo "${output}" | grep "fatal: reference is not a tree: $ref2"
+  echo "${output}" | grep "fatal: unable to read tree (${ref2})"
 }
 
 it_can_use_submodules_with_names_that_arent_paths() {
@@ -448,7 +448,7 @@ it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule() {
   echo $output $exit_code
   test "${exit_code}" \!= 0
   echo "${output}" | grep "Reached max depth of the origin repo while deepening the shallow clone, it's a deep clone now"
-  echo "${output}" | grep "fatal: reference is not a tree: $submodule_last_commit_id"
+  echo "${output}" | grep "fatal: unable to read tree (${submodule_last_commit_id})"
 }
 
 it_honors_the_parameter_flags_for_submodules() {
@@ -890,7 +890,7 @@ it_can_get_from_url_at_branch_with_search_remote_refs() {
 
   echo $output $exit_code
   test "${exit_code}" = 128
-  echo "$output" | grep "fatal: reference is not a tree: "
+  echo "$output" | grep "fatal: unable to read tree ("
   test -e $dest/some-file
   test "$(git -C $dest rev-parse HEAD)" != $ref2
 
