@@ -76,7 +76,7 @@ else
 fi
 
 if [ "$tag_behaviour" != "match_tagged" ] && [ "$tag_behaviour" != "match_tag_ancestors" ]; then
-  echo "Invalid tag_behaviour"
+  echo "Invalid tag_behaviour. Must be one of 'match_tagged' or 'match_tag_ancestors'."
   exit 1
 fi
 
@@ -91,7 +91,7 @@ do
 done
 
 if [ "$version_depth" -le 0 ]; then
-  echo "Invalid version_depth"
+  echo "Invalid version_depth. Must be <= 0."
   exit 1
 fi
 
