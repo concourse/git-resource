@@ -24,6 +24,7 @@ paths="$(jq -r '(.source.paths // ["."])[]' <<< "$payload")" # those "'s are imp
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' <<< "$payload")" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
 tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
+tag_behaviour=$(jq -r '.source.tag_behaviour // "match_tagged"' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // ""' <<< "$payload")
 skip_ci_disabled=$(jq -r '.source.disable_ci_skip // false' <<< "$payload")
@@ -65,10 +66,18 @@ then
 fi
 
 tagflag=""
-if [ -n "$tag_filter" ] || [ -n "$tag_regex" ] ; then
+if [ -n "$tag_filter" ] && [ -n "$tag_regex" ] ; then
+  echo "Cannot provide both tag_filter and tag_regex"
+  exit 1
+elif [ -n "$tag_filter" ] || [ -n "$tag_regex" ] ; then
   tagflag="--tags"
 else
   tagflag="--no-tags"
+fi
+
+if [ "$tag_behaviour" != "match_tagged" ] && [ "$tag_behaviour" != "match_tag_ancestors" ]; then
+  echo "Invalid tag_behaviour. Must be one of 'match_tagged' or 'match_tag_ancestors'."
+  exit 1
 fi
 
 for filter in "$filter_include" "$filter_exclude"
@@ -80,6 +89,11 @@ do
     exit 1
   fi
 done
+
+if [ "$version_depth" -le 0 ]; then
+  echo "Invalid version_depth. Must be <= 0."
+  exit 1
+fi
 
 # We're just checking for commits; we don't ever need to fetch LFS files here!
 export GIT_LFS_SKIP_SMUDGE=1
@@ -167,58 +181,88 @@ lines_including_and_after() {
   sed -ne "/$escaped_string/,$ p"
 }
 
-get_commit(){
-  for tag in $*; do
-    commit=$(git rev-list -n 1 $tag)
-    jq -n '{ref: $tag, commit: $commit}' --arg tag $tag --arg commit $commit
-  done
-}
-
 #if no range is selected just grab the last commit that fits the filter
-if [ -z "$log_range" ]
+if [ -z "$log_range" ] && [ -z "$tag_filter" ] && [ -z "$tag_regex" ]
 then
     list_command+="| git rev-list --stdin --date-order --no-walk=unsorted -$version_depth --reverse"
 fi
 
-if [ "$reverse" == "true" ]
+if [ "$reverse" == "true" ] && [ -z "$tag_filter" ] && [ -z "$tag_regex" ]
 then
     list_command+="| git rev-list --stdin --date-order  --first-parent --no-walk=unsorted --reverse"
 fi
 
-if [ -n "$tag_filter" ]; then
-  {
-    if [ -n "$ref" ] && [ -n "$branch" ]; then
-      tags=$(git tag --list "$tag_filter" --sort=creatordate --contains $ref --merged $branch)
-      get_commit $tags
-    elif [ -n "$ref" ]; then
-      tags=$(git tag --list "$tag_filter" --sort=creatordate | lines_including_and_after $ref)
-      get_commit $tags
-    else
-      branch_flag=
-      if [ -n "$branch" ]; then
-        branch_flag="--merged $branch"
-      fi
-      tag=$(git tag --list "$tag_filter" --sort=creatordate $branch_flag | tail -$version_depth)
-      get_commit $tag
+get_tags_matching_filter() {
+  local list_command=$1
+  local tags=$2
+  for tag in $tags; do
+    # We turn the tag ref (e.g. v1.0.0) into the object name
+    # (e.g. 1a410efbd13591db07496601ebc7a059dd55cfe9) and use grep to check it is in the output
+    # of list_command - if it isn't, it doesn't pass one of the other filters and shouldn't be
+    # outputted.
+    local commit=$(git rev-list -n 1 $tag)
+    local this_list_command="$list_command | grep -cFx \"$commit\""
+    local list_output="$(set -f; eval "$this_list_command"; set +f)"
+    if [ "$list_output" -ge 1 ]; then
+      jq -cn '{ref: $tag, commit: $commit}' --arg tag $tag --arg commit $commit
     fi
-  } | jq -s "map(.)" >&3
-elif [ -n "$tag_regex" ]; then
-  {
-    if [ -n "$ref" ] && [ -n "$branch" ]; then
-      tags=$(git tag --list --sort=creatordate --contains $ref --merged $branch | grep -Ex "$tag_regex")
-      get_commit $tags
-    elif [ -n "$ref" ]; then
-      tags=$(git tag --list --sort=creatordate | grep -Ex "$tag_regex" | lines_including_and_after $ref)
-      get_commit $tags
-    else
-      branch_flag=
-      if [ -n "$branch" ]; then
-        branch_flag="--merged $branch"
+  done
+}
+
+get_tags_match_ancestors_filter() {
+  local list_command=$1
+  local tags=$2
+
+  # Sort commits so that we look at the oldest commits first
+  local this_list_command="$list_command | git rev-list --stdin --date-order --first-parent --no-walk=unsorted --reverse"
+  local list_output="$(set -f; eval "$this_list_command"; set +f)"
+  for commit in $list_output; do
+    # Output the commit if it is an ancestor of any of the matching tags
+    local is_ancestor=false
+    for tag in $tags; do
+      tag_commit=$(git rev-list -n 1 $tag)
+      if [ "$tag_commit" == "$commit" ] || git merge-base --is-ancestor "$commit" "$tag_commit"; then
+        is_ancestor=true
+        break
       fi
-      tag=$(git tag --list --sort=creatordate $branch_flag | grep -Ex "$tag_regex" | tail -$version_depth)
-      get_commit $tag
+    done
+    if [ "$is_ancestor" = true ]; then
+      jq -cn '{ref: $commit}' --arg commit $commit
     fi
-  } | jq -s "map(.)" >&3
+  done
+}
+
+if [ -n "$tag_filter" ] || [ -n "$tag_regex" ]; then
+  # Create a suffix to "git tag" that will apply the tag filter
+  if [ -n "$tag_filter" ]; then
+    tag_filter_cmd="--list \"$tag_filter\""
+  elif [ -n "$tag_regex" ]; then
+    tag_filter_cmd="| grep -Ex \"$tag_regex\""
+  fi
+
+  # Build a list of tag refs (e.g. v1.0.0) that match the filter
+  if [ -n "$ref" ] && [ -n "$branch" ]; then
+    tags=$(set -f; eval "git tag --sort=creatordate --contains $ref --merged $branch $tag_filter_cmd"; set +f)
+  elif [ -n "$ref" ]; then
+    tags=$(set -f; eval "git tag --sort=creatordate $tag_filter_cmd | lines_including_and_after $ref"; set +f)
+  else
+    branch_flag=
+    if [ -n "$branch" ]; then
+      branch_flag="--merged $branch"
+    fi
+    tags=$(set -f; eval "git tag --sort=creatordate $branch_flag $tag_filter_cmd"; set +f)
+  fi
+
+  # Only proceed if we actually found any tags
+  if [ -n "$tags" ]; then
+    if [ "$tag_behaviour" == "match_tagged" ]; then
+      get_tags_matching_filter "$list_command" "$tags" | tail "-$version_depth" | jq -s "map(.)" >&3
+    else
+      get_tags_match_ancestors_filter "$list_command" "$tags" | tail "-$version_depth" | jq -s "map(.)" >&3
+    fi
+  else
+    jq -n "[]" >&3
+  fi
 else
   {
     set -f
