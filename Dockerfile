@@ -28,7 +28,7 @@ RUN apk --no-cache add \
     gpg \
     gpg-agent \
     jq \
-    openssh
+    openssh-client
 
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
@@ -55,6 +55,7 @@ ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
 
 FROM resource AS tests
+RUN apk --no-cache add cmd:ssh-keygen
 ADD test/ /tests
 RUN /tests/all.sh
 
