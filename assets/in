@@ -33,6 +33,7 @@ configure_credentials "$payload"
 
 uri=$(jq -r '.source.uri // ""' <<< "$payload")
 branch=$(jq -r '.source.branch // ""' <<< "$payload")
+sparse_paths="$(jq -r '(.source.sparse_paths // ["."])[]' <<< "$payload")" # those "'s are important
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // "HEAD"' <<< "$payload")
 override_branch=$(jq -r '.version.branch // ""' <<< "$payload")
@@ -89,14 +90,24 @@ elif [ -n "$tag_filter" ] || [ -n "$tag_regex" ] || [ "$fetch_tags" == "true" ] 
   tagflag="--tags"
 fi
 
+nocheckoutflag=""
+if [ "$sparse_paths" != "." ] && [ "$sparse_paths" != "" ]; then
+    nocheckoutflag=" --no-checkout"
+fi
+
 if [ "$disable_git_lfs" == "true" ]; then
   # skip the fetching of LFS objects for all following git commands
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination $tagflag
+git clone --single-branch $depthflag $uri $branchflag $destination $tagflag $nocheckoutflag
 
 cd $destination
+
+if [ "$sparse_paths" != "." ] && [ "$sparse_paths" != "" ]; then
+  git config core.sparseCheckout true
+  echo "$sparse_paths" >> ./.git/info/sparse-checkout
+fi
 
 git fetch origin refs/notes/*:refs/notes/* $tagflag
 
