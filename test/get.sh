@@ -91,6 +91,23 @@ it_can_get_from_url_at_override_branch() {
   test "$(git -C $dest rev-parse HEAD)" = $ref
 }
 
+it_can_get_from_url_with_sparse_paths() {
+   local repo=$(init_repo)
+   local ref1=$(make_commit_to_file $repo file-a)
+   local ref2=$(make_commit_to_file $repo file-b)
+   local dest=$TMPDIR/destination
+   local sparse_paths="file-a"
+
+   get_uri_with_sparse $repo $dest $sparse_paths | jq -e "
+    .version == {ref: $(echo $ref2 | jq -R .)}
+  "
+
+  test -e $dest/file-a
+  test ! -e $dest/file-b
+
+  test "$(git -C $dest rev-parse HEAD)" = $ref2
+}
+
 it_omits_empty_branch_in_metadata() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
@@ -916,6 +933,7 @@ run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
 run it_can_get_from_url_at_override_branch
+run it_can_get_from_url_with_sparse_paths
 run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata

@@ -1056,6 +1056,18 @@ get_uri_with_custom_timestamp() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_with_sparse() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      sparse_paths: $(echo "$@" | jq -R '. | split(" ")')
+    },
+    params: {
+      short_ref_format: \"test-%s\"
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
 put_uri() {
   jq -n "{
     source: {
