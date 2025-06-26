@@ -27,7 +27,7 @@ declare depth_from_ref=$((depth - 1))
 git_dir="$(git rev-parse --git-dir)"
 readonly git_dir
 
-while ! git checkout -q "$ref~$depth_from_ref" &>/dev/null; do
+while ! git checkout -f -q "$ref~$depth_from_ref" &>/dev/null; do
   # once the depth of a shallow clone reaches the max depth of the origin
   # repo, Git silenty turns it into a deep clone
   if [ ! -e "$git_dir"/shallow ]; then
@@ -51,4 +51,4 @@ while ! git checkout -q "$ref~$depth_from_ref" &>/dev/null; do
   (( total_depth += depth ))
 done
 
-git checkout -q "$ref"
+git checkout -f -q "$ref"
