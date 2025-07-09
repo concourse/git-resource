@@ -43,6 +43,11 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 * `paths`: *Optional.* If specified (as a list of glob patterns), only changes
   to the specified files will yield new versions from `check`.
 
+* `sparse_paths`: *Optional.* If specified (as a list of glob patterns), only
+    these paths will be checked out. Should be used with `paths` to only
+    trigger on desired paths. `paths` and `sparse_paths` may be the same or you
+    can configure `sparse_paths` to check out other paths.
+
 * `ignore_paths`: *Optional.* The inverse of `paths`; changes to the specified
   files are ignored.
 
