@@ -112,7 +112,7 @@ else
       echo "WARNING: couldn't find a ref for $ref listed on the remote"
     fi
   fi
-  git checkout -q "$ref"
+  git checkout -f -q "$ref"
 fi
 
 invalid_key() {
