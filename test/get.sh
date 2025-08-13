@@ -750,6 +750,7 @@ it_can_get_commit_branch() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
   local ref2=$(make_commit $repo)
+  local ref3=$(make_annotated_tag $repo "v1.1" "tag 1")
 
   local dest=$TMPDIR/destination
 
