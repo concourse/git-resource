@@ -16,7 +16,7 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
    If unset, `get` steps will checkout the repository's default branch;
    usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
 
-* `private_key`: *Optional.* Private key to use when pulling/pushing.
+* `private_key`: *Optional.* Private key to use when using an `ssh@` format `uri`.
     Example:
 
     ```yaml
