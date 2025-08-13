@@ -352,38 +352,90 @@ correct key is provided set in `git_crypt_key`.
 
 #### Parameters
 
-* `depth`: *Optional.* If a positive integer is given, *shallow* clone the
-  repository using the `--depth` option. To prevent newer commits that do
-  not pass a `paths` filter test from skewing the cloned history away from
-  `version.ref`, this resource will automatically deepen the clone until
-  `version.ref` is found again. It will deepen with exponentially increasing steps
-  until a maximum of 127 + `depth` commits or else resort to unshallow the repository.
-
-* `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
-  all tags in the repository. If `false` no tags will be fetched.
-
-  Will override `fetch_tags` source configuration if defined.
-
-* `submodules`: *Optional.* If `none`, submodules will not be
-  fetched. If specified as a list of paths, only the given paths will be
-  fetched. If not specified, or if `all` is explicitly specified, all
-  submodules are fetched.
-
-* `submodule_recursive`: *Optional.* If `false`, a flat submodules checkout is performed. If not specified, or if `true` is explicitly specified, a recursive checkout is performed.
-
-* `submodule_remote`: *Optional.* If `true`, the submodules are checked out for the specified remote branch specified in the `.gitmodules` file of the repository. If not specified, or if `false` is explicitly specified, the tracked sub-module revision of the repository is used to check out the submodules.
-
-* `disable_git_lfs`: *Optional.* If `true`, will not fetch Git LFS files.
-
-* `clean_tags`: *Optional.* If `true` all incoming tags will be deleted. This
-  is useful if you want to push tags, but have reasonable doubts that the tags
-  cached with the resource are outdated. The default value is `false`.
-
-* `short_ref_format`: *Optional.* When populating `.git/short_ref` use this `printf` format. Defaults to `%s`.
-
-* `timestamp_format`: *Optional.* When populating `.git/commit_timestamp` use this options to pass to [`git log --date`](https://git-scm.com/docs/git-log#Documentation/git-log.txt---dateltformatgt). Defaults to `iso8601`.
-
-* `describe_ref_options`: *Optional.* When populating `.git/describe_ref` use this options to call [`git describe`](https://git-scm.com/docs/git-describe). Defaults to `--always --dirty --broken`.
+<table>
+  <tr>
+    <th>Field Name</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>depth</code><br/><i>Optional</i></td>
+    <td>
+        If a positive integer is given, <i>shallow</i> clone the repository
+        using the <code>--depth</code> option. To prevent newer commits that do
+        not pass a <code>paths</code> filter test from skewing the cloned
+        history away from <code>version.ref</code>, this resource will
+        automatically deepen the clone until <code>version.ref</code> is found
+        again. It will deepen with exponentially increasing steps until a
+        maximum of 127 + <code>depth</code> commits or else resort to unshallow
+        the repository.
+    </td>
+  </tr>
+  <tr>
+    <td><code>fetch_tags</code><br/><i>Optional</i></td>
+    <td>
+      If <code>true</code> the flag <code>--tags</code> will be used to fetch all tags in the repository. If <code>false</code> no tags will be fetched.
+      <br/><br/>
+      Will override <code>fetch_tags</code> source configuration if defined.
+    </td>
+  </tr>
+  <tr>
+    <td><code>submodules</code><br/><i>Optional</i></td>
+    <td>
+        If <code>none</code>, submodules will not be fetched. If specified as a
+        list of paths, only the given paths will be fetched. If not specified,
+        or if <code>all</code> is explicitly specified, all submodules are
+        fetched.
+    </td>
+  </tr>
+  <tr>
+    <td><code>submodule_recursive</code><br/><i>Optional</i></td>
+    <td>If <code>false</code>, a flat submodules checkout is performed. If not specified, or if <code>true</code> is explicitly specified, a recursive checkout is performed.</td>
+  </tr>
+  <tr>
+    <td><code>submodule_remote</code><br/><i>Optional</i></td>
+    <td>
+        If <code>true</code>, the submodules are checked out for the specified
+        remote branch specified in the <code>.gitmodules</code> file of the
+        repository. If not specified, or if <code>false</code> is explicitly
+        specified, the tracked sub-module revision of the repository is used to
+        check out the submodules.
+    </td>
+  </tr>
+  <tr>
+    <td><code>disable_git_lfs</code><br/><i>Optional</i></td>
+    <td>If <code>true</code>, will not fetch Git LFS files.</td>
+  </tr>
+  <tr>
+    <td><code>clean_tags</code><br/><i>Optional</i></td>
+    <td>
+        If <code>true</code> all incoming tags will be deleted. This is useful
+        if you want to push tags, but have reasonable doubts that the tags
+        cached with the resource are outdated. The default value is
+        <code>false</code>.
+    </td>
+  </tr>
+  <tr>
+    <td><code>short_ref_format</code><br/><i>Optional</i></td>
+    <td>When populating <code>.git/short_ref</code> use this <code>printf</code> format. Defaults to <code>%s</code>.</td>
+  </tr>
+  <tr>
+    <td><code>timestamp_format</code><br/><i>Optional</i></td>
+    <td>
+        When populating <code>.git/commit_timestamp</code> use this options to
+        pass to <a
+        href="https://git-scm.com/docs/git-log#Documentation/git-log.txt---dateltformatgt"><code>git
+        log --date</code></a>. Defaults to <code>iso8601</code>.
+    </td>
+  </tr>
+  <tr>
+    <td><code>describe_ref_options</code><br/><i>Optional</i></td>
+    <td>
+        When populating <code>.git/describe_ref</code> use this options to call
+        <a href="https://git-scm.com/docs/git-describe"><code>git
+        describe</code></a>. Defaults to <code>--always --dirty --broken</code>.
+    </td>
+  </tr>
+</table>
 
 #### GPG signature verification
 
@@ -424,50 +476,83 @@ and the `rebase` parameter is not provided, the push will fail.
 
 #### Parameters
 
-* `repository`: *Required.* The path of the repository to push to the source.
-
-* `rebase`: *Optional.* If pushing fails with non-fast-forward, continuously
-  attempt rebasing and pushing.
-
-* `merge`: *Optional.* If pushing fails with non-fast-forward, continuously
-  attempt to merge remote to local before pushing. Only one of `merge` or
-  `rebase` can be provided, but not both.
-
-* `returning`: *Optional.* When passing the `merge` flag, specify whether the
-  merge commit or the original, unmerged commit should be passed as the output
-  ref. Options are `merged` and `unmerged`. Defaults to `merged`.
-
-* `tag`: *Optional.* If this is set then HEAD will be tagged. The value should be
-  a path to a file containing the name of the tag.
-
-* `only_tag`: *Optional.* When set to 'true' push only the tags of a repo.
-
-* `tag_prefix`: *Optional.* If specified, the tag read from the file will be
-prepended with this string. This is useful for adding `v` in front of
-version numbers.
-
-* `force`: *Optional.* When set to 'true' this will force the branch to be
-pushed regardless of the upstream state.
-
-* `annotate`: *Optional.* If specified the tag will be an
-  [annotated](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags)
-  tag rather than a
-  [lightweight](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags)
-  tag. The value should be a path to a file containing the annotation message.
-
-* `notes`: *Optional.* If this is set then notes will be added to HEAD to the
-  `refs/notes/commits` ref. The value should be a path to a file containing the notes.
-
-* `branch`: *Optional.* The branch to push commits.
-
-  Note that the version produced by the `put` step will be picked up by subsequent `get` steps
-  even if the `branch` differs from the `branch` specified in the source.
-  To avoid this, you should use two resources of read-only and write-only.
-
-* `refs_prefix`: *Optional.* Allows pushing to refs other than heads. Defaults to `refs/heads`.
-
-  Useful when paired with `source.search_remote_refs` in cases where the git remote
-  renames the ref you pushed.
+<table>
+  <tr>
+    <th>Field Name</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>repository</code><br/><i>Required</i></td>
+    <td>The path of the repository to push to the source.</td>
+  </tr>
+  <tr>
+    <td><code>rebase</code><br/><i>Optional</i></td>
+    <td>If pushing fails with non-fast-forward, continuously attempt rebasing and pushing.</td>
+  </tr>
+  <tr>
+    <td><code>merge</code><br/><i>Optional</i></td>
+    <td>If pushing fails with non-fast-forward, continuously attempt to merge remote to local before pushing. Only one of <code>merge</code> or <code>rebase</code> can be provided, but not both.</td>
+  </tr>
+  <tr>
+    <td><code>returning</code><br/><i>Optional</i></td>
+    <td>
+        When passing the <code>merge</code> flag, specify whether the merge
+        commit or the original, unmerged commit should be passed as the output
+        ref. Options are <code>merged</code> and <code>unmerged</code>. Defaults
+        to <code>merged</code>.
+    </td>
+  </tr>
+  <tr>
+    <td><code>tag</code><br/><i>Optional</i></td>
+    <td>If this is set then HEAD will be tagged. The value should be a path to a file containing the name of the tag.</td>
+  </tr>
+  <tr>
+    <td><code>only_tag</code><br/><i>Optional</i></td>
+    <td>When set to 'true' push only the tags of a repo.</td>
+  </tr>
+  <tr>
+    <td><code>tag_prefix</code><br/><i>Optional</i></td>
+    <td>If specified, the tag read from the file will be prepended with this string. This is useful for adding <code>v</code> in front of version numbers.</td>
+  </tr>
+  <tr>
+    <td><code>force</code><br/><i>Optional</i></td>
+    <td>When set to 'true' this will force the branch to be pushed regardless of the upstream state.</td>
+  </tr>
+  <tr>
+    <td><code>annotate</code><br/><i>Optional</i></td>
+    <td>
+        If specified the tag will be an <a
+        href="https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags">annotated</a>
+        tag rather than a <a
+        href="https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags">lightweight</a>
+        tag. The value should be a path to a file containing the annotation
+        message.
+    </td>
+  </tr>
+  <tr>
+    <td><code>notes</code><br/><i>Optional</i></td>
+    <td>If this is set then notes will be added to HEAD to the <code>refs/notes/commits</code> ref. The value should be a path to a file containing the notes.</td>
+  </tr>
+  <tr>
+    <td><code>branch</code><br/><i>Optional</i></td>
+    <td>
+      The branch to push commits.
+      <br/><br/>
+      Note that the version produced by the <code>put</code> step will be picked
+      up by subsequent <code>get</code> steps even if the <code>branch</code>
+      differs from the <code>branch</code> specified in the source. To avoid
+      this, you should use two resources of read-only and write-only.
+    </td>
+  </tr>
+  <tr>
+    <td><code>refs_prefix</code><br/><i>Optional</i></td>
+    <td>
+      Allows pushing to refs other than heads. Defaults to <code>refs/heads</code>.
+      <br/><br/>
+      Useful when paired with <code>source.search_remote_refs</code> in cases where the git remote renames the ref you pushed.
+    </td>
+  </tr>
+</table>
 
 ## Development
 
