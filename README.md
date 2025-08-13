@@ -9,164 +9,253 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
 
 ## Source Configuration
 
-* `uri`: *Required.* The location of the repository.
-
-* `branch`: The branch to track. This is *optional* if the resource is only
-   used in `get` steps; however, it is *required* when used in a `put` step.
-   If unset, `get` steps will checkout the repository's default branch;
-   usually `master` but [could be different](https://help.github.com/articles/setting-the-default-branch/).
-
-* `private_key`: *Optional.* Private key to use when using an `ssh@` format `uri`.
-    Example:
-
-    ```yaml
-    private_key: |
-      -----BEGIN RSA PRIVATE KEY-----
-      ...
-      -----END RSA PRIVATE KEY-----
-    ```
-
-* `private_key_user`: *Optional.* Enables setting User in the ssh config.
-
-* `private_key_passphrase`: *Optional.* To unlock `private_key` if it is protected by a passphrase.
-
-* `forward_agent`: *Optional* Enables ForwardAgent SSH option when set to true. Useful when using proxy/jump hosts. Defaults to false.
-
-* `username`: *Optional.* Username for HTTP(S) auth when pulling/pushing.
-  This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth)
-  and auth is required.
-
-* `password`: *Optional.* Password for HTTP(S) auth when pulling/pushing.
-
-* `paths`: *Optional.* If specified (as a list of glob patterns), only changes
-  to the specified files will yield new versions from `check`.
-
-* `sparse_paths`: *Optional.* If specified (as a list of glob patterns), only
-    these paths will be checked out. Should be used with `paths` to only
-    trigger on desired paths. `paths` and `sparse_paths` may be the same or you
-    can configure `sparse_paths` to check out other paths.
-
-* `ignore_paths`: *Optional.* The inverse of `paths`; changes to the specified
-  files are ignored.
-
-  Note that if you want to push commits that change these files via a `put`,
-  the commit will still be "detected", as [`check` and `put` both introduce
-  versions](https://github.com/concourse/concourse/issues/534).
-  To avoid this you should define a second resource that you use for commits
-  that change files that you don't want to feed back into your pipeline - think
-  of one as read-only (with `ignore_paths`) and one as write-only (which
-  shouldn't need it).
-
-* `skip_ssl_verification`: *Optional.* Skips git ssl verification by exporting
-  `GIT_SSL_NO_VERIFY=true`.
-
-* `tag_filter`: *Optional.* If specified, the resource will only detect commits
-  that have a tag matching the expression that have been made against
-  the `branch`. Patterns are [glob(7)](http://man7.org/linux/man-pages/man7/glob.7.html)
-  compatible (as in, bash compatible).
-
-* `tag_regex`: *Optional.* If specified, the resource will only detect commits
-  that have a tag matching the expression that have been made against
-  the `branch`. Patterns are [grep](https://www.gnu.org/software/grep/manual/grep.html)
-  compatible (extended matching enabled, matches entire lines only). Ignored if
-  `tag_filter` is also specified.
-
-* `tag_behaviour`: *Optional.* If `match_tagged` (the default), then the resource will only detect commits that are tagged with a tag matching `tag_regex` and `tag_filter`, and match all other filters. If `match_tag_ancestors`, then the resource will only detect commits matching all other filters and that are ancestors of a commit that are tagged with a tag matching `tag_regex` and `tag_filter`.
-
-* `fetch_tags`: *Optional.* If `true` the flag `--tags` will be used to fetch
-  all tags in the repository. If `false` no tags will be fetched.
-
-* `submodule_credentials`: *Optional.* List of credentials for HTTP(s) or SSH auth when pulling git submodules which are not stored in the same git server as the container repository or are protected by a different private key.
-  * http(s) credentials:
-    * `host` : The host to connect too. Note that `host` is specified with no protocol extensions.
-    * `username` : Username for HTTP(S) auth when pulling submodule.
-    * `password` : Password for HTTP(S) auth when pulling submodule.
-  * ssh credentials:
-    * `url` : Submodule url, as specified in the `.gitmodule` file. Support full or relative ssh url.
-    * `private_key` : Private key for SSH auth when pulling submodule.
-    * `private_key_passphrase` : *Optional.* To unlock `private_key` if it is protected by a passphrase.
-  * example:
-    ```yaml
-    submodule_credentials:
-      # http(s) credentials
-    - host: github.com
-      username: git-user
-      password: git-password
-      # ssh credentials
-    - url: git@github.com:org-name/repo-name.git
-      private_key: |
-        -----BEGIN RSA PRIVATE KEY-----
-        ...
-        -----END RSA PRIVATE KEY-----
-      private_key_passphrase: ssh-passphrase # (optionnal)
-      # ssh credentials with relative url
-    - url: ../org-name/repo-name.git
-      private_key: |
-        -----BEGIN RSA PRIVATE KEY-----
-        ...
-        -----END RSA PRIVATE KEY-----
-      private_key_passphrase: ssh-passphrase # (optionnal)
-    ```
-
-* `git_config`: *Optional.* If specified as (list of pairs `name` and `value`)
-  it will configure git global options, setting each name with each value.
-
-  This can be useful to set options like `credential.helper` or similar.
-
-  See the [`git-config(1)` manual page](https://www.kernel.org/pub/software/scm/git/docs/git-config.html)
-  for more information and documentation of existing git options.
-
-* `disable_ci_skip`: *Optional.* Allows for commits that have been labeled with `[ci skip]` or `[skip ci]`
-   previously to be discovered by the resource.
-
-* `commit_verification_keys`: *Optional.* Array of GPG public keys that the
-  resource will check against to verify the commit (details below).
-
-* `commit_verification_key_ids`: *Optional.* Array of GPG public key ids that
-  the resource will check against to verify the commit (details below). The
-  corresponding keys will be fetched from the key server specified in
-  `gpg_keyserver`. The ids can be short id, long id or fingerprint.
-
-* `gpg_keyserver`: *Optional.* GPG keyserver to download the public keys from.
-  Defaults to `hkp://keyserver.ubuntu.com/`.
-
-* `git_crypt_key`: *Optional.* Base64 encoded
-  [git-crypt](https://github.com/AGWA/git-crypt) key. Setting this will
-  unlock / decrypt the repository with `git-crypt`. To get the key simply
-  execute `git-crypt export-key -- - | base64` in an encrypted repository.
-
-* `https_tunnel`: *Optional.* Information about an HTTPS proxy that will be used to tunnel SSH-based git commands over.
-  Has the following sub-properties:
-  * `proxy_host`: *Required.* The host name or IP of the proxy server
-  * `proxy_port`: *Required.* The proxy server's listening port
-  * `proxy_user`: *Optional.* If the proxy requires authentication, use this username
-  * `proxy_password`: *Optional.* If the proxy requires authenticate,
-      use this password
-
-* `commit_filter`: *Optional.* Object containing commit message filters
-  * `exclude`: *Optional.* Array containing strings that should
-    cause a commit to be skipped
-  * `exclude_all_match`: *Optional.* Boolean wheater it should match all the exclude filters "AND", default: false
-  * `include`: *Optional.* Array containing strings that
-    *MUST* be included in commit messages for the commit to not be
-    skipped
-  * `include_all_match`: *Optional.* Boolean wheater it should match all the include filters "AND", default: false
-
-  **Note**: *You must escape any regex sensitive characters, since the string is used as a regex filter.*
-  For example, using `[skip deploy]` or `[deploy skip]` to skip non-deployment related commits in a deployment pipeline:
-
-  ```yaml
-  commit_filter:
-    exclude: ["\\[skip deploy\\]", "\\[deploy skip\\]"]
-  ```
-
-* `version_depth`: *Optional.* The number of versions to return when performing a check
-
-* `search_remote_refs`: *Optional.* True to search remote refs for the input version when checking out during the get step.
-    This can be useful during the `get` step after a `put` step for unconventional workflows. One example workflow is the
-    `refs/for/<branch>` workflow used by gerrit which 'magically' creates a `refs/changes/nnn` reference instead
-    of the straight forward `refs/for/<branch>` reference that a git remote would usually create.
-    See also `out params.refs_prefix`.
+<table>
+  <tr>
+    <th>Field Name</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>uri</code> (Required)</td>
+    <td>The location of the repository.</td>
+  </tr>
+  <tr>
+    <td><code>branch</code> (Optional)</td>
+    <td>
+        The branch to track. This is optional if the resource is only used in
+        <code>get</code> steps; however, it is required when used in a
+        <code>put</code> step. If unset, <code>get</code> steps will checkout
+        the repository's default branch; usually <code>master</code> but <a
+        href="https://help.github.com/articles/setting-the-default-branch/">could
+        be different</a>.
+    </td>
+  </tr>
+  <tr>
+    <td><code>private_key</code> (Optional)</td>
+    <td>Private key to use when using an <code>ssh@</code> format <code>uri</code>. Example:
+      <pre>
+private_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  ...
+  -----END RSA PRIVATE KEY-----
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td><code>private_key_user</code> (Optional)</td>
+    <td>Enables setting User in the ssh config.</td>
+  </tr>
+  <tr>
+    <td><code>private_key_passphrase</code> (Optional)</td>
+    <td>To unlock <code>private_key</code> if it is protected by a passphrase.</td>
+  </tr>
+  <tr>
+    <td><code>forward_agent</code> (Optional)</td>
+    <td>Enables ForwardAgent SSH option when set to true. Useful when using proxy/jump hosts. Defaults to false.</td>
+  </tr>
+  <tr>
+    <td><code>username</code> (Optional)</td>
+    <td>Username for HTTP(S) auth when pulling/pushing. This is needed when only HTTP/HTTPS protocol for git is available (which does not support private key auth) and auth is required.</td>
+  </tr>
+  <tr>
+    <td><code>password</code> (Optional)</td>
+    <td>Password for HTTP(S) auth when pulling/pushing.</td>
+  </tr>
+  <tr>
+    <td><code>paths</code> (Optional)</td>
+    <td>If specified (as a list of glob patterns), only changes to the specified files will yield new versions from <code>check</code>.</td>
+  </tr>
+  <tr>
+    <td><code>sparse_paths</code> (Optional)</td>
+    <td>
+        If specified (as a list of glob patterns), only these paths will be
+        checked out. Should be used with <code>paths</code> to only trigger on
+        desired paths. <code>paths</code> and <code>sparse_paths</code> may be
+        the same or you can configure <code>sparse_paths</code> to check out
+        other paths.
+    </td>
+  </tr>
+  <tr>
+    <td><code>ignore_paths</code> (Optional)</td>
+    <td>
+        The inverse of <code>paths</code>; changes to the specified files are
+        ignored. <p>Note that if you want to push commits that change these
+        files via a <code>put</code>, the commit will still be "detected", as <a
+        href="https://github.com/concourse/concourse/issues/534"><code>check</code>
+        and <code>put</code> both introduce versions</a>. To avoid this you
+        should define a second resource that you use for commits that change
+        files that you don't want to feed back into your pipeline - think of one
+        as read-only (with <code>ignore_paths</code>) and one as write-only
+        (which shouldn't need it).</p>
+    </td>
+  </tr>
+  <tr>
+    <td><code>skip_ssl_verification</code> (Optional)</td>
+    <td>Skips git ssl verification by exporting <code>GIT_SSL_NO_VERIFY=true</code>.</td>
+  </tr>
+  <tr>
+    <td><code>tag_filter</code> (Optional)</td>
+    <td>
+        If specified, the resource will only detect commits that have a tag
+        matching the expression that have been made against the
+        <code>branch</code>. Patterns are <a
+        href="http://man7.org/linux/man-pages/man7/glob.7.html">glob(7)</a>
+        compatible (as in, bash compatible).
+    </td>
+  </tr>
+  <tr>
+    <td><code>tag_regex</code> (Optional)</td>
+    <td>
+        If specified, the resource will only detect commits that have a tag
+        matching the expression that have been made against the
+        <code>branch</code>. Patterns are <a
+        href="https://www.gnu.org/software/grep/manual/grep.html">grep</a>
+        compatible (extended matching enabled, matches entire lines only).
+        Ignored if <code>tag_filter</code> is also specified.
+    </td>
+  </tr>
+  <tr>
+    <td><code>tag_behaviour</code> (Optional)</td>
+    <td>
+        If <code>match_tagged</code> (the default), then the resource will only
+        detect commits that are tagged with a tag matching
+        <code>tag_regex</code> and <code>tag_filter</code>, and match all other
+        filters. If <code>match_tag_ancestors</code>, then the resource will
+        only detect commits matching all other filters and that are ancestors of
+        a commit that are tagged with a tag matching <code>tag_regex</code> and
+        <code>tag_filter</code>.
+    </td>
+  </tr>
+  <tr>
+    <td><code>fetch_tags</code> (Optional)</td>
+    <td>If <code>true</code> the flag <code>--tags</code> will be used to fetch all tags in the repository. If <code>false</code> no tags will be fetched.</td>
+  </tr>
+  <tr>
+    <td><code>submodule_credentials</code> (Optional)</td>
+    <td>List of credentials for HTTP(s) or SSH auth when pulling git submodules which are not stored in the same git server as the container repository or are protected by a different private key.
+      <ul>
+        <li>http(s) credentials:
+          <ul>
+            <li><code>host</code> : The host to connect too. Note that <code>host</code> is specified with no protocol extensions.</li>
+            <li><code>username</code> : Username for HTTP(S) auth when pulling submodule.</li>
+            <li><code>password</code> : Password for HTTP(S) auth when pulling submodule.</li>
+          </ul>
+        </li>
+        <li>ssh credentials:
+          <ul>
+            <li><code>url</code> : Submodule url, as specified in the <code>.gitmodule</code> file. Support full or relative ssh url.</li>
+            <li><code>private_key</code> : Private key for SSH auth when pulling submodule.</li>
+            <li><code>private_key_passphrase</code> : <em>Optional.</em> To unlock <code>private_key</code> if it is protected by a passphrase.</li>
+          </ul>
+        </li>
+        <li>example:
+          <pre>
+submodule_credentials:
+  # http(s) credentials
+- host: github.com
+  username: git-user
+  password: git-password
+  # ssh credentials
+- url: git@github.com:org-name/repo-name.git
+  private_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    ...
+    -----END RSA PRIVATE KEY-----
+  private_key_passphrase: ssh-passphrase # (optional)
+  # ssh credentials with relative url
+- url: ../org-name/repo-name.git
+  private_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    ...
+    -----END RSA PRIVATE KEY-----
+  private_key_passphrase: ssh-passphrase # (optional)
+          </pre>
+        </li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><code>git_config</code> (Optional)</td>
+    <td>
+        If specified as (list of pairs <code>name</code> and <code>value</code>) it will configure git global options, setting each name with each value.
+        <p>This can be useful to set options like <code>credential.helper</code> or similar.</p>
+        <p>See the <a href="https://www.kernel.org/pub/software/scm/git/docs/git-config.html"><code>git-config(1)</code> manual page</a> for more information and documentation of existing git options.</p>
+    </td>
+  </tr>
+  <tr>
+    <td><code>disable_ci_skip</code> (Optional)</td>
+    <td>Allows for commits that have been labeled with <code>[ci skip]</code> or <code>[skip ci]</code> previously to be discovered by the resource.</td>
+  </tr>
+  <tr>
+    <td><code>commit_verification_keys</code> (Optional)</td>
+    <td>Array of GPG public keys that the resource will check against to verify the commit (details below).</td>
+  </tr>
+  <tr>
+    <td><code>commit_verification_key_ids</code> (Optional)</td>
+    <td>
+        Array of GPG public key ids that the resource will check against to
+        verify the commit (details below). The corresponding keys will be
+        fetched from the key server specified in <code>gpg_keyserver</code>. The
+        ids can be short id, long id or fingerprint.
+    </td>
+  </tr>
+  <tr>
+    <td><code>gpg_keyserver</code> (Optional)</td>
+    <td>GPG keyserver to download the public keys from. Defaults to <code>hkp://keyserver.ubuntu.com/</code>.</td>
+  </tr>
+  <tr>
+    <td><code>git_crypt_key</code> (Optional)</td>
+    <td>
+        Base64 encoded <a href="https://github.com/AGWA/git-crypt">git-crypt</a>
+        key. Setting this will unlock / decrypt the repository with
+        <code>git-crypt</code>. To get the key simply execute <code>git-crypt
+        export-key -- - | base64</code> in an encrypted repository.
+    </td>
+  </tr>
+  <tr>
+    <td><code>https_tunnel</code> (Optional)</td>
+    <td>Information about an HTTPS proxy that will be used to tunnel SSH-based git commands over. Has the following sub-properties:
+      <ul>
+        <li><code>proxy_host</code>: <em>Required.</em> The host name or IP of the proxy server</li>
+        <li><code>proxy_port</code>: <em>Required.</em> The proxy server's listening port</li>
+        <li><code>proxy_user</code>: <em>Optional.</em> If the proxy requires authentication, use this username</li>
+        <li><code>proxy_password</code>: <em>Optional.</em> If the proxy requires authenticate, use this password</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><code>commit_filter</code> (Optional)</td>
+    <td>Object containing commit message filters
+      <ul>
+        <li><code>exclude</code>: <em>Optional.</em> Array containing strings that should cause a commit to be skipped</li>
+        <li><code>exclude_all_match</code>: <em>Optional.</em> Boolean wheater it should match all the exclude filters "AND", default: false</li>
+        <li><code>include</code>: <em>Optional.</em> Array containing strings that <em>MUST</em> be included in commit messages for the commit to not be skipped</li>
+        <li><code>include_all_match</code>: <em>Optional.</em> Boolean wheater it should match all the include filters "AND", default: false</li>
+      </ul>
+      <p><strong>Note</strong>: <em>You must escape any regex sensitive characters, since the string is used as a regex filter.</em> For example, using <code>[skip deploy]</code> or <code>[deploy skip]</code> to skip non-deployment related commits in a deployment pipeline:</p>
+      <pre>
+commit_filter:
+  exclude: ["\\[skip deploy\\]", "\\[deploy skip\\]"]
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td><code>version_depth</code> (Optional)</td>
+    <td>The number of versions to return when performing a check</td>
+  </tr>
+  <tr>
+    <td><code>search_remote_refs</code> (Optional)</td>
+    <td>
+        True to search remote refs for the input version when checking out
+        during the get step. This can be useful during the <code>get</code> step
+        after a <code>put</code> step for unconventional workflows. One example
+        workflow is the <code>refs/for/&lt;branch&gt;</code> workflow used by
+        gerrit which 'magically' creates a <code>refs/changes/nnn</code>
+        reference instead of the straight forward
+        <code>refs/for/&lt;branch&gt;</code> reference that a git remote would
+        usually create. See also <code>out params.refs_prefix</code>.
+    </td>
+  </tr>
+</table>
 
 ### Example
 
