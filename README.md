@@ -96,18 +96,14 @@ Tracks the commits in a [git](http://git-scm.com/) repository.
     - url: git@github.com:org-name/repo-name.git
       private_key: |
         -----BEGIN RSA PRIVATE KEY-----
-        MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
-        <Lots more text>
-        DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+        ...
         -----END RSA PRIVATE KEY-----
       private_key_passphrase: ssh-passphrase # (optionnal)
       # ssh credentials with relative url
     - url: ../org-name/repo-name.git
       private_key: |
         -----BEGIN RSA PRIVATE KEY-----
-        MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
-        <Lots more text>
-        DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+        ...
         -----END RSA PRIVATE KEY-----
       private_key_passphrase: ssh-passphrase # (optionnal)
     ```
@@ -185,9 +181,7 @@ resources:
     branch: master
     private_key: |
       -----BEGIN RSA PRIVATE KEY-----
-      MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
-      <Lots more text>
-      DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+      ...
       -----END RSA PRIVATE KEY-----
     git_config:
     - name: core.bigFileThreshold
@@ -216,9 +210,7 @@ resources:
       password: verysecurepassword
     private_key: |
       -----BEGIN RSA PRIVATE KEY-----
-      MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
-      <Lots more text>
-      DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+      ...
       -----END RSA PRIVATE KEY-----
 ```
 
