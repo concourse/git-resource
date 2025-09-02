@@ -24,6 +24,17 @@ it_errors_when_uri_is_empty() {
     grep "source.uri is required and must not be empty" "$failed_output"
 }
 
+it_errors_when_there_are_unknown_keys_in_source() {
+    local failed_output=$TMPDIR/unknown-keys-output
+    if check_uri_unknown_key "some-uri" 2>"$failed_output"; then
+        echo "checking should have failed"
+        return 1
+    fi
+
+    grep "Found unknown keys in source:" "$failed_output"
+    grep "some_key" "$failed_output"
+}
+
 it_can_check_from_head() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -1180,3 +1191,4 @@ run it_can_check_a_repo_having_multiple_root_commits_from_the_orphan_commit
 run it_checks_with_version_depth
 run it_checks_uri_with_tag_filter_and_version_depth
 run it_errors_when_uri_is_empty
+run it_errors_when_there_are_unknown_keys_in_source
