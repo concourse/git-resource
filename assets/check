@@ -27,11 +27,15 @@ configure_git_ssl_verification "$payload"
 configure_credentials "$payload"
 
 uri=$(jq -r '.source.uri // ""' <<< "$payload")
+uri=${uri# }
 branch=$(jq -r '.source.branch // ""' <<< "$payload")
+branch=${branch# }
 paths="$(jq -r '(.source.paths // ["."])[]' <<< "$payload")" # those "'s are important
 ignore_paths="$(jq -r '":!" + (.source.ignore_paths // [])[]' <<< "$payload")" # these ones too
 tag_filter=$(jq -r '.source.tag_filter // ""' <<< "$payload")
+tag_filter=${tag_filter# }
 tag_regex=$(jq -r '.source.tag_regex // ""' <<< "$payload")
+tag_regex=${tag_regex# }
 tag_behaviour=$(jq -r '.source.tag_behaviour // "match_tagged"' <<< "$payload")
 git_config_payload=$(jq -r '.source.git_config // []' <<< "$payload")
 ref=$(jq -r '.version.ref // ""' <<< "$payload")
