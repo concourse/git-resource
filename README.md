@@ -62,7 +62,18 @@ private_key: |
   </tr>
   <tr>
     <td><code>paths</code> (Optional)</td>
-    <td>If specified (as a list of glob patterns), only changes to the specified files will yield new versions from <code>check</code>.</td>
+    <td>
+        If specified (as a list of glob patterns), only changes to the specified files will yield new versions from <code>check</code>.
+        Example:
+        <pre>
+- name: repo
+  type: git
+  source:
+    paths:
+      - some-folder/*
+      - another/folder/path/*
+        </pre>
+    </td>
   </tr>
   <tr>
     <td><code>sparse_paths</code> (Optional)</td>
@@ -72,6 +83,18 @@ private_key: |
         desired paths. <code>paths</code> and <code>sparse_paths</code> may be
         the same or you can configure <code>sparse_paths</code> to check out
         other paths.
+        Example:
+        <pre>
+- name: repo
+  type: git
+  source:
+    paths:
+      - some-folder/*
+      - another/folder/path/*
+    sparse_paths:
+      - some-folder/*
+      - another/folder/path/*
+        </pre>
     </td>
   </tr>
   <tr>
@@ -86,6 +109,15 @@ private_key: |
         files that you don't want to feed back into your pipeline - think of one
         as read-only (with <code>ignore_paths</code>) and one as write-only
         (which shouldn't need it).</p>
+        Example:
+        <pre>
+- name: repo
+  type: git
+  source:
+    ignore_paths:
+      - some-folder/*
+      - another/folder/path/*
+        </pre>
     </td>
   </tr>
   <tr>
