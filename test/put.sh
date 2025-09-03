@@ -608,6 +608,18 @@ it_can_put_with_refs_prefix() {
   test "$(git -C $repo1 rev-parse HEAD)" = $ref
 }
 
+it_errors_when_there_are_unknown_keys_in_params() {
+    local failed_output=$TMPDIR/put-unknown-keys-output
+    if put_uri_unknown_keys "some-uri" "some-dest" "some-repo" 2>"$failed_output"; then
+        echo "put should have failed"
+        return 1
+    fi
+
+    grep "Found unknown keys in put params:" "$failed_output"
+    grep "unknown_key" "$failed_output"
+    grep "other_key" "$failed_output"
+}
+
 run it_can_put_to_url
 run it_can_put_to_url_with_branch
 run it_returns_branch_in_metadata
@@ -629,3 +641,4 @@ run it_can_put_and_force_the_push
 run it_can_put_to_url_with_only_tag_and_force_the_push
 run it_will_fail_put_with_conflicting_tag_and_not_force_push
 run it_can_put_with_refs_prefix
+run it_errors_when_there_are_unknown_keys_in_params

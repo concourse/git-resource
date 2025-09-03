@@ -922,6 +922,18 @@ it_can_get_from_url_at_branch_with_search_remote_refs() {
   test "$(git -C $dest rev-parse HEAD)" = $ref2
 }
 
+it_errors_when_there_are_unknown_keys_in_params() {
+    local failed_output=$TMPDIR/get-unknown-keys-output
+    if get_uri_unknown_keys "some-uri" "some-dest" 2>"$failed_output"; then
+        echo "get should have failed"
+        return 1
+    fi
+
+    grep "Found unknown keys in get params:" "$failed_output"
+    grep "unknown_key" "$failed_output"
+    grep "other_key" "$failed_output"
+}
+
 run it_can_use_submodules_with_missing_paths
 run it_can_use_submodules_with_names_that_arent_paths
 run it_can_use_submodules_without_perl_warning
@@ -967,3 +979,4 @@ run it_retains_tags_with_clean_tags_param
 run it_returns_list_without_tags_in_metadata
 run it_returns_list_of_all_tags_in_metadata
 run it_can_get_from_url_at_branch_with_search_remote_refs
+run it_errors_when_there_are_unknown_keys_in_params

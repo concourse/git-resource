@@ -273,20 +273,31 @@ make_annotated_tag() {
 }
 
 check_uri() {
-  jq -n "{
+  jq -n --arg uri "$1" '{
     source: {
-      uri: $(echo $1 | jq -R .)
+      uri: $uri
     }
-  }" | ${resource_dir}/check | tee /dev/stderr
+  }' | ${resource_dir}/check | tee /dev/stderr
+}
+
+check_uri_unknown_key() {
+    jq -n --arg uri "$1" '{
+      source: {
+        uri: $uri,
+        some_key: "thats unknown"
+      }
+    }' | ${resource_dir}/check | tee /dev/stderr
 }
 
 check_uri_with_branch() {
-  jq -n "{
+  jq -n \
+  --arg uri "$1" \
+  --arg branch "$2" '{
     source: {
-      uri: $(echo $1 | jq -R .),
-      branch: $(echo $2 | jq -R .)
+      uri: $uri,
+      branch: $branch
     }
-  }" | ${resource_dir}/check | tee /dev/stderr
+  }' | ${resource_dir}/check | tee /dev/stderr
 }
 
 get_initial_ref() {
@@ -715,6 +726,20 @@ get_uri() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_unknown_keys() {
+  jq -n \
+  --arg uri "$1" '{
+    source: {
+      uri: $uri,
+    },
+    params: {
+      short_ref_format: "test-%s",
+      unknown_key: "some-value",
+      other_key: "another-value"
+    }
+  }' | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
 get_uri_disable_lfs() {
   jq -n "{
     source: {
@@ -1078,6 +1103,22 @@ put_uri() {
       repository: $(echo $3 | jq -R .)
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_unknown_keys() {
+  jq -n \
+  --arg uri "$1" \
+  --arg repo "$3" '{
+    source: {
+      uri: $uri,
+      branch: "master"
+    },
+    params: {
+      repository: $repo,
+      unknown_key: "some-value",
+      other_key: "another-value"
+    }
+  }' | ${resource_dir}/out "$2" | tee /dev/stderr
 }
 
 put_uri_with_branch() {

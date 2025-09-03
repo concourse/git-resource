@@ -13,6 +13,14 @@ PATH=/usr/local/bin:$PATH
 
 payload="$(cat <&0)"
 
+unknown_keys=$(jq --slurpfile schema "$(dirname $0)/source_schema.json" '(.source // [] | keys_unsorted) - ($schema[0] | keys_unsorted)' <<< "$payload")
+
+if jq --exit-status 'length > 0' <<< "$unknown_keys"; then
+    echo "Found unknown keys in source:"
+    jq '.[]' <<< "$unknown_keys"
+    exit 1
+fi
+
 load_pubkey "$payload"
 configure_https_tunnel "$payload"
 configure_git_ssl_verification "$payload"
