@@ -551,6 +551,10 @@ and the `rebase` parameter is not provided, the push will fail.
     <td>When set to 'true' this will force the branch to be pushed regardless of the upstream state.</td>
   </tr>
   <tr>
+    <td><code>force_with_lease</code><br/><i>Optional</i></td>
+    <td>When set to 'true' this will force the branch to be pushed as long as there have been no updates to upstream state.</td>
+  </tr>
+  <tr>
     <td><code>annotate</code><br/><i>Optional</i></td>
     <td>
         If specified the tag will be an <a

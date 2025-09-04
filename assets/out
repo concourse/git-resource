@@ -43,6 +43,7 @@ rebase=$(jq -r '.params.rebase // false' <<< "$payload")
 merge=$(jq -r '.params.merge // false' <<< "$payload")
 returning=$(jq -r '.params.returning // "merged"' <<< "$payload")
 force=$(jq -r '.params.force // false' <<< "$payload")
+force_with_lease=$(jq -r '.params.force_with_lease // false' <<< "$payload")
 only_tag=$(jq -r '.params.only_tag // false' <<< "$payload")
 annotation_file=$(jq -r '.params.annotate // ""' <<< "$payload")
 notes_file=$(jq -r '.params.notes // ""' <<< "$payload")
@@ -87,6 +88,8 @@ fi
 forceflag=""
 if [ $force = "true" ]; then
   forceflag="--force"
+elif [ $force_with_lease = "true" ]; then
+  forceflag="--force-with-lease"
 fi
 
 if [ -n "$override_branch" ]; then

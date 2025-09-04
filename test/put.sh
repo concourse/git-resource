@@ -86,7 +86,7 @@ it_can_put_to_url_with_tag() {
 
   local ref=$(make_commit $repo2)
 
-  echo some-tag-name > $src/some-tag-file
+  echo some-tag-name >$src/some-tag-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
@@ -112,7 +112,7 @@ it_can_put_to_url_with_tag_and_prefix() {
 
   local ref=$(make_commit $repo2)
 
-  echo 1.0 > $src/some-tag-file
+  echo 1.0 >$src/some-tag-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
@@ -139,8 +139,8 @@ it_can_put_to_url_with_tag_and_annotation() {
   local ref=$(make_commit $repo2)
 
   mkdir -p $src/tag
-  echo 1.0 > $src/tag/some-tag-file
-  echo yay > $src/tag/some-annotation-file
+  echo 1.0 >$src/tag/some-tag-file
+  echo yay >$src/tag/some-annotation-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
@@ -176,13 +176,13 @@ it_can_put_to_url_with_rebase() {
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  put_uri_with_rebase $repo1 $src repo > $response
+  put_uri_with_rebase $repo1 $src repo >$response
 
   local rebased_ref=$(git -C $repo2 rev-parse HEAD)
 
   jq -e "
     .version == {ref: $(echo $rebased_ref | jq -R .)}
-  " < $response
+  " <$response
 
   # switch back to master
   git -C $repo1 checkout master
@@ -203,20 +203,20 @@ it_can_put_to_url_with_rebase_with_tag() {
 
   local ref=$(make_commit $repo2)
 
-  echo some-tag-name > $src/some-tag-file
+  echo some-tag-name >$src/some-tag-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  put_uri_with_rebase_with_tag $repo1 $src some-tag-file repo > $response
+  put_uri_with_rebase_with_tag $repo1 $src some-tag-file repo >$response
 
   local rebased_ref=$(git -C $repo2 rev-parse HEAD)
 
   jq -e "
     .version == {ref: $(echo $rebased_ref | jq -R .)}
-  " < $response
+  " <$response
 
   # switch back to master
   git -C $repo1 checkout master
@@ -238,20 +238,20 @@ it_can_put_to_url_with_rebase_with_tag_and_prefix() {
 
   local ref=$(make_commit $repo2)
 
-  echo 1.0 > $src/some-tag-file
+  echo 1.0 >$src/some-tag-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  put_uri_with_rebase_with_tag_and_prefix $repo1 $src some-tag-file v repo > $response
+  put_uri_with_rebase_with_tag_and_prefix $repo1 $src some-tag-file v repo >$response
 
   local rebased_ref=$(git -C $repo2 rev-parse HEAD)
 
   jq -e "
     .version == {ref: $(echo $rebased_ref | jq -R .)}
-  " < $response
+  " <$response
 
   # switch back to master
   git -C $repo1 checkout master
@@ -278,13 +278,13 @@ it_can_put_to_url_with_merge_commit() {
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  put_uri_with_merge $repo1 $src repo > $response
+  put_uri_with_merge $repo1 $src repo >$response
 
   local merged_ref=$(git -C $repo2 rev-parse HEAD)
 
   jq -e "
     .version == {ref: $(echo $merged_ref | jq -R .)}
-  " < $response
+  " <$response
 
   # switch back to master
   git -C $repo1 checkout master
@@ -315,13 +315,13 @@ it_chooses_the_unmerged_commit_ref() {
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  put_uri_with_merge_returning_unmerged $repo1 $src repo > $response
+  put_uri_with_merge_returning_unmerged $repo1 $src repo >$response
 
   local merged_ref=$(git -C $repo2 rev-parse HEAD)
 
   jq -e "
     .version == {ref: $(echo $unmerged_ref | jq -R .)}
-  " < $response
+  " <$response
 
   # switch back to master
   git -C $repo1 checkout master
@@ -394,7 +394,7 @@ it_can_put_to_url_with_notes() {
 
   local ref=$(make_commit $repo2)
 
-  echo some-notes > $src/notes-file
+  echo some-notes >$src/notes-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
@@ -422,20 +422,20 @@ it_can_put_to_url_with_rebase_with_notes() {
 
   local ref=$(make_commit $repo2)
 
-  echo some-notes > $src/notes-file
+  echo some-notes >$src/notes-file
 
   # cannot push to repo while it's checked out to a branch
   git -C $repo1 checkout refs/heads/master
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  put_uri_with_rebase_with_notes $repo1 $src notes-file repo > $response
+  put_uri_with_rebase_with_notes $repo1 $src notes-file repo >$response
 
   local rebased_ref=$(git -C $repo2 rev-parse HEAD)
 
   jq -e "
     .version == {ref: $(echo $rebased_ref | jq -R .)}
-  " < $response
+  " <$response
 
   # switch back to master
   git -C $repo1 checkout master
@@ -525,6 +525,31 @@ it_can_put_and_force_the_push() {
   test "$(git -C $repo1 log --name-only | grep $lostref)" = ''
 }
 
+it_can_put_and_force_with_lease_the_push() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+  local lostref=$(make_commit $repo1)
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_force_with_lease $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $ref
+  test "$(git -C $repo1 log --name-only | grep $lostref)" = ''
+}
+
 it_can_put_to_url_with_only_tag_and_force_the_push() {
   local repo1=$(init_repo)
 
@@ -544,6 +569,36 @@ it_can_put_to_url_with_only_tag_and_force_the_push() {
   git -C $repo1 checkout refs/heads/master
 
   put_uri_with_only_tag_with_force $repo1 $src repo | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test ! -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" != $ref
+  test "$(git -C $repo1 rev-parse some-only-tag)" = $ref
+}
+
+it_can_put_to_url_with_only_tag_and_force_with_lease_the_push() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  # create a tag in the upstream branch
+  git -C $repo1 tag some-only-tag
+
+  # create the same tag to push upstream
+  git -C $repo2 tag some-only-tag
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_only_tag_with_force_with_lease $repo1 $src repo | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
   "
 
@@ -609,15 +664,15 @@ it_can_put_with_refs_prefix() {
 }
 
 it_errors_when_there_are_unknown_keys_in_params() {
-    local failed_output=$TMPDIR/put-unknown-keys-output
-    if put_uri_unknown_keys "some-uri" "some-dest" "some-repo" 2>"$failed_output"; then
-        echo "put should have failed"
-        return 1
-    fi
+  local failed_output=$TMPDIR/put-unknown-keys-output
+  if put_uri_unknown_keys "some-uri" "some-dest" "some-repo" 2>"$failed_output"; then
+    echo "put should have failed"
+    return 1
+  fi
 
-    grep "Found unknown keys in put params:" "$failed_output"
-    grep "unknown_key" "$failed_output"
-    grep "other_key" "$failed_output"
+  grep "Found unknown keys in put params:" "$failed_output"
+  grep "unknown_key" "$failed_output"
+  grep "other_key" "$failed_output"
 }
 
 run it_can_put_to_url
