@@ -27,7 +27,7 @@ payload="$(cat <&0)"
 
 unknown_keys=$(jq --slurpfile schema "$(dirname $0)/in_schema.json" '(.params // [] | keys_unsorted) - ($schema[0] | keys_unsorted)' <<< "$payload")
 
-if jq --exit-status 'length > 0' <<< "$unknown_keys"; then
+if jq --exit-status 'length > 0' <<< "$unknown_keys" &>/dev/null; then
     echo "Found unknown keys in get params:"
     jq '.[]' <<< "$unknown_keys"
     exit 1
