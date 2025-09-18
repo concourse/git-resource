@@ -108,7 +108,7 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-git clone --single-branch $depthflag $uri $branchflag $destination $tagflag $nocheckoutflag
+git clone --progress --single-branch $depthflag $uri $branchflag $destination $tagflag $nocheckoutflag
 
 cd $destination
 
