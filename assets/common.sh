@@ -6,6 +6,7 @@ load_pubkey() {
   local private_key_user=$(jq -r '.source.private_key_user // empty' <<< "$1")
   local forward_agent=$(jq -r '.source.forward_agent // false' <<< "$1")
   local passphrase="$(jq -r '.source.private_key_passphrase // empty' <<< "$1")"
+  local uri=$(jq -r '.source.uri // ""' <<< "$1")
 
   (jq -r '.source.private_key // empty' <<< "$1") > $private_key_path
 
@@ -22,16 +23,31 @@ load_pubkey() {
 StrictHostKeyChecking no
 LogLevel quiet
 EOF
+
+    # Handle ssh:// URLs with custom ports
+    if [[ "$uri" =~ ^ssh://([^@]+@)?([^:/]+):([0-9]+) ]]; then
+      local ssh_host="${BASH_REMATCH[2]}"
+      local ssh_port="${BASH_REMATCH[3]}"
+
+      cat >> ~/.ssh/config <<EOF
+
+Host $ssh_host
+  Port $ssh_port
+EOF
+    fi
+
     if [ ! -z "$private_key_user" ]; then
       cat >> ~/.ssh/config <<EOF
 User $private_key_user
 EOF
     fi
+
     if [ "$forward_agent" = "true" ]; then
       cat >> ~/.ssh/config <<EOF
 ForwardAgent yes
 EOF
     fi
+
     chmod 0600 ~/.ssh/config
   fi
 }
