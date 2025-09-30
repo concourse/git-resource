@@ -402,6 +402,43 @@ correct key is provided set in `git_crypt_key`.
         the repository.
     </td>
   </tr>
+<tr>
+    <td><code>fetch</code><br/><i>Optional</i></td>
+    <td>
+        Additional branches to fetch and make available in the cloned repository.
+        This is useful when you need to perform operations like rebasing or
+        merging with branches other than the one being checked out.
+        <br/><br/>
+        Specify as a list of branch names. Each branch will be fetched from
+        origin and made available as a local branch.
+        <br/><br/>
+        <strong>Example:</strong> Fetching additional branches for rebasing
+        <pre>
+- get: source-code
+  params:
+    fetch:
+      - develop
+      - main
+      - feature/experimental
+        </pre>
+        After the <code>get</code> step completes, you can perform operations
+        like:
+        <pre>
+- task: rebase-on-main
+  config:
+    platform: linux
+    inputs:
+      - name: source-code
+    run:
+      path: sh
+      args:
+        - -exc
+        - |
+          cd source-code
+          git rebase main
+        </pre>
+    </td>
+  </tr>
   <tr>
     <td><code>fetch_tags</code><br/><i>Optional</i></td>
     <td>
