@@ -34,6 +34,7 @@ RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"
 RUN git config --global pull.rebase "false"
 RUN git config --global protocol.file.allow "always"
+RUN git config --global http.version "HTTP/2"
 
 # Remove unrelated git binaries we don't need
 WORKDIR /usr/libexec/git-core
