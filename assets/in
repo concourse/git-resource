@@ -254,16 +254,32 @@ git --no-pager log -1 --pretty=format:"%an" > .git/committer_name
 echo "${return_ref}" > .git/ref
 
 metadata=$(git_metadata)
-
-# Store original cloned branch in .git/branch
-echo "${metadata}" | jq -r '.[] | select(.name == "branch") | .value' > .git/branch
+echo "${metadata}" | jq '.' > .git/metadata.json
 
 # Store short ref with templating. Useful to build Docker images with
 # a custom tag
 echo "${return_ref}" | cut -c1-7 | awk "{ printf \"${short_ref_format}\", \$1 }" > .git/short_ref
 
+# Write individual metadata fields to separate files
+
+# .git/commit - full SHA hash
+echo "${metadata}" | jq -r '.[] | select(.name == "commit") | .value' > .git/commit
+# .git/author - commit author name
+echo "${metadata}" | jq -r '.[] | select(.name == "author") | .value' > .git/author
+# .git/author_date - timestamp when the author originally created the commit
+echo "${metadata}" | jq -r '.[] | select(.name == "author_date") | .value' > .git/author_date
+
+# .git/tags - branch name(s) containing this commit (comma-separated if multiple)
+echo "${metadata}" | jq -r '.[] | select(.name == "branch") | .value // ""' > .git/branch
+# .git/tags - comma-separated list of tags
+echo "${metadata}" | jq -r '.[] | select(.name == "tags") | .value // ""' > .git/tags
+# .git/url - web URL to view commit (if applicable)
+echo "${metadata}" | jq -r '.[] | select(.name == "url") | .value // ""' > .git/url
+# .git/committer_date - timestamp when the commit was created in the repository
+echo "${metadata}" | jq -r '.[] | select(.name == "committer_date") | .value // ""' > .git/committer_date
+
 # Store commit message in .git/commit_message. Can be used to inform about
-# the content of a successfull build.
+# the content of a successful build.
 # Using https://github.com/cloudfoundry-community/slack-notification-resource
 # for example
 git log -1 --format=format:%B > .git/commit_message

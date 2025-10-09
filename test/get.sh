@@ -124,7 +124,6 @@ it_omits_empty_branch_in_metadata() {
   "
 }
 
-
 it_returns_branch_in_metadata() {
   local repo=$(init_repo)
   local ref1=$(make_commit_to_branch $repo branch-a)
@@ -174,6 +173,146 @@ it_returns_list_of_tags_in_metadata() {
     and
     (.metadata | .[] | select(.name == \"tags\") | .value == \"v1.1-final,v1.1-pre\")
   "
+}
+
+it_writes_complete_metadata_files() {
+  local repo=$(init_repo)
+
+  # Create a commit with specific author/committer info
+  git -C $repo \
+    -c user.name='alice' \
+    -c user.email='alice@example.com' \
+    commit --allow-empty -m "test commit message"
+  local ref=$(git -C $repo rev-parse HEAD)
+
+  # Add multiple tags to test tag aggregation
+  git -C $repo tag v1.0.0
+  git -C $repo tag v1.0.0-rc1
+  git -C $repo tag latest
+
+  local dest=$TMPDIR/destination
+  get_uri $repo $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # === Verify metadata.json ===
+  test -e $dest/.git/metadata.json || \
+    ( echo ".git/metadata.json does not exist"; return 1 )
+
+  cat $dest/.git/metadata.json | jq -e '. | length > 0' > /dev/null || \
+    ( echo ".git/metadata.json is not valid JSON or is empty"; return 1 )
+
+  # === Verify all metadata files ===
+
+  # .git/commit
+  test -e $dest/.git/commit || \
+    ( echo ".git/commit does not exist"; return 1 )
+  test "$(cat $dest/.git/commit)" = "$ref" || \
+    ( echo ".git/commit content mismatch"; return 1 )
+
+  # .git/author
+  test -e $dest/.git/author || \
+    ( echo ".git/author does not exist"; return 1 )
+  test "$(cat $dest/.git/author)" = "alice" || \
+    ( echo ".git/author content mismatch"; return 1 )
+
+  # .git/author_date
+  test -e $dest/.git/author_date || \
+    ( echo ".git/author_date does not exist"; return 1 )
+  echo "$(cat $dest/.git/author_date)" | grep -qE "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4}$" || \
+    ( echo ".git/author_date format invalid: $(cat $dest/.git/author_date)"; return 1 )
+
+  # .git/committer
+  test -e $dest/.git/committer || \
+    ( echo ".git/committer does not exist"; return 1 )
+  test "$(cat $dest/.git/committer)" = "alice@example.com" || \
+    ( echo ".git/committer content mismatch"; return 1 )
+
+  # .git/committer_name
+  test -e $dest/.git/committer_name || \
+    ( echo ".git/committer_name does not exist"; return 1 )
+  test "$(cat $dest/.git/committer_name)" = "alice" || \
+    ( echo ".git/committer_name content mismatch"; return 1 )
+
+  # .git/committer_date
+  test -e $dest/.git/committer_date || \
+    ( echo ".git/committer_date does not exist"; return 1 )
+  echo "$(cat $dest/.git/committer_date)" | grep -qE "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4}$" || \
+    ( echo ".git/committer_date format invalid"; return 1 )
+
+  # .git/ref
+  test -e $dest/.git/ref || \
+    ( echo ".git/ref does not exist"; return 1 )
+  test "$(cat $dest/.git/ref)" = "$ref" || \
+    ( echo ".git/ref content mismatch"; return 1 )
+
+  # .git/branch
+  test -e $dest/.git/branch || \
+    ( echo ".git/branch does not exist"; return 1 )
+  test "$(cat $dest/.git/branch)" = "master" || \
+    ( echo ".git/branch content mismatch"; return 1 )
+
+  # .git/short_ref
+  test -e $dest/.git/short_ref || \
+    ( echo ".git/short_ref does not exist"; return 1 )
+  local expected_short="test-$(echo $ref | cut -c1-7)"
+  test "$(cat $dest/.git/short_ref)" = "$expected_short" || \
+    ( echo ".git/short_ref content mismatch"; return 1 )
+
+  # .git/commit_message
+  test -e $dest/.git/commit_message || \
+    ( echo ".git/commit_message does not exist"; return 1 )
+  grep -q "test commit message" $dest/.git/commit_message || \
+    ( echo ".git/commit_message content mismatch"; return 1 )
+
+  # .git/commit_timestamp
+  test -e $dest/.git/commit_timestamp || \
+    ( echo ".git/commit_timestamp does not exist"; return 1 )
+  test -n "$(cat $dest/.git/commit_timestamp)" || \
+    ( echo ".git/commit_timestamp is empty"; return 1 )
+
+  # .git/describe_ref
+  test -e $dest/.git/describe_ref || \
+    ( echo ".git/describe_ref does not exist"; return 1 )
+
+  # .git/tags
+  test -e $dest/.git/tags || \
+    ( echo ".git/tags does not exist"; return 1 )
+  local tags=$(cat $dest/.git/tags)
+  test -n "$tags" || \
+    ( echo ".git/tags is empty when tags exist"; return 1 )
+  echo "$tags" | grep -q "v1.0.0" || \
+    ( echo ".git/tags missing v1.0.0"; return 1 )
+  echo "$tags" | grep -q "v1.0.0-rc1" || \
+    ( echo ".git/tags missing v1.0.0-rc1"; return 1 )
+  echo "$tags" | grep -q "latest" || \
+    ( echo ".git/tags missing latest"; return 1 )
+
+  # .git/url
+  test -e $dest/.git/url || \
+    ( echo ".git/url does not exist"; return 1 )
+  test -z "$(cat $dest/.git/url)" || \
+    ( echo ".git/url should be empty for local repo"; return 1 )
+
+  # === Test edge case: no tags ===
+  rm -rf $dest
+  local repo_notags=$(init_repo)
+  local ref_notags=$(make_commit $repo_notags)
+  get_uri $repo_notags $dest
+
+  test -e $dest/.git/tags || \
+    ( echo ".git/tags does not exist when no tags present"; return 1 )
+  test -z "$(cat $dest/.git/tags)" || \
+    ( echo ".git/tags should be empty when no tags exist"; return 1 )
+
+  # === Verify metadata.json structure ===
+  local has_commit=$(cat $dest/.git/metadata.json | jq '[.[] | select(.name == "commit")] | length')
+  test "$has_commit" = "1" || \
+    ( echo "metadata.json missing commit field"; return 1 )
+
+  local has_author=$(cat $dest/.git/metadata.json | jq '[.[] | select(.name == "author")] | length')
+  test "$has_author" = "1" || \
+    ( echo "metadata.json missing author field"; return 1 )
 }
 
 it_can_use_submodules_without_perl_warning() {
@@ -951,6 +1090,7 @@ run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
+run it_writes_complete_metadata_files
 run it_honors_the_depth_flag
 run it_can_get_from_url_at_depth_at_ref
 run it_falls_back_to_deep_clone_if_ref_not_found
