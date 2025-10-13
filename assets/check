@@ -26,12 +26,6 @@ configure_https_tunnel "$payload"
 configure_git_ssl_verification "$payload"
 configure_credentials "$payload"
 
-# Add new variables for GitHub Apps support after existing jq extractions
-github_app_id=$(jq -r '.source.github_app_id // ""' <<< "$payload")
-github_app_private_key=$(jq -r '.source.github_app_private_key // ""' <<< "$payload")
-github_app_installation_id=$(jq -r '.source.github_app_installation_id // ""' <<< "$payload")
-
-
 uri=$(jq -r '.source.uri // ""' <<< "$payload")
 uri=${uri# }
 branch=$(jq -r '.source.branch // ""' <<< "$payload")
@@ -60,31 +54,7 @@ fi
 
 configure_git_global "${git_config_payload}"
 
-# Add GitHub Apps token generation and credential setup (integrate into or after configure_credentials if needed)
-if [ -n "$github_app_id" ] && [ -n "$github_app_private_key" ] && [ -n "$github_app_installation_id" ]; then
-  # Generate JWT for GitHub App
-  now=$(date +%s)
-  iat=$((now - 60))
-  exp=$((now + 600))  # 10 minutes expiration
-  jwt_header=$(echo -n '{"alg":"RS256","typ":"JWT"}' | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\r\n')
-  jwt_payload=$(echo -n "{\"iat\":$iat,\"exp\":$exp,\"iss\":\"$github_app_id\"}" | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\r\n')
-  jwt_signature=$(echo -n "$jwt_header.$jwt_payload" | openssl dgst -sha256 -sign <(echo -n "$github_app_private_key") | base64 | tr -d '=' | tr '/+' '_-' | tr -d '\r\n')
-  jwt_token="$jwt_header.$jwt_payload.$jwt_signature"
-
-  # Get installation access token
-  access_token=$(curl -s -X POST -H "Authorization: Bearer $jwt_token" -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/app/installations/$github_app_installation_id/access_tokens" | jq -r '.token')
-
-  if [ -z "$access_token" ]; then
-    echo "Failed to generate GitHub App access token"
-    exit 1
-  fi
-
-  # Configure Git to use the token for the repository host
-  git config --global credential.helper "!f() { echo \"username=x-access-token\"; echo \"password=$access_token\"; }; f"
-  git config --global credential.https://github.com.username "x-access-token"
-  git config --global credential.https://github.com.password "$access_token"
-fi
+setup_github_app_credentials
 
 destination=$TMPDIR/git-resource-repo-cache
 

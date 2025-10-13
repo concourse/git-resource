@@ -76,6 +76,8 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
+setup_github_app_credentials
+
 branchflag=""
 if [ -n "$branch" ]; then
   branchflag="--branch $branch"

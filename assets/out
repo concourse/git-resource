@@ -57,6 +57,8 @@ if [ -z "$uri" ]; then
   exit 1
 fi
 
+setup_github_app_credentials
+
 if [ -z "$branch" ] && [ "$only_tag" != "true" ] && [ -z "$override_branch" ]; then
   echo "invalid payload (missing branch)"
   exit 1
