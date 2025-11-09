@@ -102,6 +102,16 @@ configure_git_global() {
     jq -r ".[] | \"git config --global '\\(.name)' '\\(.value)'; \"")
 }
 
+configure_git_local() {
+  local git_config_payload="$1"
+  if [ -n "$git_config_payload" ] && [ "$git_config_payload" != "[]" ]; then
+    echo "$git_config_payload" | jq -r '.[] | [.name, .value] | @tsv' | \
+      while IFS=$'\t' read -r name value; do
+        git config "$name" "$value"
+      done
+  fi
+}
+
 configure_git_ssl_verification() {
   skip_ssl_verification=$(jq -r '.source.skip_ssl_verification // false' <<< "$1")
   if [ "$skip_ssl_verification" = "true" ]; then

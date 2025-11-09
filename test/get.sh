@@ -91,6 +91,39 @@ it_can_get_from_url_at_override_branch() {
   test "$(git -C $dest rev-parse HEAD)" = $ref
 }
 
+it_preserves_git_config_in_local_repository() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  # Save original gitconfig and set up minimal config for the test
+  cp ~/.gitconfig ~/.gitconfig.bak 2>/dev/null || true
+  cat > ~/.gitconfig <<EOF
+[user]
+	name = test
+	email = test@example.com
+EOF
+
+  get_uri_with_config $repo $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # Verify configs are set in LOCAL repository (not global)
+  test "$(git -C $dest config --local core.pager)" = "true" || \
+    ( echo "Local git config core.pager not set"; return 1 )
+  test "$(git -C $dest config --local credential.helper)" = '!true long command with variables $@' || \
+    ( echo "Local git config credential.helper not set"; return 1 )
+
+  # Verify they're actually in .git/config file
+  grep -q "pager = true" $dest/.git/config || \
+    ( echo "core.pager not found in .git/config"; return 1 )
+  grep -q 'helper = !true long command with variables $@' $dest/.git/config || \
+    ( echo "credential.helper not found in .git/config"; return 1 )
+
+  # Restore original gitconfig
+  mv ~/.gitconfig.bak ~/.gitconfig 2>/dev/null || true
+}
+
 it_can_get_from_url_with_sparse_paths() {
    local repo=$(init_repo)
    local ref1=$(make_commit_to_file $repo file-a)
@@ -1085,6 +1118,7 @@ run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
 run it_can_get_from_url_at_override_branch
+run it_preserves_git_config_in_local_repository
 run it_can_get_from_url_with_sparse_paths
 run it_omits_empty_branch_in_metadata
 run it_returns_branch_in_metadata
