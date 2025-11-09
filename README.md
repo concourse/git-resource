@@ -515,27 +515,43 @@ the case.
 
 #### Additional files populated
 
-* `.git/committer`: For committer notification on failed builds.
- This special file `.git/committer` which is populated with the email address
- of the author of the last commit. This can be used together with  an email
- resource like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource)
- to notify the committer in an on_failure step.
+* `.git/ref`: Version reference detected and checked out. It will usually contain the commit SHA-1 ref, but also the
+  detected tag name when using `tag_filter` or `tag_regex`.
 
-* `.git/ref`: Version reference detected and checked out. It will usually contain
- the commit SHA-1 ref, but also the detected tag name when using `tag_filter` or
- `tag_regex`.
+* `.git/commit`: Full SHA-1 commit hash.
+
+* `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format`
+  parameter.
 
 * `.git/branch`: Name of the original branch that was cloned.
 
-* `.git/short_ref`: Short (first seven characters) of the `.git/ref`. Can be templated with `short_ref_format` parameter.
+* `.git/tags`: Comma-separated list of tags associated with this commit.
+
+* `.git/author`: Commit author name.
+
+* `.git/author_date`: Timestamp when the author originally created the commit.
+
+* `.git/committer`: For committer notification on failed builds. This special file `.git/committer` which is populated
+  with the email address of the author of the last commit. This can be used together with an email resource
+  like [mdomke/concourse-email-resource](https://github.com/mdomke/concourse-email-resource) to notify the committer in
+  an on_failure step.
+
+* `.git/committer_name`: Name of the commit author.
+
+* `.git/committer_date`: Timestamp when the commit was added to the repository.
 
 * `.git/commit_message`: For publishing the Git commit message on successful builds.
 
 * `.git/commit_timestamp`: For tagging builds with a timestamp.
 
-* `.git/describe_ref`: Version reference detected and checked out. Can be templated with `describe_ref_options` parameter.
- By default, it will contain the `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`).
- If the repo was never tagged before, this falls back to a short commit SHA-1 ref.
+* `.git/describe_ref`: Version reference detected and checked out. Can be templated with `describe_ref_options`
+  parameter. By default, it will contain the
+  `<latest annoted git tag>-<the number of commit since the tag>-g<short_ref>` (eg. `v1.6.2-1-g13dfd7b`). If the repo
+  was never tagged before, this falls back to a short commit SHA-1 ref.
+
+* `.git/url`: Web URL to view the commit (if applicable).
+
+* `.git/metadata.json`: Complete metadata object in JSON format containing all metadata fields.
 
 ### `out`: Push to a repository
 
