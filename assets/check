@@ -125,7 +125,16 @@ else
     branchflag="--branch $branch"
   fi
 
-  git clone --bare --filter=blob:none --single-branch --progress $uri $branchflag $destination $tagflag
+  # Determine optimal filter based on whether path filtering is used
+  if [ "$paths" = "." ] && [ -z "$ignore_paths" ]; then
+      # No path filtering - use most aggressive filter for maximum performance
+      filter_flag="--filter=tree:0"
+  else
+      # Path filtering needed - keep trees to analyze paths, skip blobs
+      filter_flag="--filter=blob:none"
+  fi
+
+  git clone --bare $filter_flag --single-branch --progress $uri $branchflag $destination $tagflag
   cd $destination
   # bare clones don't configure the refspec
   if [ -n "$branch" ]; then
