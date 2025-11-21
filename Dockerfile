@@ -28,7 +28,9 @@ RUN apk --no-cache add \
     gpg \
     gpg-agent \
     jq \
-    openssh-client
+    openssh-client \
+    openssl \
+    curl
 
 RUN git config --global user.email "git@localhost"
 RUN git config --global user.name "git"

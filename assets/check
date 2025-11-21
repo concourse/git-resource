@@ -54,6 +54,8 @@ fi
 
 configure_git_global "${git_config_payload}"
 
+setup_github_app_credentials
+
 destination=$TMPDIR/git-resource-repo-cache
 
 # Optimization when last commit only is checked and skip ci is disabled
