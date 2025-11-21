@@ -261,6 +261,187 @@ it_can_put_to_url_with_rebase_with_tag_and_prefix() {
   test "$(git -C $repo1 rev-parse v1.0)" = $rebased_ref
 }
 
+
+it_can_put_to_url_with_rebase_strategy_options() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  # create initial commit with a file both will modify
+  echo "original" > $repo1/conflict-file
+  git -C $repo1 add conflict-file
+  git -C $repo1 commit -m "initial"
+  git -C $repo2 pull
+
+  # make a commit that will conflict when rebasing
+  local baseref=$(make_commit_to_file $repo1 conflict-file)
+
+  # make a conflicting local commit
+  echo "local" > $repo2/conflict-file
+  git -C $repo2 add conflict-file
+  git -C $repo2 commit -m "local change"
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
+
+  put_uri_with_rebase_strategy_option $repo1 $src repo "theirs" > $response
+
+  local rebased_ref=$(git -C $repo2 rev-parse HEAD)
+
+  jq -e "
+    .version == {ref: $(echo $rebased_ref | jq -R .)}
+  " < $response
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/conflict-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $rebased_ref
+}
+
+it_can_put_with_rebase_ignore_space_change() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  # create a file with specific spacing
+  printf "line1\nline2  \nline3\n" > $repo1/spacefile
+  git -C $repo1 add spacefile
+  git -C $repo1 commit -m "initial spacing"
+  git -C $repo2 pull
+
+  # repo1: change content but keep trailing spaces
+  printf "line1-changed\nline2  \nline3\n" > $repo1/spacefile
+  git -C $repo1 add spacefile
+  git -C $repo1 commit -m "content change"
+
+  # repo2: remove trailing spaces but keep old content
+  printf "line1\nline2\nline3-changed\n" > $repo2/spacefile
+  git -C $repo2 add spacefile
+  git -C $repo2 commit -m "spacing change"
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
+
+  put_uri_with_rebase_strategy_option $repo1 $src repo "ignore-space-change" > $response
+
+  local rebased_ref=$(git -C $repo2 rev-parse HEAD)
+
+  jq -e "
+    .version == {ref: $(echo $rebased_ref | jq -R .)}
+  " < $response
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  # verify the rebase succeeded and content is merged
+  grep "line1-changed" $repo1/spacefile
+  grep "line3-changed" $repo1/spacefile
+  test "$(git -C $repo1 rev-parse HEAD)" = $rebased_ref
+}
+
+it_can_put_with_rebase_multiple_strategy_options_string() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  # create a file with spacing issues
+  printf "line1\nline2  \nline3\n" > $repo1/testfile
+  git -C $repo1 add testfile
+  git -C $repo1 commit -m "initial"
+  git -C $repo2 pull
+
+  # repo1: modify line1 and clean up spacing on line2
+  printf "line1-remote\nline2\nline3\n" > $repo1/testfile
+  git -C $repo1 add testfile
+  git -C $repo1 commit -m "remote changes"
+
+  # repo2: modify line3 but keep spacing on line2
+  printf "line1\nline2  \nline3-local\n" > $repo2/testfile
+  git -C $repo2 add testfile
+  git -C $repo2 commit -m "local changes"
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
+
+  # This uses both "theirs" and "ignore-space-change"
+  put_uri_with_rebase_multiple_options_string $repo1 $src repo > $response
+
+  local rebased_ref=$(git -C $repo2 rev-parse HEAD)
+
+  jq -e "
+    .version == {ref: $(echo $rebased_ref | jq -R .)}
+  " < $response
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  # Should have remote's line1 change
+  grep "line1-remote" $repo1/testfile
+  # Should have local's line3 change (non-conflicting)
+  grep "line3-local" $repo1/testfile
+  test "$(git -C $repo1 rev-parse HEAD)" = $rebased_ref
+}
+
+it_can_put_with_rebase_multiple_strategy_options_array() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  # create a file with spacing issues
+  printf "line1\nline2  \nline3\n" > $repo1/testfile
+  git -C $repo1 add testfile
+  git -C $repo1 commit -m "initial"
+  git -C $repo2 pull
+
+  # repo1: modify line1 and clean up spacing on line2
+  printf "line1-remote\nline2\nline3\n" > $repo1/testfile
+  git -C $repo1 add testfile
+  git -C $repo1 commit -m "remote changes"
+
+  # repo2: modify line3 but keep spacing on line2
+  printf "line1\nline2  \nline3-local\n" > $repo2/testfile
+  git -C $repo2 add testfile
+  git -C $repo2 commit -m "local changes"
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
+
+  # This uses both "theirs" and "ignore-space-change"
+  put_uri_with_rebase_multiple_options_array $repo1 $src repo > $response
+
+  local rebased_ref=$(git -C $repo2 rev-parse HEAD)
+
+  jq -e "
+    .version == {ref: $(echo $rebased_ref | jq -R .)}
+  " < $response
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  # Should have remote's line1 change
+  grep "line1-remote" $repo1/testfile
+  # Should have local's line3 change (non-conflicting)
+  grep "line3-local" $repo1/testfile
+  test "$(git -C $repo1 rev-parse HEAD)" = $rebased_ref
+}
+
 it_can_put_to_url_with_merge_commit() {
   local repo1=$(init_repo)
 
@@ -631,6 +812,10 @@ run it_can_put_to_url_with_rebase_with_notes
 run it_can_put_to_url_with_rebase
 run it_can_put_to_url_with_rebase_with_tag
 run it_can_put_to_url_with_rebase_with_tag_and_prefix
+run it_can_put_to_url_with_rebase_strategy_options
+run it_can_put_with_rebase_ignore_space_change
+run it_can_put_with_rebase_multiple_strategy_options_string
+run it_can_put_with_rebase_multiple_strategy_options_array
 run it_will_fail_put_if_merge_and_rebase_are_set
 run it_can_put_to_url_with_merge_commit
 run it_chooses_the_unmerged_commit_ref

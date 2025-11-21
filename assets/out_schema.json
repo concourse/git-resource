@@ -1,6 +1,8 @@
 {
   "repository": "",
   "rebase": "",
+  "rebase_strategy": "",
+  "rebase_strategy_option": "",
   "merge": "",
   "returning": "",
   "tag": "",
