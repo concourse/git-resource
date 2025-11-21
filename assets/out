@@ -40,6 +40,8 @@ repository=$(jq -r '.params.repository // ""' <<< "$payload")
 tag=$(jq -r '.params.tag // ""' <<< "$payload")
 tag_prefix=$(jq -r '.params.tag_prefix // ""' <<< "$payload")
 rebase=$(jq -r '.params.rebase // false' <<< "$payload")
+rebase_strategy=$(jq -r '.params.rebase_strategy // ""' <<< "$payload")
+rebase_strategy_option=$(jq -r '.params.rebase_strategy_option // ""' <<< "$payload")
 merge=$(jq -r '.params.merge // false' <<< "$payload")
 returning=$(jq -r '.params.returning // "merged"' <<< "$payload")
 force=$(jq -r '.params.force // false' <<< "$payload")
@@ -189,11 +191,35 @@ elif [ "$merge" = "true" ]; then
     echo "merging and trying again..."
   done
 elif [ "$rebase" = "true" ]; then
+  rebase_cmd="git pull --rebase=merges"
+
+  # Add strategy if specified
+  if [ -n "$rebase_strategy" ]; then
+    rebase_cmd="$rebase_cmd --strategy=$rebase_strategy"
+  fi
+
+  # Add strategy options if specified, can be string or array
+  if [ -n "$rebase_strategy_option" ] && [ "$rebase_strategy_option" != "null" ]; then
+    # Check if it's an array or string
+    if echo "$rebase_strategy_option" | jq -e 'type == "array"' > /dev/null 2>&1; then
+      # It's already an array from jq
+      strategy_options=$(echo "$rebase_strategy_option" | jq -r '.[] | "-X" + .')
+      for opt in $strategy_options; do
+        rebase_cmd="$rebase_cmd $opt"
+      done
+    else
+      # It's a string - could be space-separated options
+      for opt in $rebase_strategy_option; do
+        rebase_cmd="$rebase_cmd -X$opt"
+      done
+    fi
+  fi
+
   while true; do
-    echo "rebasing..."
+    echo "rebasing using rebase command: $rebase_cmd push-target $branch..."
 
     git fetch push-target "refs/notes/*:refs/notes/*"
-    git pull --rebase=merges push-target $branch
+    $rebase_cmd push-target $branch
 
     result="0"
     push_with_result_check result

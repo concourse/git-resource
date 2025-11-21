@@ -1296,6 +1296,48 @@ put_uri_with_rebase_with_tag_and_prefix() {
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
 
+put_uri_with_rebase_strategy_option() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      rebase: true,
+      rebase_strategy_option: $(echo $4 | jq -R .)
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_rebase_multiple_options_string() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      rebase: true,
+      rebase_strategy_option: \"theirs ignore-space-change\"
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
+put_uri_with_rebase_multiple_options_array() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      rebase: true,
+      rebase_strategy_option: [\"theirs\", \"ignore-space-change\"]
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
+
 put_uri_with_notes() {
   jq -n "{
     source: {

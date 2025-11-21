@@ -575,6 +575,14 @@ and the `rebase` parameter is not provided, the push will fail.
     <td>If pushing fails with non-fast-forward, continuously attempt rebasing and pushing.</td>
   </tr>
   <tr>
+    <td><code>rebase_strategy</code><br/><i>Optional</i></td>
+    <td>Merge strategy to use during rebase (e.g., <code>recursive</code>, <code>ort</code>, <code>octopus</code>, <code>ours</code>, <code>subtree</code>). Passed via <code>--strategy</code> flag.</td>
+  </tr>
+  <tr>
+    <td><code>rebase_strategy_option</code><br/><i>Optional</i></td>
+    <td>Strategy-specific options passed via <code>-X</code> flag. Can be a string (space-separated) or array of options (e.g., <code>theirs</code>, <code>ours</code>, <code>ignore-space-change</code>).</td>
+  </tr>
+  <tr>
     <td><code>merge</code><br/><i>Optional</i></td>
     <td>If pushing fails with non-fast-forward, continuously attempt to merge remote to local before pushing. Only one of <code>merge</code> or <code>rebase</code> can be provided, but not both.</td>
   </tr>
