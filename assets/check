@@ -117,7 +117,11 @@ export GIT_LFS_SKIP_SMUDGE=1
 
 if [ -d $destination ]; then
   cd $destination
-  git fetch origin $tagflag $branch -f
+  if [ "$tagflag" = "--tags" ]; then
+    git fetch origin 'refs/heads/*:refs/heads/*' --tags -f
+  else
+    git fetch origin $tagflag $branch -f
+  fi
   git reset --soft FETCH_HEAD
 else
   branchflag=""
@@ -134,7 +138,12 @@ else
       filter_flag="--filter=blob:none"
   fi
 
-  git clone --bare $filter_flag --single-branch --progress $uri $branchflag $destination $tagflag
+  if [ "$tagflag" = "--tags" ]; then
+    # For tag filtering, don't use --single-branch - tags may be on any branch
+    git clone --bare $filter_flag --progress $uri $destination --tags
+  else
+    git clone --bare $filter_flag --single-branch --progress $uri $branchflag $destination $tagflag
+  fi
   cd $destination
   # bare clones don't configure the refspec
   if [ -n "$branch" ]; then
