@@ -1136,6 +1136,33 @@ it_checks_uri_with_tag_filter_and_version_depth() {
     ]"
 }
 
+it_can_check_tags_on_unmerged_branches() {
+  local repo=$(init_repo)
+
+  # Initial setup - populate with no matching tags
+  local ref1=$(make_commit_to_branch $repo master)
+  rm -rf $TMPDIR/git-resource-repo-cache
+  check_uri_with_tag_filter $repo "v*-hotfix" | jq -e ". == []"
+
+  # Create tag on divergent branch after cache exists
+  local ref2=$(make_commit_to_branch $repo hotfix)
+  local ref3=$(make_annotated_tag $repo "v1.0.0-hotfix" "hotfix tag")
+
+  # More commits on master - branch stays unmerged
+  local ref4=$(make_commit_to_branch $repo master)
+
+  # Should find tag via fetch (tests fetch path)
+  check_uri_with_tag_filter $repo "v*-hotfix" | jq -e "
+    . == [{ref: \"v1.0.0-hotfix\", commit: \"$ref2\"}]
+  "
+
+  # Clear cache and verify clone path also works
+  rm -rf $TMPDIR/git-resource-repo-cache
+  check_uri_with_tag_regex $repo "v.*-hotfix" | jq -e "
+    . == [{ref: \"v1.0.0-hotfix\", commit: \"$ref2\"}]
+  "
+}
+
 run check_jq_functionality
 run it_can_check_from_head
 run it_can_check_from_a_ref
@@ -1192,3 +1219,4 @@ run it_checks_with_version_depth
 run it_checks_uri_with_tag_filter_and_version_depth
 run it_errors_when_uri_is_empty
 run it_errors_when_there_are_unknown_keys_in_source
+run it_can_check_tags_on_unmerged_branches
