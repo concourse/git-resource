@@ -167,7 +167,7 @@ private_key: |
       <ul>
         <li>http(s) credentials:
           <ul>
-            <li><code>host</code> : The host to connect too. Note that <code>host</code> is specified with no protocol extensions.</li>
+            <li><code>host</code> : The host to connect to. Note that <code>host</code> is specified with no protocol extensions.</li>
             <li><code>username</code> : Username for HTTP(S) auth when pulling submodule.</li>
             <li><code>password</code> : Password for HTTP(S) auth when pulling submodule.</li>
           </ul>
