@@ -1093,6 +1093,20 @@ get_uri_with_sparse() {
   }" | ${resource_dir}/in "$2" | tee /dev/stderr
 }
 
+get_uri_with_fetch_branches() {
+  local uri=$1
+  local fetch_branches=$2
+  local dest=$3
+  jq -n "{
+    source: {
+      uri: $(echo $uri | jq -R .)
+    },
+    params: {
+      fetch: $(echo $fetch_branches | jq -R 'split(" ")')
+    }
+  }" | ${resource_dir}/in "$dest" | tee /dev/stderr
+}
+
 put_uri() {
   jq -n "{
     source: {
