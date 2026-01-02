@@ -9,5 +9,6 @@
   "clean_tags": "",
   "short_ref_format": "",
   "timestamp_format": "",
-  "describe_ref_options": ""
+  "describe_ref_options": "",
+  "all_branches": ""
 }

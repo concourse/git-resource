@@ -62,6 +62,7 @@ short_ref_format=$(jq -r '(.params.short_ref_format // "%s")' <<< "$payload")
 timestamp_format=$(jq -r '(.params.timestamp_format // "iso8601")' <<< "$payload")
 describe_ref_options=$(jq -r '(.params.describe_ref_options // "--always --dirty --broken")' <<< "$payload")
 search_remote_refs_flag=$(jq -r '(.source.search_remote_refs // false)' <<< "$payload")
+all_branches=$(jq -r '(.params.all_branches // false)' <<< "$payload")
 
 # If params not defined, get it from source
 if [ -z "$fetch_tags" ] || [ "$fetch_tags" == "null" ]  ; then
@@ -108,7 +109,12 @@ if [ "$disable_git_lfs" == "true" ]; then
   export GIT_LFS_SKIP_SMUDGE=1
 fi
 
-git clone --progress --single-branch $depthflag $uri $branchflag $destination $tagflag $nocheckoutflag
+singlebranchflag="--single-branch"
+if [ "${all_branches,,}" == "true" ]; then
+  singlebranchflag=""
+fi
+
+git clone --progress $singlebranchflag $depthflag $uri $branchflag $destination $tagflag $nocheckoutflag
 
 cd $destination
 

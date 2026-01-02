@@ -1107,6 +1107,18 @@ get_uri_with_fetch_branches() {
   }" | ${resource_dir}/in "$dest" | tee /dev/stderr
 }
 
+get_uri_with_all_branches() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: $(echo $2 | jq -R .),
+    },
+    params: {
+      all_branches: \"true\"
+    }
+  }" | ${resource_dir}/in "$3" | tee /dev/stderr
+}
+
 put_uri() {
   jq -n "{
     source: {

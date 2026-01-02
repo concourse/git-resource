@@ -102,6 +102,19 @@ it_can_get_from_url_at_override_branch() {
   test "$(git -C $dest rev-parse HEAD)" = $ref
 }
 
+it_can_get_from_url_with_all_branches() {
+  local repo=$(init_repo)
+  local ref=$(make_commit $repo)
+  local dest=$TMPDIR/destination
+
+  get_uri_with_all_branches $repo "master" $dest | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  git -C $dest show-ref --verify refs/remotes/origin/master
+  git -C $dest show-ref --verify refs/remotes/origin/bogus
+}
+
 it_preserves_git_config_in_local_repository() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -1130,6 +1143,7 @@ run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch
 run it_can_get_from_url_only_single_branch
 run it_can_get_from_url_at_override_branch
+run it_can_get_from_url_with_all_branches
 run it_preserves_git_config_in_local_repository
 run it_can_get_from_url_with_sparse_paths
 run it_omits_empty_branch_in_metadata

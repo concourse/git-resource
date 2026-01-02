@@ -504,6 +504,14 @@ correct key is provided set in `git_crypt_key`.
         describe</code></a>. Defaults to <code>--always --dirty --broken</code>.
     </td>
   </tr>
+  <tr>
+    <td><code>all_branches</code><br/><i>Optional</i></td>
+    <td>
+        If <code>true</code> the flag <code>--single-branch</code> will be
+        excluded and all branches will be fetched from the repository. If
+        <code>false</code> or not specified, only a single branch (either
+        <code>source.branch</code> or the default branch) will be fetched. </td>
+  </tr>
 </table>
 
 #### GPG signature verification
