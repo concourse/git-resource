@@ -65,6 +65,17 @@ it_can_get_from_url_at_branch() {
   test "$(git -C $dest rev-parse HEAD)" = $ref2
 }
 
+it_can_fetch_branches_that_already_exist() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit_to_branch $repo master)
+
+  local dest=$TMPDIR/destination
+
+  get_uri_with_fetch_branches $repo "master" $dest | jq -e "
+    .version == {ref: $(echo $ref1 | jq -R .)}
+  "
+}
+
 it_can_get_from_url_only_single_branch() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -438,7 +449,7 @@ it_considers_depth_if_ref_not_found() {
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit $repo)
   local ref3=$(make_commit $repo)
-  
+
   # make a total of 22 commits, so that ref0 is never fetched
   for (( i = 0; i < 18; i++ )); do
     make_commit $repo >/dev/null
@@ -1113,6 +1124,7 @@ run it_honors_the_depth_flag_for_submodules
 run it_falls_back_to_deep_clone_of_submodule_if_ref_not_found
 run it_fails_if_the_ref_cannot_be_found_while_deepening_a_submodule
 run it_honors_the_parameter_flags_for_submodules
+run it_can_fetch_branches_that_already_exist
 run it_can_get_from_url
 run it_can_get_from_url_at_ref
 run it_can_get_from_url_at_branch

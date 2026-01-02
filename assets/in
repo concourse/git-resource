@@ -236,7 +236,9 @@ fi
 
 for branch in $fetch; do
   git fetch origin $branch
-  git branch $branch FETCH_HEAD
+  if ! git show-ref --verify --quiet refs/heads/$branch; then
+    git branch $branch FETCH_HEAD
+  fi
 done
 
 if [ "$ref" == "HEAD" ]; then
