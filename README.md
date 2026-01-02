@@ -510,7 +510,8 @@ correct key is provided set in `git_crypt_key`.
         If <code>true</code> the flag <code>--single-branch</code> will be
         excluded and all branches will be fetched from the repository. If
         <code>false</code> or not specified, only a single branch (either
-        <code>source.branch</code> or the default branch) will be fetched. </td>
+        <code>source.branch</code> or the default branch) will be fetched.
+    </td>
   </tr>
 </table>
 
