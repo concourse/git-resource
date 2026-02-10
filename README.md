@@ -287,6 +287,20 @@ commit_filter:
         usually create. See also <code>out params.refs_prefix</code>.
     </td>
   </tr>
+  <tr>
+    <td><code>debug</code> (Optional)</td>
+    <td>
+        Set to <code>true</code> to enable. Sets the following for check/get/put
+        steps of the resource. Secrets may not be correctly redacted due the
+        JSON encoding of longer secret strings.
+        <pre>
+set -x
+export GIT_TRACE=1
+export GIT_TRACE_PACKFILE=1
+export GIT_CURL_VERBOSE=1
+        </pre>
+    </td>
+  </tr>
 </table>
 
 ### Example
@@ -513,6 +527,20 @@ correct key is provided set in `git_crypt_key`.
         <code>source.branch</code> or the default branch) will be fetched.
     </td>
   </tr>
+  <tr>
+    <td><code>debug</code> (Optional)</td>
+    <td>
+        Set to <code>true</code> to enable. Sets the following for check/get/put
+        steps of the resource. Secrets may not be correctly redacted due the
+        JSON encoding of longer secret strings.
+        <pre>
+set -x
+export GIT_TRACE=1
+export GIT_TRACE_PACKFILE=1
+export GIT_CURL_VERBOSE=1
+        </pre>
+    </td>
+  </tr>
 </table>
 
 #### GPG signature verification
@@ -652,6 +680,20 @@ and the `rebase` parameter is not provided, the push will fail.
       Allows pushing to refs other than heads. Defaults to <code>refs/heads</code>.
       <br/><br/>
       Useful when paired with <code>source.search_remote_refs</code> in cases where the git remote renames the ref you pushed.
+    </td>
+  </tr>
+  <tr>
+    <td><code>debug</code> (Optional)</td>
+    <td>
+        Set to <code>true</code> to enable. Sets the following for check/get/put
+        steps of the resource. Secrets may not be correctly redacted due the
+        JSON encoding of longer secret strings.
+        <pre>
+set -x
+export GIT_TRACE=1
+export GIT_TRACE_PACKFILE=1
+export GIT_CURL_VERBOSE=1
+        </pre>
     </td>
   </tr>
 </table>

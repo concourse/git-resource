@@ -25,5 +25,6 @@
   "https_tunnel": "",
   "commit_filter": "",
   "version_depth": "",
-  "search_remote_refs": ""
+  "search_remote_refs": "",
+  "debug": ""
 }
