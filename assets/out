@@ -28,6 +28,16 @@ if jq --exit-status 'length > 0' <<< "$unknown_keys" &>/dev/null; then
     exit 1
 fi
 
+src_debug=$(jq -r '.source.debug // false' <<< "$payload")
+params_debug=$(jq -r '.params.debug // false' <<< "$payload")
+if [[ "$src_debug" == "true" || "$params_debug" == "true" ]]; then
+    echo "debug mode enabled"
+    set -x
+    export GIT_TRACE=1
+    export GIT_TRACE_PACKFILE=1
+    export GIT_CURL_VERBOSE=1
+fi
+
 load_pubkey "$payload"
 configure_https_tunnel "$payload"
 configure_git_ssl_verification "$payload"
