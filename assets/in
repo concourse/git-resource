@@ -311,6 +311,10 @@ git log -1 --format=%cd --date=${timestamp_format} > .git/commit_timestamp
 # a custom tag, or package to publish
 echo "$(git describe ${describe_ref_options})" > .git/describe_ref
 
+if [ "${all_branches,,}" == "true" ]; then
+  echo $all_branches > .git/all_branches
+fi
+
 
 if [ "$clean_tags" == "true" ]; then
   git tag | xargs git tag -d
