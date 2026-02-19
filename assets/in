@@ -312,7 +312,7 @@ git log -1 --format=%cd --date=${timestamp_format} > .git/commit_timestamp
 echo "$(git describe ${describe_ref_options})" > .git/describe_ref
 
 if [ "${all_branches,,}" == "true" ]; then
-  git for-each-ref --format='%(refname:lstrip=3)' refs/remotes/ \
+  git for-each-ref --format='%(refname:lstrip=3)' --exclude='refs/remotes/*/HEAD' refs/remotes \
   | jq --raw-input --slurp --compact-output 'split("\n")[:-1]' > .git/branches_list.json
 fi
 
