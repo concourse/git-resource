@@ -562,6 +562,8 @@ the case.
 
 * `.git/branch`: Name of the original branch that was cloned.
 
+* `.git/branches_list.json`: List of all branches (requires `all_branches` set to `true`).
+
 * `.git/tags`: Comma-separated list of tags associated with this commit.
 
 * `.git/author`: Commit author name.
