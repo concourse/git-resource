@@ -130,8 +130,8 @@ if [ -d $destination ]; then
     git fetch origin 'refs/heads/*:refs/heads/*' --tags -f
   else
     git fetch origin $tagflag $branch -f
+    git reset --soft FETCH_HEAD
   fi
-  git reset --soft FETCH_HEAD
 else
   branchflag=""
   if [ -n "$branch" ]; then
