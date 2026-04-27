@@ -208,9 +208,16 @@ submodule_credentials:
   <tr>
     <td><code>git_config</code> (Optional)</td>
     <td>
-        If specified as (list of pairs <code>name</code> and <code>value</code>) it will configure git global options, setting each name with each value.
+        Specified as a list of pairs <code>name</code> and <code>value</code>. It will configure git global options, setting each name with each value.
         <p>This can be useful to set options like <code>credential.helper</code> or similar.</p>
-        <p>See the <a href="https://www.kernel.org/pub/software/scm/git/docs/git-config.html"><code>git-config(1)</code> manual page</a> for more information and documentation of existing git options.</p>
+        <p>See the <a href="https://git-scm.com/docs/git-config"><code>git-config(1)</code> manual page</a> for more information and documentation of existing git options.</p>
+        <p>Example:
+        <pre>
+git_config:
+  - name: push.recurseSubmodules
+    value: "no"
+        </pre>
+        </p>
     </td>
   </tr>
   <tr>
