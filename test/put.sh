@@ -789,6 +789,45 @@ it_can_put_with_refs_prefix() {
   test "$(git -C $repo1 rev-parse HEAD)" = $ref
 }
 
+it_can_put_to_url_with_push_options() {
+  local repo1=$(init_repo)
+
+  local src=$(mktemp -d $TMPDIR/put-src.XXXXXX)
+  local repo2=$src/repo
+  git clone $repo1 $repo2
+
+  local ref=$(make_commit $repo2)
+
+  # enable push options on the remote repo
+  git -C $repo1 config receive.advertisePushOptions true
+
+  # install a pre-receive hook that captures push options
+  local push_options_file=$(mktemp $TMPDIR/push-options.XXXXXX)
+  cat > $repo1/.git/hooks/pre-receive <<HOOK
+#!/bin/bash
+env | grep GIT_PUSH_OPTION | sort > $push_options_file
+cat <&0 > /dev/null
+HOOK
+  chmod +x $repo1/.git/hooks/pre-receive
+
+  # cannot push to repo while it's checked out to a branch
+  git -C $repo1 checkout refs/heads/master
+
+  put_uri_with_push_options $repo1 $src repo '["option-1", "option-2"]' | jq -e "
+    .version == {ref: $(echo $ref | jq -R .)}
+  "
+
+  # switch back to master
+  git -C $repo1 checkout master
+
+  test -e $repo1/some-file
+  test "$(git -C $repo1 rev-parse HEAD)" = $ref
+
+  # verify push options were received
+  grep "GIT_PUSH_OPTION_0=option-1" $push_options_file
+  grep "GIT_PUSH_OPTION_1=option-2" $push_options_file
+}
+
 it_errors_when_there_are_unknown_keys_in_params() {
     local failed_output=$TMPDIR/put-unknown-keys-output
     if put_uri_unknown_keys "some-uri" "some-dest" "some-repo" 2>"$failed_output"; then
@@ -826,4 +865,5 @@ run it_can_put_and_force_the_push
 run it_can_put_to_url_with_only_tag_and_force_the_push
 run it_will_fail_put_with_conflicting_tag_and_not_force_push
 run it_can_put_with_refs_prefix
+run it_can_put_to_url_with_push_options
 run it_errors_when_there_are_unknown_keys_in_params

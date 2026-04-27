@@ -59,6 +59,7 @@ only_tag=$(jq -r '.params.only_tag // false' <<< "$payload")
 annotation_file=$(jq -r '.params.annotate // ""' <<< "$payload")
 notes_file=$(jq -r '.params.notes // ""' <<< "$payload")
 override_branch=$(jq -r '.params.branch // ""' <<< "$payload")
+push_options=$(jq -r '.params.push_options // []' <<< "$payload")
 # useful for pushing to special ref types like refs/for in gerrit.
 refs_prefix=$(jq -r '.params.refs_prefix // "refs/heads"' <<< "$payload")
 
@@ -101,6 +102,11 @@ if [ $force = "true" ]; then
   forceflag="--force"
 fi
 
+push_options_flags=""
+if [ "$push_options" != "[]" ]; then
+  push_options_flags=$(echo "$push_options" | jq -r '.[] | "--push-option " + .')
+fi
+
 if [ -n "$override_branch" ]; then
   echo "Override $branch with $override_branch"
   branch=$override_branch
@@ -125,17 +131,17 @@ tag() {
 }
 
 push_src_and_tags() {
-  git push --tags push-target HEAD:$refs_prefix/$branch $forceflag
+  git push --tags push-target HEAD:$refs_prefix/$branch $forceflag $push_options_flags
 }
 
 push_tags() {
-  git push --tags push-target $forceflag
+  git push --tags push-target $forceflag $push_options_flags
 }
 
 add_and_push_notes() {
   if [ -n "$notes_file" ]; then
     git notes add -F "../${notes_file}"
-    git push push-target refs/notes/*
+    git push push-target refs/notes/* $push_options_flags
   fi
 }
 
