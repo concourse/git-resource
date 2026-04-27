@@ -260,16 +260,41 @@ get_tags_match_ancestors_filter() {
   # Sort commits so that we look at the oldest commits first
   local this_list_command="$list_command | git rev-list --stdin --date-order --first-parent --no-walk=unsorted --reverse"
   local list_output="$(set -f; eval "$this_list_command"; set +f)"
+
+  # Store all the tag names in an associative array for quick lookups.
+  # Also gather the commits each tag is attached to so we can quickly match
+  # candidate commits in a best-case scenario.
+  declare -A eligible_tag_names=()
+  declare -A eligible_tag_commits=()
+  local tag tag_commit
+  for tag in $tags; do
+    eligible_tag_names["$tag"]=1
+    tag_commit=$(git rev-list -n 1 "$tag" 2>/dev/null || true)
+    if [ -n "$tag_commit" ]; then
+      eligible_tag_commits["$tag_commit"]=1
+    fi
+  done
+
+  # Check each commit and only output commits that are ancestors of tags.
   for commit in $list_output; do
-    # Output the commit if it is an ancestor of any of the matching tags
     local is_ancestor=false
-    for tag in $tags; do
-      tag_commit=$(git rev-list -n 1 $tag)
-      if [ "$tag_commit" == "$commit" ] || git merge-base --is-ancestor "$commit" "$tag_commit"; then
-        is_ancestor=true
-        break
-      fi
-    done
+
+    # Fast path: check if the commit itself is the target of an eligible tag
+    if [ -n "${eligible_tag_commits[$commit]+x}" ]; then
+      is_ancestor=true
+    else
+      # Find all the tags whose history contains this commit - then check if
+      # any are eligible tags
+      local containing_tag
+      while IFS= read -r containing_tag; do
+        [ -z "$containing_tag" ] && continue
+        if [ -n "${eligible_tag_names[$containing_tag]+x}" ]; then
+          is_ancestor=true
+          break
+        fi
+      done < <(git tag --contains "$commit")
+    fi
+
     if [ "$is_ancestor" = true ]; then
       jq -cn '{ref: $commit}' --arg commit $commit
     fi
