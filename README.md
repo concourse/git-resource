@@ -683,6 +683,18 @@ and the `rebase` parameter is not provided, the push will fail.
     </td>
   </tr>
   <tr>
+    <td><code>push_options</code> (Optional)</td>
+    <td>
+        An array of strings that will be passed as <a
+        href="https://git-scm.com/docs/git-push#Documentation/git-push.txt--ooption"><code>--push-option</code></a>
+        flags when pushing to the repository. Example:
+        <pre>
+- push-option-1
+- push-option-2
+        </pre>
+    </td>
+  </tr>
+  <tr>
     <td><code>debug</code> (Optional)</td>
     <td>
         Set to <code>true</code> to enable. Sets the following for check/get/put

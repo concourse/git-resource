@@ -1425,3 +1425,16 @@ put_uri_with_refs_prefix() {
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
+
+put_uri_with_push_options() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      branch: \"master\"
+    },
+    params: {
+      repository: $(echo $3 | jq -R .),
+      push_options: $(echo $4)
+    }
+  }" | ${resource_dir}/out "$2" | tee /dev/stderr
+}
