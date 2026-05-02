@@ -664,7 +664,7 @@ check_uri_with_key_and_private_key_user() {
     source: {
       uri: $(echo $uri | jq -R .),
       private_key: $(cat $key | jq -s -R .),
-      private_key_user: $user
+      private_key_user: $(echo $user | jq -R .)
     }
   }" | ${resource_dir}/check | tee /dev/stderr
 }

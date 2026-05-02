@@ -111,7 +111,7 @@ it_configures_private_key_user() {
   local key=$TMPDIR/key-no-passphrase
 
   ssh-keygen -f $key
-  check_uri_with_key_and_user $repo $key someuser
+  check_uri_with_key_and_private_key_user $repo $key someuser
 
   grep "User someuser" $HOME/.ssh/config
 }
@@ -1220,3 +1220,5 @@ run it_checks_uri_with_tag_filter_and_version_depth
 run it_errors_when_uri_is_empty
 run it_errors_when_there_are_unknown_keys_in_source
 run it_can_check_tags_on_unmerged_branches
+run it_configures_private_key_user
+run it_skips_private_key_user_configuration

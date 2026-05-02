@@ -59,7 +59,7 @@ init_ssh_agent() {
   ssh-add -l &> /dev/null
   exit_code=$?
   set -e
-  
+
   if [[ ${exit_code} -eq 2 ]]; then
     # ssh-agent does not exist, create ssh-agent
     eval $(ssh-agent) > /dev/null 2>&1
@@ -191,7 +191,7 @@ add_git_metadata_url() {
   # most common hosting scenarios for where a commit URL exists
   if [[ ! $origin =~ ^(https?://|ssh://git@|git@)([^/]+)/(.*)$ ]]; then
     jq ". + []"
-  else  
+  else
     local host=${BASH_REMATCH[2]}
     local repo_path=${BASH_REMATCH[3]%.git}
 
