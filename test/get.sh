@@ -372,6 +372,24 @@ it_writes_complete_metadata_files() {
     ( echo "metadata.json missing author field"; return 1 )
 }
 
+# End-to-end: the metadata `in` emits on fd 3 must be valid UTF-8 even for a
+# commit with invalid UTF-8, else Concourse's gRPC marshaling fails.
+it_emits_valid_utf8_metadata_from_invalid_commit() {
+  local repo=$(init_repo)
+  make_commit_with_invalid_utf8 $repo >/dev/null
+  local dest=$TMPDIR/destination
+
+  local output=$(get_uri $repo $dest)
+
+  echo "$output" | jq -c '.' | iconv -f UTF-8 -t UTF-8 >/dev/null 2>&1 || \
+    ( echo "in emitted invalid UTF-8"; return 1 )
+  echo "$output" | jq -e '
+    (.metadata | from_entries) as $m
+    | $m.author == "badname" and $m.message == "badmessage"
+  ' >/dev/null || \
+    ( echo "emitted metadata not sanitized"; return 1 )
+}
+
 it_can_use_submodules_without_perl_warning() {
   local repo=$(init_repo_with_submodule | cut -d "," -f1)
   local dest=$TMPDIR/destination
@@ -1150,6 +1168,7 @@ run it_returns_branch_in_metadata
 run it_omits_empty_tags_in_metadata
 run it_returns_list_of_tags_in_metadata
 run it_writes_complete_metadata_files
+run it_emits_valid_utf8_metadata_from_invalid_commit
 run it_honors_the_depth_flag
 run it_can_get_from_url_at_depth_at_ref
 run it_falls_back_to_deep_clone_if_ref_not_found

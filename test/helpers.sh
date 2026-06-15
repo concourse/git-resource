@@ -290,6 +290,23 @@ make_empty_commit() {
   git -C $repo rev-parse HEAD
 }
 
+# Commit a raw 0xe9 byte (invalid UTF-8) in author/committer/message. A literal
+# object stores the bytes verbatim instead of letting git transcode them.
+make_commit_with_invalid_utf8() {
+  local repo=$1
+
+  local tree=$(git -C $repo rev-parse HEAD^{tree})
+  local parent=$(git -C $repo rev-parse HEAD)
+
+  local commit
+  commit=$(printf 'tree %s\nparent %s\nauthor bad\xe9name <bad@example.com> 946684800 +0000\ncommitter bad\xe9name <bad@example.com> 946684800 +0000\n\nbad\xe9message\n' "$tree" "$parent" \
+    | git -C $repo hash-object -w -t commit --literally --stdin)
+
+  git -C $repo update-ref HEAD "$commit"
+
+  git -C $repo rev-parse HEAD
+}
+
 make_annotated_tag() {
   local repo=$1
   local tag=$2

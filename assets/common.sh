@@ -119,9 +119,15 @@ configure_git_ssl_verification() {
   fi
 }
 
+# Drop invalid UTF-8 so Concourse can marshal the metadata into gRPC labels.
+# Run before jq, which would otherwise replace bad bytes with U+FFFD.
+sanitize_utf8() {
+  iconv -f UTF-8 -t UTF-8 -c 2>/dev/null
+}
+
 add_git_metadata_basic() {
   local commit=$(git rev-parse HEAD)
-  local author=$(git log -1 --format=format:%an)
+  local author=$(git log -1 --format=format:%an | sanitize_utf8)
   local author_date=$(git log -1 --format=format:%ai)
 
   jq --arg commit "$commit" \
@@ -135,9 +141,9 @@ add_git_metadata_basic() {
 }
 
 add_git_metadata_committer() {
-  local author=$(git log -1 --format=format:%an)
+  local author=$(git log -1 --format=format:%an | sanitize_utf8)
   local author_date=$(git log -1 --format=format:%ai)
-  local committer=$(git log -1 --format=format:%cn)
+  local committer=$(git log -1 --format=format:%cn | sanitize_utf8)
   local committer_date=$(git log -1 --format=format:%ci)
 
   if [ "$author" = "$committer" ] && [ "$author_date" = "$committer_date" ]; then
@@ -151,7 +157,7 @@ add_git_metadata_committer() {
 }
 
 add_git_metadata_branch() {
-  local branch=$(git show-ref --heads | \
+  local branch=$(git show-ref --heads | sanitize_utf8 | \
     sed -n "s/^$(git rev-parse HEAD) refs\/heads\/\(.*\)/\1/p" |  \
     jq -R  ". | select(. != \"\")" | jq -r -s "map(.) | join (\",\")")
 
@@ -165,7 +171,7 @@ add_git_metadata_branch() {
 }
 
 add_git_metadata_tags() {
-  local tags=$(git tag --points-at HEAD | \
+  local tags=$(git tag --points-at HEAD | sanitize_utf8 | \
     jq -R  ". | select(. != \"\")" | \
     jq -r -s "map(.) | join(\",\")")
 
@@ -179,7 +185,7 @@ add_git_metadata_tags() {
 }
 
 add_git_metadata_tag() {
-  local tag=$(git tag --points-at HEAD)
+  local tag=$(git tag --points-at HEAD | sanitize_utf8)
 
   if [ -n "${tag}" ]; then
     jq --arg tag "$tag" '. + [
@@ -191,7 +197,7 @@ add_git_metadata_tag() {
 }
 
 add_git_metadata_message() {
-  local message=$(git log -1 --format=format:%B | head -c 10240)
+  local message=$(git log -1 --format=format:%B | head -c 10240 | sanitize_utf8)
 
   jq --arg message "$message" '. + [
     {name: "message", value: $message, type: "message"}

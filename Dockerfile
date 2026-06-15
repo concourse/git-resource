@@ -23,6 +23,7 @@ RUN apk --no-cache add \
     git \
     git-crypt \
     git-lfs \
+    glibc-iconv \
     gnupg \
     gnupg-dirmngr \
     gpg \

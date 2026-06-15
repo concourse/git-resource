@@ -116,6 +116,40 @@ it_has_url_in_metadata_when_remote_is_bitbucket() {
     test $(git_metadata | jq -r '.[] | select(.name == "url") | .value') = $expectedUrl
 }
 
+# Invalid UTF-8 in a commit (or in a branch/tag name) must not break Concourse's
+# gRPC metadata marshaling: "string field contains invalid UTF-8".
+it_strips_invalid_utf8_from_metadata() {
+    local repo=$(init_repo)
+    make_commit_with_invalid_utf8 $repo >/dev/null
+    git -C $repo branch "$(printf 'bad\xe9br')" HEAD
+    git -C $repo tag "$(printf 'bad\xe9tag')" HEAD
+    cd $repo
+
+    # the fixture must actually be invalid UTF-8
+    if git log -1 --format='%an%n%cn%n%B' | iconv -f UTF-8 -t UTF-8 >/dev/null 2>&1; then
+        echo "fixture commit unexpectedly contains only valid UTF-8"
+        return 1
+    fi
+
+    local metadata=$(git_metadata)
+
+    printf '%s' "$metadata" | iconv -f UTF-8 -t UTF-8 >/dev/null 2>&1 || \
+        ( echo "git_metadata emitted invalid UTF-8"; return 1 )
+
+    # bad bytes must be dropped, not replaced with U+FFFD (which is what jq does)
+    if printf '%s' "$metadata" | grep -q $'\xef\xbf\xbd'; then
+        echo "metadata contains the U+FFFD replacement character"
+        return 1
+    fi
+
+    test "$(echo "$metadata" | jq -r '.[] | select(.name == "author") | .value')" = "badname"
+    test "$(echo "$metadata" | jq -r '.[] | select(.name == "committer") | .value')" = "badname"
+    test "$(echo "$metadata" | jq -r '.[] | select(.name == "message") | .value')" = "badmessage"
+    test "$(echo "$metadata" | jq -r '.[] | select(.name == "branch") | .value')" = "badbr,master"
+    test "$(echo "$metadata" | jq -r '.[] | select(.name == "tags") | .value')" = "badtag"
+    test "$(git_tag_metadata | jq -r '.[] | select(.name == "tag") | .value')" = "badtag"
+}
+
 it_truncates_large_messages() {
     local repo=$(init_repo)
     local message=$(cat /dev/urandom | tr -dc A-Z | head -c 20000 ; echo '')
@@ -138,3 +172,4 @@ run it_has_url_in_metadata_when_remote_is_likely_github_enterprise
 run it_has_url_in_metadata_when_remote_is_gitlab
 run it_has_url_in_metadata_when_remote_is_bitbucket
 run it_truncates_large_messages
+run it_strips_invalid_utf8_from_metadata
