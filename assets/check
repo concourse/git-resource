@@ -5,6 +5,13 @@ set -e
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for logging
 
+lock_file="${TMPDIR:-/tmp}/check.lock"
+exec 6>"$lock_file"
+if ! flock -n 6; then
+    echo "Another instance of the check script is already running - Exiting."
+    exit 1
+fi
+
 assets="$(dirname $0)"
 source "${assets}/common.sh"
 
