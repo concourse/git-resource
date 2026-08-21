@@ -282,7 +282,7 @@ configure_credentials() {
   configure_submodule_credentials "$1"
 
   if [ "$username" != "" -a "$password" != "" ]; then
-    local credential_hosts=$(jq -r '.source.credential_hosts // [] | .[]' <<< "$1")
+    local credential_hosts=$(jq -r '(.source.credential_hosts // []) | if type == "array" then .[] else . end' <<< "$1")
     if [ "$credential_hosts" != "" ]; then
       for host in $credential_hosts; do
         echo "machine $host login $username password $password" >> "${HOME}/.netrc"
