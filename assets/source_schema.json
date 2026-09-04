@@ -8,6 +8,7 @@
   "forward_agent": "",
   "username": "",
   "password": "",
+  "credential_hosts": "",
   "paths": "",
   "sparse_paths": "",
   "ignore_paths": "",

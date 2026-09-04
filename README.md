@@ -88,6 +88,10 @@ private_key: |
     <td>Password for HTTP(S) auth when pulling/pushing.</td>
   </tr>
   <tr>
+    <td><code>credential_hosts</code> (Optional)</td>
+    <td>List of hostnames the HTTP(S) <code>username</code>/<code>password</code> may be sent to. When set, the credentials are written to <code>.netrc</code> scoped to these hosts instead of the <code>default</code> entry, which matches every host. Hosts are specified with no protocol, e.g. <code>github.com</code>. Submodules on hosts not listed here will not receive these credentials; use <code>submodule_credentials</code> for those. When omitted, credentials match all hosts (previous behavior).</td>
+  </tr>
+  <tr>
     <td><code>skip_ssl_verification</code> (Optional)</td>
     <td>Skips git ssl verification by exporting <code>GIT_SSL_NO_VERIFY=true</code>.</td>
   </tr>

@@ -408,6 +408,17 @@ check_uri_with_submodule_credentials() {
   }" | ${resource_dir}/check | tee /dev/stderr
 }
 
+check_uri_with_credential_hosts() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      username: $(echo $2 | jq -R .),
+      password: $(echo $3 | jq -R .),
+      credential_hosts: $(echo "$4" | jq -R '. | split(" ")')
+    }
+  }" | ${resource_dir}/check | tee /dev/stderr
+}
+
 check_uri_ignoring() {
   local uri=$1
 

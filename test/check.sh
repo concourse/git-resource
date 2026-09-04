@@ -168,6 +168,31 @@ EOF
   [ ! -f "$HOME/.netrc" ]
 }
 
+it_scopes_credentials_to_credential_hosts() {
+  local repo=$(init_repo)
+  local ref=$(make_commit "$repo")
+  local expected_netrc
+  expected_netrc=$(cat <<EOF
+machine host1 login user1 password pass1
+machine host2 login user1 password pass1
+EOF
+)
+  check_uri_with_credential_hosts "$repo" "user1" "pass1" "host1 host2" | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+  echo "Generated netrc $(cat ${HOME}/.netrc)"
+  echo "Expected netrc $expected_netrc"
+  [ "$(cat $HOME/.netrc)" = "$expected_netrc" ]
+
+  # no default entry: the credentials must not match hosts outside the list
+  ! grep -q "^default " $HOME/.netrc
+
+  check_uri_with_credentials $repo "" "" | jq -e "
+    . == [{ref: $(echo $ref | jq -R .)}]
+  "
+  [ ! -f "$HOME/.netrc" ]
+}
+
 it_clears_netrc_even_after_errors() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
@@ -1190,6 +1215,7 @@ run it_configures_forward_agent
 run it_skips_forward_agent_configuration
 run it_can_check_with_credentials
 run it_can_check_with_submodule_credentials
+run it_scopes_credentials_to_credential_hosts
 run it_clears_netrc_even_after_errors
 run it_can_check_empty_commits
 run it_can_check_with_tag_filter
